@@ -4,5 +4,5 @@ using System.Linq;
 using Interpreter;
 
 var tokens = Lexer.Tokenize(File.ReadAllText(args[0])).ToArray();
-var nodes = Parser.GenerateAST(tokens);
+var nodes = Parser.GenerateAST(tokens).ToArray();
 Interpreter.Interpreter.CalapseAST(nodes);

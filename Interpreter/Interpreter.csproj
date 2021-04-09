@@ -6,7 +6,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Update="test.txt">
+    <ProjectReference Include="..\Parser\Parser.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="test.fsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
