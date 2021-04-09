@@ -8,5 +8,7 @@ namespace Interpreter
 {
     public class AbstractSyntaxTree
     {
+        private Node root;
+
     }
 }

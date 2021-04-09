@@ -8,16 +8,45 @@ namespace Interpreter
 {
     public static class Interpreter
     {
-        public static void Execute(IEnumerable<Node> nodes)
+        public static void CalapseAST(IEnumerable<Node> nodes)
         {
-            foreach(var node in nodes)
+            ExecuteNode(nodes.First());
+
+            Console.WriteLine(nodes.First().Token.value);
+
+            void ExecuteNode(Node node)
             {
-                switch (node.Oporator.value)
+                if (node.Token.Type == TokenType.Operator)
                 {
-                    case "+":
-                        Console.WriteLine(int.Parse(node.Left.value) + int.Parse(node.Right.value));
-                        break;
+                    if (node.Left.Token.Type == TokenType.Integer)
+                    {
+                        if (node.Right.Token.Type == TokenType.Integer)
+                        {
+                            node.Token = Calaps(node);
+                            node.Right = null;
+                            node.Left = null;
+                        }
+                        else if (node.Right != null)
+                        {
+                            ExecuteNode(node.Right);
+                            ExecuteNode(node);
+                        }
+                    }
+                    else if (node.Left != null)
+                    {
+                        ExecuteNode(node.Left);
+                        ExecuteNode(node);
+                    }
                 }
+            }
+
+            Token Calaps(Node node)
+            {
+                return node.Token.value switch
+                {
+                    "+" => new Token(TokenType.Integer, (int.Parse(node.Left.Token.value) + int.Parse(node.Right.Token.value)).ToString()),
+                    "-" => new Token(TokenType.Integer, (int.Parse(node.Left.Token.value) - int.Parse(node.Right.Token.value)).ToString())
+                };
             }
         }
     }

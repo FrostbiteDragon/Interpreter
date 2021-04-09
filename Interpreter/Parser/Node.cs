@@ -8,14 +8,18 @@ namespace Interpreter
 {
     public class Node
     {
-        public Token Left { get; init; }
-        public Token Oporator { get; init; }
-        public Token Right { get; init; }
-       
-        public Node(Token left, Token oporator, Token right)
+        public Token Token { get; set; }
+        public Node Left { get; set; }
+        public Node Right { get; set; }
+
+        public Node(Token token)
         {
+            Token = token;
+        }
+        public Node(Token token, Node left, Node right)
+        {
+            Token = token;
             Left = left;
-            Oporator = oporator;
             Right = right;
         }
     }

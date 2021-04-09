@@ -23,8 +23,8 @@ namespace Interpreter
 
                 yield return character switch
                 {
-                    '+' => new Token(TokenType.Operator, character.ToString()),
-                    ';' => new Token(TokenType.NewLine, character.ToString()),
+                    '+' or '-' => new Token(TokenType.Operator, character.ToString()),
+                    ';' or '\n' => new Token(TokenType.NewLine, character.ToString()),
 
                     char digit when char.IsDigit(character) => new Token(TokenType.Integer, GetFullInteger(character, reader)),
                     _ => throw new Exception("Charactor not supported")

@@ -10,10 +10,9 @@ namespace Interpreter
     {
         public static IEnumerable<Node> GenerateAST(IEnumerable<Token> tokens)
         {
-            
-
             var tokenList = tokens.ToList();
-            return new Node[1] { new Node(tokenList[0], tokenList[1], tokenList[2]) };
+
+            return new Node[1] { new Node(tokenList[3], new Node(tokenList[1], new(tokenList[0]), new(tokenList[2])), new(tokenList[4])) };
         }
     }
 }

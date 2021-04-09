@@ -5,4 +5,4 @@ using Interpreter;
 
 var tokens = Lexer.Tokenize(File.ReadAllText(args[0])).ToArray();
 var nodes = Parser.GenerateAST(tokens);
-Interpreter.Interpreter.Execute(nodes);
+Interpreter.Interpreter.CalapseAST(nodes);
