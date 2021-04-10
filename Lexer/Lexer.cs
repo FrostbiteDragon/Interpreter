@@ -15,7 +15,7 @@ namespace Interpreter
                 .Where(x => x != ' ')
                 .ToArray();
 
-            var reader = new StringReader(new string(characters));
+            using var reader = new StringReader(new string(characters));
 
             while (reader.Peek() != -1)
             {
