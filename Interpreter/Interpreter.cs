@@ -46,7 +46,9 @@ namespace Interpreter
                 {
                     "+" => new Token(TokenType.Integer, (int.Parse(node.Left.Token.value) + int.Parse(node.Right.Token.value)).ToString()),
                     "-" => new Token(TokenType.Integer, (int.Parse(node.Left.Token.value) - int.Parse(node.Right.Token.value)).ToString()),
-                    "*" => new Token(TokenType.Integer, (int.Parse(node.Left.Token.value) * int.Parse(node.Right.Token.value)).ToString())
+
+                    "*" => new Token(TokenType.Integer, (int.Parse(node.Left.Token.value) * int.Parse(node.Right.Token.value)).ToString()),
+                    "/" => new Token(TokenType.Integer, (int.Parse(node.Left.Token.value) / int.Parse(node.Right.Token.value)).ToString())
                 };
             }
         }
