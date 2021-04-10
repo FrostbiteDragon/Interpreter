@@ -10,9 +10,11 @@ namespace Interpreter
     {
         public static void CalapseAST(IEnumerable<Node> nodes)
         {
-            ExecuteNode(nodes.First());
-
-            Console.WriteLine(nodes.First().Token.value);
+            foreach (Node node in nodes)
+            {
+                ExecuteNode(node);
+                Console.WriteLine(node.Token.value);
+            }
 
             void ExecuteNode(Node node)
             {

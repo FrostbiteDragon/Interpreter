@@ -9,7 +9,7 @@ namespace Interpreter
         {
             yield return GenerateNode(new Node(tokens[1], new(tokens[0]), new(tokens[2])), tokens, 2);
 
-            Node GenerateNode(Node node, Token[] tokens, int pos)
+            static Node GenerateNode(Node node, Token[] tokens, int pos)
             {
                 if (pos >= tokens.Length - 1)
                     return node;
