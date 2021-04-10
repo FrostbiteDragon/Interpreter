@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 
 namespace Interpreter
@@ -7,7 +8,7 @@ namespace Interpreter
     {
         public static IEnumerable<Node> GenerateAST(Token[] tokens)
         {
-            yield return GenerateNode(new Node(tokens[0]), tokens, 0);
+            yield return GenerateNode(new Node(tokens[1], new(tokens[0]), new(tokens[2])), tokens, 2);
 
             Node GenerateNode(Node node, Token[] tokens, int pos)
             {
@@ -18,9 +19,20 @@ namespace Interpreter
                     return GenerateNode(node, tokens, pos + 1);
                 else
                 {
-                    var newNode = new Node(tokens[pos], node, new(tokens[pos + 1]));
+                    if (node.Token.IsLowerValue(tokens[pos].value))
+                    {
+                        var newNode = new Node(tokens[pos], node.Right, new(tokens[pos + 1]));
 
-                    return GenerateNode(newNode, tokens, pos + 1);
+                        node.Right = newNode;
+
+                        return GenerateNode(node, tokens, pos + 1);
+                    }
+                    else
+                    {
+                        var newNode = new Node(tokens[pos], node, new(tokens[pos + 1]));
+
+                        return GenerateNode(newNode, tokens, pos + 1);
+                    }
                 }
             }
         }

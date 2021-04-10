@@ -2,7 +2,7 @@
   "profiles": {
     "Interpreter": {
       "commandName": "Project",
-      "commandLineArgs": "\"test.fsl\""
+      "commandLineArgs": "\"test.frs\""
     }
   }
 }
