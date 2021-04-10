@@ -24,7 +24,7 @@ namespace Interpreter
             return oporator switch
             {
                 "-" or "+" => false,
-                _ when oporator == "*" || oporator == "/" => value == "-" || value == "+" ? true : false,
+                _ when oporator == "*" || oporator == "/" => value == "-" || value == "+",
                 _ => false
             };
         }
