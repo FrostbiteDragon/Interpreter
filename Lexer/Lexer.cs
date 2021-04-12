@@ -21,21 +21,40 @@ namespace Interpreter
             {
                 var character = (char)reader.Read();
 
-                yield return character switch
+                // End-of-line check for Mac and Window systems.
+                //  If the next character is an \n, then this is a Windows system.
+                //  Else we just have an \r, this is a Mac system and we just continue.
+                // ~Zach
+                if (character == '\r')
                 {
-                    '+' or '-' or '*' or '/' => new Token(TokenType.Operator, character.ToString()),
-                    ';' or '\n' => new Token(TokenType.NewLine, character.ToString()),
+                    // Check the next character.
+                    if ((char)reader.Peek() == '\n')
+                    {
+                        // Read out the \n so it doesn't throw an exception on the next iteration.
+                        var disposeChar = (char)reader.Read();
+                        yield return new Token(TokenType.NewLine, character.ToString());
+                    }
+                    else
+                        yield return new Token(TokenType.NewLine, character.ToString());
+                }
+                else
+                {
+                    yield return character switch
+                    {
+                        '+' or '-' or '*' or '/' => new Token(TokenType.Operator, character.ToString()),
+                        ';' or '\n' => new Token(TokenType.NewLine, character.ToString()),
 
-                    '(' or '[' or '{' => new Token(TokenType.ParentheseOpen, character.ToString()),
-                    ')' or ']' or '}' => new Token(TokenType.ParentheseClose, character.ToString()),
+                        '(' or '[' or '{' => new Token(TokenType.ParentheseOpen, character.ToString()),
+                        ')' or ']' or '}' => new Token(TokenType.ParentheseClose, character.ToString()),
 
-                    '=' => new Token(TokenType.Assign, character.ToString()),
+                        '=' => new Token(TokenType.Assign, character.ToString()),
 
-                    _ when char.IsLetter(character) => new Token(TokenType.Id, GetFullId(character, reader)),
+                        _ when char.IsLetter(character) => new Token(TokenType.Id, GetFullId(character, reader)),
 
-                    char digit when char.IsDigit(character) => new Token(TokenType.Integer, GetFullInteger(character, reader)),
-                    _ => throw new Exception($"Charactor {character} not supported")
-                };
+                        char digit when char.IsDigit(character) => new Token(TokenType.Integer, GetFullInteger(character, reader)),
+                        _ => throw new Exception($"Charactor {character} not supported")
+                    };
+                }
             }
 
             static string GetFullId(char firstChar, StringReader reader)
