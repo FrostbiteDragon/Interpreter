@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Interpreter
 {
-    public enum TokenType { Integer, Operator, NewLine, ParentheseOpen, ParentheseClose}
+    public enum TokenType { Integer, Operator, NewLine, ParentheseOpen, ParentheseClose, Assign, Id}
 
     public class Token
     {

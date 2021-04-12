@@ -25,5 +25,10 @@ namespace Interpreter
             Left = left;
             Right = right;
         }
+
+        public override string ToString()
+        {
+            return $"{Left?.Token.value}{Token.value}{Right?.Token.value}";
+        }
     }
 }

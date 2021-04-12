@@ -29,13 +29,34 @@ namespace Interpreter
                     '(' or '[' or '{' => new Token(TokenType.ParentheseOpen, character.ToString()),
                     ')' or ']' or '}' => new Token(TokenType.ParentheseClose, character.ToString()),
 
+                    '=' => new Token(TokenType.Assign, character.ToString()),
+
+                    _ when char.IsLetter(character) => new Token(TokenType.Id, GetFullId(character, reader)),
+
                     char digit when char.IsDigit(character) => new Token(TokenType.Integer, GetFullInteger(character, reader)),
                     _ => throw new Exception($"Charactor {character} not supported")
                 };
             }
 
-            string GetFullInteger(char firstInt, StringReader reader)
+            static string GetFullId(char firstChar, StringReader reader)
             {
+                return new string(Step().ToArray());
+
+                IEnumerable<char> Step()
+                {
+                    yield return firstChar;
+
+                    while (char.IsLetterOrDigit((char)reader.Peek()))
+                    {
+                        yield return (char)reader.Read();
+                    }
+                }
+            }
+
+            static string GetFullInteger(char firstInt, StringReader reader)
+            {
+                return new string(Step().ToArray());
+
                 IEnumerable<char> Step()
                 {
                     yield return firstInt;
@@ -45,8 +66,6 @@ namespace Interpreter
                         yield return (char)reader.Read();
                     }
                 }
-
-                return new string(Step().ToArray());
             }
         }
     }
