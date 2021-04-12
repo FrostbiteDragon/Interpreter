@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Interpreter
 {
-    public enum TokenType { Integer, Operator, NewLine}
+    public enum TokenType { Integer, Operator, NewLine, ParentheseOpen, ParentheseClose}
 
     public class Token
     {
@@ -19,14 +19,16 @@ namespace Interpreter
             this.value = value;
         }
 
-        public bool IsLowerValue(string oporator)
+        public bool IsHigherPrecidence(string oporator)
         {
-            return oporator switch
+            var result = oporator switch
             {
                 "-" or "+" => false,
                 _ when oporator == "*" || oporator == "/" => value == "-" || value == "+",
                 _ => false
             };
+
+            return result;
         }
     }
 }

@@ -18,6 +18,8 @@ namespace Interpreter
 
             void ExecuteNode(Node node)
             {
+                if (node.Token.Type == TokenType.Integer)
+                    return;
                 if (node.Token.Type == TokenType.Operator)
                 {
                     if (node.Left.Token.Type == TokenType.Integer)
@@ -40,6 +42,8 @@ namespace Interpreter
                         ExecuteNode(node);
                     }
                 }
+                else
+                    throw new Exception($"unsuported token type: {node.Token.Type}");
             }
 
             Token Calaps(Node node)
@@ -50,7 +54,8 @@ namespace Interpreter
                     "-" => new Token(TokenType.Integer, (int.Parse(node.Left.Token.value) - int.Parse(node.Right.Token.value)).ToString()),
 
                     "*" => new Token(TokenType.Integer, (int.Parse(node.Left.Token.value) * int.Parse(node.Right.Token.value)).ToString()),
-                    "/" => new Token(TokenType.Integer, (int.Parse(node.Left.Token.value) / int.Parse(node.Right.Token.value)).ToString())
+                    "/" => new Token(TokenType.Integer, (int.Parse(node.Left.Token.value) / int.Parse(node.Right.Token.value)).ToString()),
+                    _ => throw new Exception($"Did not recognise character: {node.Token.value}")
                 };
             }
         }

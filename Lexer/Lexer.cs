@@ -26,6 +26,9 @@ namespace Interpreter
                     '+' or '-' or '*' or '/' => new Token(TokenType.Operator, character.ToString()),
                     ';' or '\n' => new Token(TokenType.NewLine, character.ToString()),
 
+                    '(' => new Token(TokenType.ParentheseOpen, character.ToString()),
+                    ')' => new Token(TokenType.ParentheseClose, character.ToString()),
+
                     char digit when char.IsDigit(character) => new Token(TokenType.Integer, GetFullInteger(character, reader)),
                     _ => throw new Exception("Charactor not supported")
                 };
