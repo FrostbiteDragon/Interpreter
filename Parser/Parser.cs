@@ -19,6 +19,9 @@ namespace Interpreter
                         yield return line.ToArray();
                         line = new List<Token>();
                     }
+                    else if (token.Type == TokenType.Discard)
+                        continue;
+
                     else line.Add(token);
                 }
 
@@ -27,22 +30,23 @@ namespace Interpreter
                     yield return line.ToArray();
             }
 
-            var x = SplitTokens(programeTokens).ToList();
-
             foreach (var tokens in SplitTokens(programeTokens))
             {
                 var newTokens = tokens.ToList();
                 //add a multiplication wherever a parenthese is proceded by an interger or another parenthese
-                for (int i = 1; i < tokens.Length; i++)
+                for (int i = 1; i < newTokens.Count; i++)
                 {
-                    if (tokens[i].Type == TokenType.ParentheseOpen && (tokens[i - 1].Type == TokenType.Integer || tokens[i - 1].Type == TokenType.ParentheseClose))
+                    if (newTokens[i].Type == TokenType.ParentheseOpen && (newTokens[i - 1].Type == TokenType.Integer || newTokens[i - 1].Type == TokenType.ParentheseClose))
                     {
                         newTokens.Insert(i, new Token(TokenType.Operator, "*"));
                         i++;
                     }
                 }
+                
+                var node = GenerateNode(null, newTokens.ToArray(), 0);
 
-                yield return GenerateNode(null, newTokens.ToArray(), 0);
+                if (node is not null)
+                    yield return node;
 
                 static Node GenerateNode(Node node, Token[] tokens, int pos)
                 {
@@ -57,11 +61,18 @@ namespace Interpreter
                         TokenType.Integer when tokens.Length == 1 => GenerateNode(new(tokens[pos]), tokens, pos + 1),
                         TokenType.Integer => GenerateNode(node, tokens, pos + 1),
 
+                        TokenType.Id when tokens.Length == 1 => GenerateNode(new(tokens[pos]), tokens, pos + 1),
                         TokenType.Id => GenerateNode(node, tokens, pos + 1),
+                        TokenType.Print => GeneratePrintNode(node, tokens, pos),
                         TokenType.Assign => GenerateAssignNode(node, tokens, pos),
 
                         _ => throw new NotImplementedException($"{tokens[pos].Type}")
                     };
+                }
+
+                static Node GeneratePrintNode(Node node, Token[] tokens, int pos)
+                {
+                    return new Node(tokens[pos], null, GenerateNode(node, tokens.Skip(pos + 1).ToArray(), 0));
                 }
 
                 static Node GenerateAssignNode(Node node, Token[] tokens, int pos)
@@ -76,19 +87,25 @@ namespace Interpreter
                         if (tokens[pos + 1].Type == TokenType.ParentheseOpen)
                             return GenerateParenthese(node, tokens, pos + 1);
                         else
-                            return new Node(tokens[pos], new(tokens[pos - 1]), new(tokens[pos + 1]));
+                        {
+                            var newNode = new Node(tokens[pos], new(tokens[pos - 1]), new(tokens[pos + 1]));
+                            return GenerateNode(newNode, tokens, pos + 1);
+
+                        }
                     }
                     //higher precidence oporator
                     else if (!node.IsParentese && node.Token.IsHigherPrecidence(tokens[pos].value))
                     {
                         if (tokens[pos + 1].Type == TokenType.ParentheseOpen)
                             return GenerateParenthese(node, tokens, pos + 1);
+                        else
+                        {
+                            var newNode = new Node(tokens[pos], node.Right, new(tokens[pos + 1]));
 
-                        var newNode = new Node(tokens[pos], node.Right, new(tokens[pos + 1]));
+                            node.Right = newNode;
 
-                        node.Right = newNode;
-
-                        return GenerateNode(node, tokens, pos + 1);
+                            return GenerateNode(node, tokens, pos + 1);
+                        }
 
                     }
                     //equal or lower precedence oporator
@@ -148,9 +165,22 @@ namespace Interpreter
                     }
                     else
                     {
-                        var newNode = new Node(tokens[pos - 1], node, parenteseNode);
+                         //higher precidence oporator
+                        if (!node.IsParentese && node.Token.IsHigherPrecidence(tokens[pos - 1].value))
+                        {
+                            var newNode = new Node(tokens[pos - 1], node.Right, parenteseNode);
 
-                        return GenerateNode(newNode, tokens, newPos);
+                            node.Right = newNode;
+
+                            return GenerateNode(node, tokens, newPos);
+                        }
+                        //equal or lower precedence oporator
+                        else
+                        {
+                            var newNode = new Node(tokens[pos - 1], node, parenteseNode);
+
+                            return GenerateNode(newNode, tokens, newPos);
+                        }
                     }
                 }
             }

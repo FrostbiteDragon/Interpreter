@@ -1,21 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Interpreter
 {
     public static class Interpreter
     {
+        static readonly Dictionary<string, string> variables = new Dictionary<string, string>();
         public static void RunAST(IEnumerable<Node> nodes)
         {
-            Dictionary<string, string> variables = new Dictionary<string, string>();
 
             foreach (Node node in nodes)
             {
                 ExecuteNode(node);
-                Console.WriteLine(node);
             }
 
             void ExecuteNode(Node node)
@@ -23,19 +19,36 @@ namespace Interpreter
                 if (node.Token.Type == TokenType.Integer)
                     return;
 
+                if (node.Token.Type == TokenType.Id)
+                {
+                    node.Token = new(TokenType.Integer, variables[node.Token.value]);
+                    return;
+                }
+
                 else if (node.Token.Type == TokenType.Assign)
                     ExecuteAssign(node);
+
+                else if (node.Token.Type == TokenType.Print)
+                    ExecutePrint(node);
 
                 else if (node.Token.Type == TokenType.Operator)
                     ExecuteOporator(node);
                 else
-                    throw new Exception($"unsuported token type: {node.Token.Type}");
+                    throw new NotImplementedException($"no method to execute token type given: {node.Token.Type}");
             }
 
             void ExecuteAssign(Node node)
             {
+                var variableId = node.Left.Token.value;
+
                 ExecuteNode(node.Right);
-                variables[node.Left.Token.value] = node.Right.Token.value;
+                variables[variableId] = node.Right.Token.value;
+            }
+
+            void ExecutePrint(Node node)
+            {
+                ExecuteNode(node.Right);
+                Console.WriteLine(node.Right.Token.value);
             }
 
             void ExecuteOporator(Node node)
