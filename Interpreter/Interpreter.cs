@@ -5,7 +5,7 @@ namespace Interpreter
 {
     public static class Interpreter
     {
-        static Dictionary<string, string> variables = new Dictionary<string, string>();
+        static readonly Dictionary<string, string> variables = new Dictionary<string, string>();
         public static void RunAST(IEnumerable<Node> nodes)
         {
 
@@ -39,8 +39,10 @@ namespace Interpreter
 
             void ExecuteAssign(Node node)
             {
+                var variableId = node.Left.Token.value;
+
                 ExecuteNode(node.Right);
-                variables[node.Left.Token.value] = node.Right.Token.value;
+                variables[variableId] = node.Right.Token.value;
             }
 
             void ExecutePrint(Node node)

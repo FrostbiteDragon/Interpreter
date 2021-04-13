@@ -5,9 +5,9 @@ VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Interpreter", "Interpreter\Interpreter.csproj", "{6BAACAA0-F88A-4A40-8544-123FAF56191C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Parser", "Parser\Parser.csproj", "{FB79BA47-F1EC-4D98-BDF5-D80EFF5EDFAA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Parser", "Parser\Parser.csproj", "{FB79BA47-F1EC-4D98-BDF5-D80EFF5EDFAA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lexer", "Lexer\Lexer.csproj", "{EEB394E0-84EC-4E03-87E9-7B055C92D0D5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lexer", "Lexer\Lexer.csproj", "{EEB394E0-84EC-4E03-87E9-7B055C92D0D5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
