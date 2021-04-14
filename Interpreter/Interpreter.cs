@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Interpreter
+namespace FrostScript
 {
     public static class Interpreter
     {

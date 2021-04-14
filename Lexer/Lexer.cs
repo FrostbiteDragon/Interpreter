@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Interpreter
+namespace FrostScript
 {
     public static class Lexer
     {
@@ -17,8 +17,14 @@ namespace Interpreter
 
                 yield return character switch
                 {
-                    '+' or '-' or '*' or '/' => new Token(TokenType.Operator, character.ToString()),
+                    '+' or '*' or '/' => new Token(TokenType.Operator, character.ToString()),
                     ';' or '\n' or '\r' => new Token(TokenType.NewLine, character.ToString()),
+
+                    '-' => (char)reader.Peek() switch 
+                    { 
+                        '>' => new Token(TokenType.Arrow, $"{character}{(char)reader.Read()}"),
+                        _ => new Token(TokenType.Operator, character.ToString())
+                    },
 
                     '(' or '[' or '{' => new Token(TokenType.ParentheseOpen, character.ToString()),
                     ')' or ']' or '}' => new Token(TokenType.ParentheseClose, character.ToString()),
@@ -26,12 +32,19 @@ namespace Interpreter
                     '=' => new Token(TokenType.Assign, character.ToString()),
 
                     ' '  => new Token(TokenType.Discard, ""),
-                    _ when char.IsLetter(character) => HandleLetters(character, reader),
+                    // \t == tab
 
-                    char digit when char.IsDigit(character) => new Token(TokenType.Integer, GetFullInteger(character, reader)),
+                    char letter when char.IsLetter(character) => HandleLetters(letter, reader),
+                    char digit when char.IsDigit(character) => HandleDigit(digit, reader),
+
                     _ => throw new Exception($"Charactor {character} not supported")
                 };
             }
+
+            //Token HandleTabOrSpace(char character, StringReader reader)
+            //{
+
+            //}
 
             Token HandleLetters(char firstChar, StringReader reader)
             {
@@ -39,7 +52,18 @@ namespace Interpreter
 
                 return word switch
                 {
+                    //reserverd keywords
+                    "->" => new Token(TokenType.Arrow, word),
+                    "if" => new Token(TokenType.If, word),
+                    "else" => new Token(TokenType.Else, word),
+
                     "print" => new Token(TokenType.Print, word),
+
+                    "true" => new Token(TokenType.Bool, word),
+                    "false" => new Token(TokenType.Bool, word),
+
+
+                    //new id
                     _ => new Token(TokenType.Id, word)
                 };
 
@@ -54,15 +78,19 @@ namespace Interpreter
                 }
             }
 
-            static string GetFullInteger(char firstInt, StringReader reader)
+            Token HandleDigit(char firstDigit, StringReader reader)
             {
-                return new string(Step().ToArray());
+                var digits = Step().ToArray();
+                if (digits.Contains('.'))
+                    return new Token(TokenType.Decimal, new string(digits));
+                else
+                    return new Token(TokenType.Integer, new string(digits));
 
                 IEnumerable<char> Step()
                 {
-                    yield return firstInt;
+                    yield return firstDigit;
 
-                    while (char.IsDigit((char)reader.Peek()))
+                    while (char.IsDigit((char)reader.Peek()) || (char)reader.Peek() == '.')
                     {
                         yield return (char)reader.Read();
                     }

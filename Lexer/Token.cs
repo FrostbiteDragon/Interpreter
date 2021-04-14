@@ -4,9 +4,25 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Interpreter
+namespace FrostScript
 {
-    public enum TokenType { Integer, Operator, NewLine, ParentheseOpen, ParentheseClose, Assign, Id, Print, Discard}
+    public enum TokenType 
+    { 
+        Integer,
+        Decimal,
+        Operator,
+        NewLine,
+        ParentheseOpen,
+        ParentheseClose,
+        Assign,
+        Id,
+        Print,
+        Discard,
+        Bool,
+        Arrow,
+        If,
+        Else
+    }
 
     public class Token
     {

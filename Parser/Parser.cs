@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Interpreter
+namespace FrostScript
 {
     public static class Parser
     {
