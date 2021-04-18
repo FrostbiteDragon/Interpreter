@@ -7,95 +7,182 @@ namespace FrostScript
 {
     public static class Lexer
     {
-        public static IEnumerable<Token> Tokenize(string text)
+        static void Report(int line, int charactorPos, string message)
         {
-            using var reader = new StringReader(text);
+            Console.WriteLine($"[Line: {line}, Character: {charactorPos}] Error: {message}");
+        }
 
-            while (reader.Peek() != -1)
+        public static IEnumerable<Token> GetTokens(string sourceCode)
+        {
+            var characters = sourceCode.ToCharArray();
+
+            var line = 1;
+
+            for (int i = 0; i < characters.Length; i++)
             {
-                var character = (char)reader.Read();
+                var character = characters[i];
 
-                yield return character switch
+                switch (character)
                 {
-                    '+' or '*' or '/' => new Token(TokenType.Operator, character.ToString()),
-                    ';' or '\n' or '\r' => new Token(TokenType.NewLine, character.ToString()),
+                    case '(': yield return new(TokenType.ParentheseOpen); break;
+                    case ')': yield return new(TokenType.ParentheseClose); break;
+                    case '{': yield return new(TokenType.BraceOpen); break;
+                    case '}': yield return new(TokenType.BraceClose); break;
+                    case ',': yield return new(TokenType.Comma); break;
+                    case '.': yield return new(TokenType.Dot); break;
+                    case '-': yield return new(TokenType.Minus); break;
+                    case '+': yield return new(TokenType.Plus); break;
+                    case ';': yield return new(TokenType.NewLine); break;
+                    case '*': yield return new(TokenType.Star); break;
+                    case '!': yield return Match('=') ? new(TokenType.NotEqual) : new(TokenType.Not); break;
+                    case '=': yield return Match('=') ? new(TokenType.Equal) : new(TokenType.Assign); break;
+                    case '<': yield return Match('=') ? new(TokenType.LessOrEqual) : new(TokenType.LessThen); break;
+                    case '>': yield return Match('=') ? new(TokenType.GreaterOrEqual) : new(TokenType.GreaterThen); break;
 
-                    '-' => (char)reader.Peek() switch 
-                    { 
-                        '>' => new Token(TokenType.Arrow, $"{character}{(char)reader.Read()}"),
-                        _ => new Token(TokenType.Operator, character.ToString())
-                    },
+                    case '"':
+                        if (!characters.Skip(i + 1).Contains('"'))
+                            Report(line, i + 1, $"string literal was not closed");
+                        var stringCharacters = characters.Skip(i + 1).TakeWhile(x => x != '"').ToArray();
+                        var stringLit = new string(stringCharacters);
+                        yield return new Token(TokenType.String, stringLit, stringLit);
 
-                    '(' or '[' or '{' => new Token(TokenType.ParentheseOpen, character.ToString()),
-                    ')' or ']' or '}' => new Token(TokenType.ParentheseClose, character.ToString()),
-
-                    '=' => new Token(TokenType.Assign, character.ToString()),
-
-                    ' '  => new Token(TokenType.Discard, ""),
-                    // \t == tab
-
-                    char letter when char.IsLetter(character) => HandleLetters(letter, reader),
-                    char digit when char.IsDigit(character) => HandleDigit(digit, reader),
-
-                    _ => throw new Exception($"Charactor {character} not supported")
-                };
-            }
-
-            //Token HandleTabOrSpace(char character, StringReader reader)
-            //{
-
-            //}
-
-            Token HandleLetters(char firstChar, StringReader reader)
-            {
-                var word = new string(Step().ToArray());
-
-                return word switch
-                {
-                    //reserverd keywords
-                    "->" => new Token(TokenType.Arrow, word),
-                    "if" => new Token(TokenType.If, word),
-                    "else" => new Token(TokenType.Else, word),
-
-                    "print" => new Token(TokenType.Print, word),
-
-                    "true" => new Token(TokenType.Bool, word),
-                    "false" => new Token(TokenType.Bool, word),
+                        i += stringCharacters.Length + 1;
+                        break;
 
 
-                    //new id
-                    _ => new Token(TokenType.Id, word)
-                };
+                    case '/':
+                        if (Match('/'))
+                        {
+                            //skip to end of comment
+                            i += characters.Skip(i).TakeWhile(x => x != '\n').Count();
 
-                IEnumerable<char> Step()
-                {
-                    yield return firstChar;
+                            continue;
+                        }
+                        else
+                            yield return new(TokenType.Slash);
+                        break;
 
-                    while (char.IsLetterOrDigit((char)reader.Peek()))
-                    {
-                        yield return (char)reader.Read();
-                    }
+                    //ignore white space
+                    case ' ':
+                    case '\r':
+                    case '\t':
+                        break;
+
+                    case '\n': line++; break;
+
+                    case char digit when char.IsDigit(character):
+                        var digits = new string(characters.Skip(i).TakeWhile(x => char.IsDigit(x) || x == '.').ToArray());
+
+                        yield return new Token(TokenType.Numeral, digits, decimal.Parse(digits));
+                        i += digits.Length - 1;
+                        break;
+
+                    default: Report(line, i + 1, $"Charactor {character} not supported"); break;
                 }
-            }
 
-            Token HandleDigit(char firstDigit, StringReader reader)
-            {
-                var digits = Step().ToArray();
-                if (digits.Contains('.'))
-                    return new Token(TokenType.Decimal, new string(digits));
-                else
-                    return new Token(TokenType.Integer, new string(digits));
-
-                IEnumerable<char> Step()
+                bool Match(char expected)
                 {
-                    yield return firstDigit;
+                    if (i + 1 >= characters.Length)
+                        return false;
 
-                    while (char.IsDigit((char)reader.Peek()) || (char)reader.Peek() == '.')
-                    {
-                        yield return (char)reader.Read();
-                    }
+                    if (characters[i + 1] != expected)
+                        return false;
+
+                    i++;
+                    return true;
                 }
             }
         }
+
+        //public static IEnumerable<Token> Tokenize(string text)
+        //{
+        //    using var reader = new StringReader(text);
+
+        //    while (reader.Peek() != -1)
+        //    {
+        //        var character = (char)reader.Read();
+
+        //        yield return character switch
+        //        {
+        //            '+' or '*' or '/' => new Token(TokenType.Operator, character.ToString()),
+        //            ';' or '\n' or '\r' => new Token(TokenType.NewLine, character.ToString()),
+
+        //            '-' => (char)reader.Peek() switch 
+        //            { 
+        //                '>' => new Token(TokenType.Arrow, $"{character}{(char)reader.Read()}"),
+        //                _ => new Token(TokenType.Operator, character.ToString())
+        //            },
+
+        //            '(' or '[' or '{' => new Token(TokenType.ParentheseOpen, character.ToString()),
+        //            ')' or ']' or '}' => new Token(TokenType.ParentheseClose, character.ToString()),
+
+        //            '=' => new Token(TokenType.Assign, character.ToString()),
+
+        //            ' '  => new Token(TokenType.Discard, ""),
+        //            // \t == tab
+
+        //            char letter when char.IsLetter(character) => HandleLetters(letter, reader),
+        //            char digit when char.IsDigit(character) => HandleDigit(digit, reader),
+
+        //            _ => throw new Exception($"Charactor {character} not supported")
+        //        };
+        //    }
+
+        //    //Token HandleTabOrSpace(char character, StringReader reader)
+        //    //{
+
+        //    //}
+
+        //    Token HandleLetters(char firstChar, StringReader reader)
+        //    {
+        //        var word = new string(Step().ToArray());
+
+        //        return word switch
+        //        {
+        //            //reserverd keywords
+        //            "->" => new Token(TokenType.Arrow, word),
+        //            "if" => new Token(TokenType.If, word),
+        //            "else" => new Token(TokenType.Else, word),
+
+        //            "print" => new Token(TokenType.Print, word),
+
+        //            "true" => new Token(TokenType.Bool, word),
+        //            "false" => new Token(TokenType.Bool, word),
+
+
+        //            //new id
+        //            _ => new Token(TokenType.Id, word)
+        //        };
+
+        //        IEnumerable<char> Step()
+        //        {
+        //            yield return firstChar;
+
+        //            while (char.IsLetterOrDigit((char)reader.Peek()))
+        //            {
+        //                yield return (char)reader.Read();
+        //            }
+        //        }
+        //    }
+
+        //    Token HandleDigit(char firstDigit, StringReader reader)
+        //    {
+        //        var digits = Step().ToArray();
+        //        if (digits.Contains('.'))
+        //            return new Token(TokenType.Decimal, new string(digits));
+        //        else
+        //            return new Token(TokenType.Integer, new string(digits));
+
+        //        IEnumerable<char> Step()
+        //        {
+        //            yield return firstDigit;
+
+        //            while (char.IsDigit((char)reader.Peek()) || (char)reader.Peek() == '.')
+        //            {
+        //                yield return (char)reader.Read();
+        //            }
+        //        }
+        //    }
+        //}
     }
 }

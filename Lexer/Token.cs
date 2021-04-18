@@ -8,31 +8,52 @@ namespace FrostScript
 {
     public enum TokenType 
     { 
-        Integer,
-        Decimal,
         Operator,
         NewLine,
         ParentheseOpen,
         ParentheseClose,
+        BraceOpen,
+        BraceClose,
+        Comma,
+        Dot,
         Assign,
-        Id,
-        Print,
         Discard,
-        Bool,
         Arrow,
-        If,
-        Else
+
+        //Oporators
+        Minus, Plus, Slash, Star,
+
+        //logical oporators
+        Equal, NotEqual, GreaterThen, GreaterOrEqual, LessOrEqual, LessThen, Not,
+
+        //Literals
+        Numeral, String, Bool, Id,
+
+        //Keywords
+        If, Else, 
+        Print,
+
+        Eof
     }
+
+    
 
     public class Token
     {
         public TokenType Type { get; init; }
-        public string value { get; init; }
+        public string Lexeme { get; init; }
+        public object Literal { get; init; }
 
-        public Token(TokenType type, string value)
+        public Token(TokenType type)
         {
             Type = type;
-            this.value = value;
+        }
+
+        public Token(TokenType type, string value, object literal)
+        {
+            Type = type;
+            Lexeme = value;
+            Literal = literal;
         }
 
         public bool IsHigherPrecidence(string oporator)
@@ -40,7 +61,7 @@ namespace FrostScript
             var result = oporator switch
             {
                 "-" or "+" => false,
-                _ when oporator == "*" || oporator == "/" => value == "-" || value == "+",
+                _ when oporator == "*" || oporator == "/" => Lexeme == "-" || Lexeme == "+",
                 _ => false
             };
 

@@ -28,7 +28,7 @@ namespace FrostScript
 
         public override string ToString()
         {
-            return $"{Left?.Token.value}{Token.value}{Right?.Token.value}";
+            return $"{Left?.Token.Lexeme}{Token.Lexeme}{Right?.Token.Lexeme}";
         }
     }
 }
