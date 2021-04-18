@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FrostScript.Expressions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -6,10 +7,62 @@ namespace FrostScript
 {
     public static class Parser
     {
-        public static IEnumerable<Node> GenerateAST(Token[] programeTokens)
+        public static IEnumerable<Expression> GenerateAST(Token[] tokens)
         {
-            yield return null;
+            yield return Expr(0);
 
+
+            Expression Expr(int pos)
+            {
+                return Equality(pos);
+            }
+            Expression Equality(int pos)
+            {
+                var (expression, newPos) = Primary(pos);
+
+                while (newPos < tokens.Length && tokens[newPos].Type is TokenType.Equal or TokenType.NotEqual)
+                {
+                    var leftExpression = expression;
+                    var tokenPos = newPos;
+                    
+                    (expression, newPos) = Primary(newPos + 1);
+                    expression = new Binary(leftExpression, tokens[tokenPos], expression);
+                }
+
+                return expression;
+            }
+
+            //(Expression, int) Comparison(int pos)
+            //{
+            //    var (expression, newPos) = (Factor(pos), 2);
+            //    return (expression, newPos);
+            //}
+
+            //Expression Factor(int pos)
+            //{
+
+            //}
+
+            //Expression Term(int pos)
+            //{
+
+            //}
+
+            //Expression Factor(int pos)
+            //{
+
+            //}
+
+            //Expression Unary(int pos)
+            //{
+                
+            //}
+
+            (Expression expression, int newPos) Primary (int pos)
+            {
+                return (new Literal(tokens[pos].Literal), pos + 1);
+            }
+        }
             //static IEnumerable<Token[]> SplitTokens(IEnumerable<Token> tokens)
             //{
             //    var line = new List<Token>();
@@ -186,6 +239,5 @@ namespace FrostScript
             //        }
             //    }
             //}
-        }
     }
 }

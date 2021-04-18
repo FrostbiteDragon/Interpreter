@@ -25,13 +25,16 @@ namespace FrostScript
 
         //logical oporators
         Equal, NotEqual, GreaterThen, GreaterOrEqual, LessOrEqual, LessThen, Not,
+        And, Or,
 
         //Literals
-        Numeral, String, Bool, Id,
+        Numeral, String, Bool, Id, Null,
 
         //Keywords
         If, Else, 
         Print,
+        True, False,
+        For, While,
 
         Eof
     }
@@ -49,7 +52,7 @@ namespace FrostScript
             Type = type;
         }
 
-        public Token(TokenType type, string value, object literal)
+        public Token(TokenType type, string value, object literal = null)
         {
             Type = type;
             Lexeme = value;

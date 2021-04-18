@@ -39,6 +39,7 @@ namespace FrostScript
                     case '<': yield return Match('=') ? new(TokenType.LessOrEqual) : new(TokenType.LessThen); break;
                     case '>': yield return Match('=') ? new(TokenType.GreaterOrEqual) : new(TokenType.GreaterThen); break;
 
+                    //string litteral
                     case '"':
                         if (!characters.Skip(i + 1).Contains('"'))
                             Report(line, i + 1, $"string literal was not closed");
@@ -49,7 +50,40 @@ namespace FrostScript
                         i += stringCharacters.Length + 1;
                         break;
 
+                    //numeral litteral
+                    case char _ when char.IsDigit(character):
+                        var digits = new string(characters.Skip(i).TakeWhile(x => char.IsDigit(x) || x == '.').ToArray());
 
+                        yield return new Token(TokenType.Numeral, digits, double.Parse(digits));
+                        i += digits.Length - 1;
+                        break;
+
+                    //ids and reserved words
+                    case char _ when char.IsLetter(character):
+                        var word = new string(characters.Skip(i).TakeWhile(x => char.IsLetterOrDigit(x)).ToArray());
+                        yield return word switch
+                        {
+                            "if" => new Token(TokenType.If),
+                            "else" => new Token(TokenType.Else),
+
+                            "print" => new Token(TokenType.Print),
+
+                            "true" => new Token(TokenType.True, word, true),
+                            "false" => new Token(TokenType.False, word, false),
+                            "null" => new Token(TokenType.Null),
+
+                            "for" => new Token(TokenType.For),
+                            "while" => new Token(TokenType.While), 
+
+                            //new id
+                            _ => new Token(TokenType.Id, word)
+                        };
+
+                        i += word.Length;
+                        break;
+
+
+                    //comment
                     case '/':
                         if (Match('/'))
                         {
@@ -69,13 +103,6 @@ namespace FrostScript
                         break;
 
                     case '\n': line++; break;
-
-                    case char digit when char.IsDigit(character):
-                        var digits = new string(characters.Skip(i).TakeWhile(x => char.IsDigit(x) || x == '.').ToArray());
-
-                        yield return new Token(TokenType.Numeral, digits, decimal.Parse(digits));
-                        i += digits.Length - 1;
-                        break;
 
                     default: Report(line, i + 1, $"Charactor {character} not supported"); break;
                 }

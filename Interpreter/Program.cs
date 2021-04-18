@@ -5,4 +5,5 @@ using FrostScript;
 
 var tokens = Lexer.GetTokens(File.ReadAllText(args[0])).ToArray();
 var nodes = Parser.GenerateAST(tokens).ToArray();
-Interpreter.RunAST(nodes);
+Console.Read();
+//Interpreter.RunAST(nodes);
