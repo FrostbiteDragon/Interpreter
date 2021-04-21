@@ -7,237 +7,170 @@ namespace FrostScript
 {
     public static class Parser
     {
-        public static IEnumerable<Expression> GenerateAST(Token[] tokens)
+        public static Expression GenerateAST(Token[] tokens)
         {
-            yield return Expr(0);
-
-
-            Expression Expr(int pos)
+            try { return Expr(0, tokens).expression; }
+            catch (ParseException exception)
             {
-                return Equality(pos);
+                Reporter.Report(exception.Line, exception.CharacterPos, exception.Message);
+                return null;
             }
-            Expression Equality(int pos)
+
+            (Expression expression, int newPos) Expr(int pos, Token[] tokens)
             {
-                var (expression, newPos) = Primary(pos);
+                return When(pos, tokens);
+            }
+
+            (Expression expression, int newPos) When(int pos, Token[] tokens)
+            {
+                if (tokens[pos].Type is not TokenType.When)
+                    return Equality(pos, tokens);
+
+                pos++;
+
+                return GenerateWhen(null, pos, tokens);
+
+                (When when, int pos) GenerateWhen(When when, int pos, Token[] tokens)
+                {
+                    if (pos >= tokens.Length)
+                        throw new ParseException(tokens.Last().Line, tokens.Last().Character, $"Missing default clause");
+
+                    if (tokens[pos].Type is TokenType.Pipe)
+                    {
+                        if (tokens[pos + 1].Type is not TokenType.Arrow)
+                        {
+                            var boolResult = Expr(pos + 1, tokens);
+
+                            if (tokens[boolResult.newPos].Type is not TokenType.Arrow)
+                                throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"expected \"->\" ");
+
+                            var (expression, newPos) = Expr(boolResult.newPos + 1, tokens);
+                            var newWhen = new When(boolResult.expression, expression, null);
+
+                            if (when is null)
+                                return GenerateWhen(newWhen, newPos, tokens);
+                            else
+                            {
+                                var result = GenerateWhen(newWhen, newPos, tokens);
+                                return (new When()
+                                {
+                                    IfExpresion = when.IfExpresion,
+                                    ResultExpression = when.ResultExpression,
+                                    ElseWhen = result.when
+                                }, result.pos);
+                            }
+                        }
+                        else if (tokens[pos + 1].Type is TokenType.Arrow)
+                        {
+                            var (expression, newPos) = Expr(pos + 2, tokens);
+                            var newWhen = new When(when.IfExpresion, when.ResultExpression, new When(null, expression, null));
+                            return (newWhen, newPos);
+                        }
+                        else throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Missing default clause");
+                    }
+                    else throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"expected \"|\"");
+                }
+            }
+
+            (Expression expression, int newPos) Equality(int pos, Token[] tokens)
+            {
+                var (expression, newPos) = Comparison(pos, tokens);
 
                 while (newPos < tokens.Length && tokens[newPos].Type is TokenType.Equal or TokenType.NotEqual)
                 {
-                    var leftExpression = expression;
-                    var tokenPos = newPos;
-                    
-                    (expression, newPos) = Primary(newPos + 1);
-                    expression = new Binary(leftExpression, tokens[tokenPos], expression);
+                    var result = Comparison(newPos + 1, tokens);
+
+                    expression = new Binary(expression, tokens[newPos], result.expression);
+                    newPos = result.newPos;
                 }
 
-                return expression;
+                return (expression, newPos);
             }
 
-            //(Expression, int) Comparison(int pos)
-            //{
-            //    var (expression, newPos) = (Factor(pos), 2);
-            //    return (expression, newPos);
-            //}
-
-            //Expression Factor(int pos)
-            //{
-
-            //}
-
-            //Expression Term(int pos)
-            //{
-
-            //}
-
-            //Expression Factor(int pos)
-            //{
-
-            //}
-
-            //Expression Unary(int pos)
-            //{
-                
-            //}
-
-            (Expression expression, int newPos) Primary (int pos)
+            (Expression expression, int newPos) Comparison(int pos, Token[] tokens)
             {
-                return (new Literal(tokens[pos].Literal), pos + 1);
+                var (expression, newPos) = Term(pos, tokens);
+
+                while (newPos < tokens.Length && tokens[newPos].Type is TokenType.GreaterThen or TokenType.GreaterOrEqual or TokenType.LessThen or TokenType.LessOrEqual)
+                {
+                    var result = Term(newPos + 1, tokens);
+
+                    expression = new Binary(expression, tokens[newPos], result.expression);
+                    newPos = result.newPos;
+                }
+
+                return (expression, newPos);
+            }
+
+
+            (Expression expression, int newPos) Term(int pos, Token[] tokens)
+            {
+                var (expression, newPos) = Factor(pos, tokens);
+
+                while (newPos < tokens.Length && tokens[newPos].Type is TokenType.Plus or TokenType.Minus)
+                {
+                    var result = Factor(newPos + 1, tokens);
+
+                    expression = new Binary(expression, tokens[newPos], result.expression);
+                    newPos = result.newPos;
+                }
+
+                return (expression, newPos);
+            }
+
+            (Expression expression, int newPos) Factor(int pos, Token[] tokens)
+            {
+                var (expression, newPos) = Unary(pos, tokens);
+
+                while (newPos < tokens.Length && tokens[newPos].Type is TokenType.Star or TokenType.Slash)
+                {
+                    var result = Unary(newPos + 1, tokens);
+
+                    expression = new Binary(expression, tokens[newPos], result.expression);
+                    newPos = result.newPos;
+                }
+
+                return (expression, newPos);
+            }
+
+            (Expression expression, int newPos) Unary(int pos, Token[] tokens)
+            {
+                if (tokens[pos].Type is TokenType.Minus or TokenType.Not)
+                {
+                    var (expression, newPos) = Primary(pos + 1, tokens);
+                    return (new Unary(tokens[pos], expression), newPos);
+                }
+                else
+                {
+                    return Primary(pos, tokens);
+                }
+            }
+
+            (Expression expression, int newPos) Primary (int pos, Token[] tokens)
+            {
+                return tokens[pos].Type switch
+                {
+                    TokenType.True or 
+                    TokenType.False or
+                    TokenType.Null or
+                    TokenType.Numeral or
+                    TokenType.String => (new Literal(tokens[pos].Literal), pos + 1),
+
+                    TokenType.ParentheseOpen => Grouping(pos, tokens),
+                    _ => throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expected an expression")
+                };
+            }
+
+            (Expression expression, int newPos) Grouping(int pos, Token[] tokens)
+            {
+                var (expression, newPos) = Expr(pos + 1, tokens);
+                if (newPos >= tokens.Length || tokens[newPos].Type != TokenType.ParentheseClose)
+                {
+                    Reporter.Report(tokens[pos].Line, tokens[pos].Character, $"Parenthese not closed");
+                    return (expression, newPos);
+                }
+                else return (expression, newPos + 1);
             }
         }
-            //static IEnumerable<Token[]> SplitTokens(IEnumerable<Token> tokens)
-            //{
-            //    var line = new List<Token>();
-
-            //    foreach (var token in tokens)
-            //    {
-            //        if (token.Type == TokenType.NewLine)
-            //        {
-            //            yield return line.ToArray();
-            //            line = new List<Token>();
-            //        }
-            //        else if (token.Type == TokenType.Discard)
-            //            continue;
-
-            //        else line.Add(token);
-            //    }
-
-            //    //if line did not end with a new line character
-            //    if (line.Count != 0)
-            //        yield return line.ToArray();
-            //}
-
-            //foreach (var tokens in SplitTokens(programeTokens))
-            //{
-            //    var newTokens = tokens.ToList();
-            //    //add a multiplication wherever a parenthese is proceded by an interger or another parenthese
-            //    for (int i = 1; i < newTokens.Count; i++)
-            //    {
-            //        if (newTokens[i].Type == TokenType.ParentheseOpen && (newTokens[i - 1].Type == TokenType.Integer || newTokens[i - 1].Type == TokenType.ParentheseClose))
-            //        {
-            //            newTokens.Insert(i, new Token(TokenType.Operator, "*"));
-            //            i++;
-            //        }
-            //    }
-                
-            //    var node = GenerateNode(null, newTokens.ToArray(), 0);
-
-            //    if (node is not null)
-            //        yield return node;
-
-            //    static Node GenerateNode(Node node, Token[] tokens, int pos)
-            //    {
-            //        if (pos > tokens.Length - 1)
-            //            return node;
-
-            //        return tokens[pos].Type switch
-            //        {
-            //            TokenType.ParentheseOpen => GenerateParenthese(node, tokens, pos),
-            //            TokenType.Operator => GenerateOporator(node, tokens, pos),
-            //            //solo integer (no oporator)
-            //            TokenType.Integer when tokens.Length == 1 => GenerateNode(new(tokens[pos]), tokens, pos + 1),
-            //            TokenType.Integer => GenerateNode(node, tokens, pos + 1),
-
-            //            TokenType.Id when tokens.Length == 1 => GenerateNode(new(tokens[pos]), tokens, pos + 1),
-            //            TokenType.Id => GenerateNode(node, tokens, pos + 1),
-            //            TokenType.Print => GeneratePrintNode(node, tokens, pos),
-            //            TokenType.Assign => GenerateAssignNode(node, tokens, pos),
-
-            //            _ => throw new NotImplementedException($"{tokens[pos].Type}")
-            //        };
-            //    }
-
-            //    static Node GeneratePrintNode(Node node, Token[] tokens, int pos)
-            //    {
-            //        return new Node(tokens[pos], null, GenerateNode(node, tokens.Skip(pos + 1).ToArray(), 0));
-            //    }
-
-            //    static Node GenerateAssignNode(Node node, Token[] tokens, int pos)
-            //    {
-            //        return new Node(tokens[pos], new(tokens[pos - 1]), GenerateNode(node, tokens.Skip(pos + 1).ToArray(), 0));
-            //    }
-
-            //    static Node GenerateOporator(Node node, Token[] tokens, int pos)
-            //    {
-            //        if (node is null)
-            //        {
-            //            if (tokens[pos + 1].Type == TokenType.ParentheseOpen)
-            //                return GenerateParenthese(node, tokens, pos + 1);
-            //            else
-            //            {
-            //                var newNode = new Node(tokens[pos], new(tokens[pos - 1]), new(tokens[pos + 1]));
-            //                return GenerateNode(newNode, tokens, pos + 1);
-
-            //            }
-            //        }
-            //        //higher precidence oporator
-            //        else if (!node.IsParentese && node.Token.IsHigherPrecidence(tokens[pos].Lexeme))
-            //        {
-            //            if (tokens[pos + 1].Type == TokenType.ParentheseOpen)
-            //                return GenerateParenthese(node, tokens, pos + 1);
-            //            else
-            //            {
-            //                var newNode = new Node(tokens[pos], node.Right, new(tokens[pos + 1]));
-
-            //                node.Right = newNode;
-
-            //                return GenerateNode(node, tokens, pos + 1);
-            //            }
-
-            //        }
-            //        //equal or lower precedence oporator
-            //        else
-            //        {
-            //            if (tokens[pos + 1].Type == TokenType.ParentheseOpen)
-            //                return GenerateParenthese(node, tokens, pos + 1);
-
-            //            var newNode = new Node(tokens[pos], node, new(tokens[pos + 1]));
-
-            //            return GenerateNode(newNode, tokens, pos + 1);
-            //        }
-            //    }
-
-            //    static Node GenerateParenthese(Node node, Token[] tokens, int pos)
-            //    {
-            //        static IEnumerable<Token> GetParentheseTokens(Token[] tokens, int pos)
-            //        {
-            //            var openParenCount = 1;
-            //            //we want to include all nested parentheses
-            //            foreach (var token in tokens.Skip(pos + 1))
-            //            {
-            //                if (token.Type == TokenType.ParentheseOpen)
-            //                {
-            //                    openParenCount += 1;
-            //                    yield return token;
-            //                }
-
-            //                else if (token.Type == TokenType.ParentheseClose)
-            //                {
-            //                    openParenCount -= 1;
-
-            //                    if (openParenCount > 0)
-            //                        yield return token;
-            //                    else break; //break loop, we found end of parenthese
-
-            //                }
-            //                else yield return token;
-            //            }
-            //        }
-
-            //        var parentheseTokens = GetParentheseTokens(tokens, pos).ToArray();
-
-            //        var parenteseNode = GenerateNode(null, parentheseTokens, 0);
-            //        //if the parentese node is not an oporator(solo int); Do not mark it as a parentese node 
-            //        parenteseNode.IsParentese = parenteseNode.Token.Type == TokenType.Operator;
-
-            //        // + 2 because, skip '(' and then skip to the next token
-            //        var newPos = pos + parentheseTokens.Length + 2;
-
-            //        if (node is null)
-            //        {
-            //            if (pos != 0)
-            //                return GenerateNode(new Node(tokens[pos - 1], new(tokens[pos - 2]), parenteseNode), tokens, newPos);
-            //            else
-            //                return GenerateNode(parenteseNode, tokens, newPos);
-            //        }
-            //        else
-            //        {
-            //             //higher precidence oporator
-            //            if (!node.IsParentese && node.Token.IsHigherPrecidence(tokens[pos - 1].Lexeme))
-            //            {
-            //                var newNode = new Node(tokens[pos - 1], node.Right, parenteseNode);
-
-            //                node.Right = newNode;
-
-            //                return GenerateNode(node, tokens, newPos);
-            //            }
-            //            //equal or lower precedence oporator
-            //            else
-            //            {
-            //                var newNode = new Node(tokens[pos - 1], node, parenteseNode);
-
-            //                return GenerateNode(newNode, tokens, newPos);
-            //            }
-            //        }
-            //    }
-            //}
     }
 }

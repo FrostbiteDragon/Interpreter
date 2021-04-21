@@ -19,6 +19,7 @@ namespace FrostScript
         Assign,
         Discard,
         Arrow,
+        Pipe,
 
         //Oporators
         Minus, Plus, Slash, Star,
@@ -31,12 +32,10 @@ namespace FrostScript
         Numeral, String, Bool, Id, Null,
 
         //Keywords
-        If, Else, 
+        If, Else, When, 
         Print,
         True, False,
         For, While,
-
-        Eof
     }
 
     
@@ -46,15 +45,21 @@ namespace FrostScript
         public TokenType Type { get; init; }
         public string Lexeme { get; init; }
         public object Literal { get; init; }
+        public int Line { get; init; }
+        public int Character { get; init; }
 
-        public Token(TokenType type)
+        public Token(TokenType type, int line, int character)
         {
             Type = type;
+            Line = line;
+            Character = character;
         }
 
-        public Token(TokenType type, string value, object literal = null)
+        public Token(TokenType type, int line, int character, string value, object literal = null)
         {
             Type = type;
+            Line = line;
+            Character = character; 
             Lexeme = value;
             Literal = literal;
         }

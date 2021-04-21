@@ -1,1 +1,1 @@
-﻿false == false == false
+﻿(when | true -> 5 | -> 1) * 2
