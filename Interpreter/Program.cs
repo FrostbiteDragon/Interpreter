@@ -4,10 +4,7 @@ using System.Linq;
 using FrostScript;
 
 var tokens = Lexer.GetTokens(File.ReadAllText(args[0])).ToArray();
-var Expression = Parser.GenerateAST(tokens);
+var program = Parser.GenerateAST(tokens).ToArray();
 
-try { Console.WriteLine(Interpreter.ExecuteExpression(Expression)); }
-catch(InterpretException exception)
-{
-    Reporter.Report(exception.Line, exception.CharacterPos, exception.Message);
-}
+Interpreter.ExecuteProgram(program);
+

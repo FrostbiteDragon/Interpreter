@@ -1,4 +1,5 @@
 ﻿using FrostScript.Expressions;
+using FrostScript.Statements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,16 +8,63 @@ namespace FrostScript
 {
     public static class Parser
     {
-        public static Expression GenerateAST(Token[] tokens)
+        public static IEnumerable<Statement> GenerateAST(Token[] tokens)
         {
-            try { return Expr(0, tokens).expression; }
-            catch (ParseException exception)
+            int currentPosition = 0;
+            while (tokens[currentPosition].Type != TokenType.Eof)
             {
-                Reporter.Report(exception.Line, exception.CharacterPos, exception.Message);
-                return null;
+                var (statement, newPos) = TryGetStatement(currentPosition, tokens);
+
+                currentPosition = newPos;
+
+                if (statement is not null)
+                    yield return statement;
             }
 
-            (Expression expression, int newPos) Expr(int pos, Token[] tokens)
+            (Statement statement, int newPos) TryGetStatement(int pos, Token[] tokens)
+            {
+                try 
+                {
+                    var (statement, newPos) = GetStatement(pos, tokens);
+
+                    return (statement, newPos); 
+                }
+                catch (ParseException exception)
+                {
+                    Reporter.Report(exception.Line, exception.CharacterPos, exception.Message);
+                    return (null, pos + 1);
+                }
+            }
+
+            (Statement statement, int newPos) GetStatement(int pos, Token[] tokens)
+            {
+                return tokens[pos].Type switch
+                {
+                    TokenType.Print => GetPrint(pos, tokens),
+                    TokenType.NewLine => GetStatement(pos + 1, tokens),
+                    _ => GetExpressionStatement(pos, tokens)
+                };
+
+
+            }
+
+            (Statement statement, int newPos) GetExpressionStatement(int pos, Token[] tokens)
+            {
+                var (expression, newPos) = GetExpression(pos, tokens);
+
+                return (new ExpressionStatement(expression), newPos);
+            }
+
+            (Statement statement, int newPos) GetPrint(int pos, Token[] tokens)
+            {
+                var (expression, newPos) = GetExpression(pos + 1, tokens);
+
+                return (new Print(expression), newPos);
+            }
+
+
+
+            (Expression expression, int newPos) GetExpression(int pos, Token[] tokens)
             {
                 return When(pos, tokens);
             }
@@ -39,12 +87,12 @@ namespace FrostScript
                     {
                         if (tokens[pos + 1].Type is not TokenType.Arrow)
                         {
-                            var boolResult = Expr(pos + 1, tokens);
+                            var boolResult = GetExpression(pos + 1, tokens);
 
                             if (tokens[boolResult.newPos].Type is not TokenType.Arrow)
                                 throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"expected \"->\" ");
 
-                            var (expression, newPos) = Expr(boolResult.newPos + 1, tokens);
+                            var (expression, newPos) = GetExpression(boolResult.newPos + 1, tokens);
                             var newWhen = new When(boolResult.expression, expression, null);
 
                             if (when is null)
@@ -62,8 +110,20 @@ namespace FrostScript
                         }
                         else if (tokens[pos + 1].Type is TokenType.Arrow)
                         {
-                            var (expression, newPos) = Expr(pos + 2, tokens);
-                            var newWhen = new When(when.IfExpresion, when.ResultExpression, new When(null, expression, null));
+                            var (expression, newPos) = GetExpression(pos + 2, tokens);
+                            var newWhen = when switch
+                            {
+                                null => new When
+                                {
+                                    ResultExpression = expression
+                                },
+                                _ => new When
+                                {
+                                    IfExpresion = when.IfExpresion,
+                                    ResultExpression = when.ResultExpression,
+                                    ElseWhen = new When { ResultExpression = expression }
+                                }
+                            };
                             return (newWhen, newPos);
                         }
                         else throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Missing default clause");
@@ -163,7 +223,7 @@ namespace FrostScript
 
             (Expression expression, int newPos) Grouping(int pos, Token[] tokens)
             {
-                var (expression, newPos) = Expr(pos + 1, tokens);
+                var (expression, newPos) = GetExpression(pos + 1, tokens);
                 if (newPos >= tokens.Length || tokens[newPos].Type != TokenType.ParentheseClose)
                 {
                     Reporter.Report(tokens[pos].Line, tokens[pos].Character, $"Parenthese not closed");

@@ -79,7 +79,9 @@ namespace FrostScript
                             "null" => new Token(TokenType.Null, line, i + 1, word),
 
                             "for" => new Token(TokenType.For, line, i + 1, word),
-                            "while" => new Token(TokenType.While, line, i + 1, word), 
+                            "while" => new Token(TokenType.While, line, i + 1, word),
+
+                            "var" => new Token(TokenType.Var, line, i + 1, word),
 
                             //new id
                             _ => new Token(TokenType.Id, line, i + 1, word)
@@ -125,6 +127,8 @@ namespace FrostScript
                     return true;
                 }
             }
+
+            yield return new Token(TokenType.Eof, line, 0);
         }
 
         //public static IEnumerable<Token> Tokenize(string text)

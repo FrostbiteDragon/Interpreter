@@ -1,4 +1,5 @@
 ﻿using FrostScript.Expressions;
+using FrostScript.Statements;
 using System;
 using System.Collections.Generic;
 
@@ -7,7 +8,33 @@ namespace FrostScript
     public static class Interpreter
     {
         static readonly Dictionary<string, string> variables = new Dictionary<string, string>();
-        public static object ExecuteExpression(Expression expression)
+
+        public static void ExecuteProgram(IEnumerable<Statement> statements)
+        {
+            try
+            {
+                foreach (var statement in statements)
+                    ExecuteStatement(statement);
+            }
+            catch (InterpretException exception)
+            {
+                Reporter.Report(exception.Line, exception.CharacterPos, exception.Message);
+            }
+        }
+
+        private static void ExecuteStatement(Statement statement)
+        {
+            switch (statement)
+            {
+                case Print print:
+                    Console.WriteLine(ExecuteExpression(print.Expression));
+                    break;
+
+                case ExpressionStatement exprStatement: break;
+            }
+        }
+
+        private static object ExecuteExpression(Expression expression)
         {
             switch (expression)
             {

@@ -20,6 +20,7 @@ namespace FrostScript
         Discard,
         Arrow,
         Pipe,
+        Eof,
 
         //Oporators
         Minus, Plus, Slash, Star,
@@ -36,6 +37,7 @@ namespace FrostScript
         Print,
         True, False,
         For, While,
+        Var,
     }
 
     
