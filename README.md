@@ -1,15 +1,16 @@
 # FrostScript
-Custom Interprated language for study and fun
+A custom, interpreted language for study and fun
 
-## Table of contents
+## Table of Contents
 * [Introduction](#introduction)
 * [Getting Started](#getting-started)
 * [Todo](#todo)
 * [Technologies](#technologies)
 
 # Introduction
-This projects aims to make a multy peridigm interpreted scripting language inspired by C# and F# with a strong functional and object oriented idendity.
-It's primary perpose is for learning the process of creating a language and the various techniques imployed to do so.
+This project aims to make a multi-paradigm, interpreted scripting language inspired by C# and F# with both a strong functional and object-oriented identity.
+
+It's primary purpose is for learning the lower-level code, techniques, and process of creating a language.
 
 # Getting Started
 1. Clone the repo
