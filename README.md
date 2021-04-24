@@ -21,8 +21,9 @@ It's primary purpose is for learning the lower-level code, techniques, and proce
 # Todo
 1. Document existing FrostScript features
 2. Add conditional and iterative logic
-3. Add Functions
-4. Add Pipes
+3. Add functions
+4. Add static typing
+5. Add pipes
 
 # Technologies
 * C#
