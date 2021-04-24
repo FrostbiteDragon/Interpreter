@@ -22,6 +22,7 @@ It's primary purpose is for learning the lower-level code, techniques, and proce
 1. Document existing FrostScript features
 2. Add conditional and iterative logic
 3. Add Functions
+4. Add Pipes
 
 # Technologies
 * C#
