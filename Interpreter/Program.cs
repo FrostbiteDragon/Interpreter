@@ -1,8 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using Interpreter;
+using FrostScript;
 
-var tokens = Lexer.Tokenize(File.ReadAllText(args[0])).ToArray();
-var nodes = Parser.GenerateAST(tokens).ToArray();
-Interpreter.Interpreter.RunAST(nodes);
+var tokens = Lexer.GetTokens(File.ReadAllText(args[0])).ToArray();
+var program = Parser.GenerateAST(tokens).ToArray();
+
+Interpreter.ExecuteProgram(program);
+

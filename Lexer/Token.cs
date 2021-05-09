@@ -4,19 +4,66 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Interpreter
+namespace FrostScript
 {
-    public enum TokenType { Integer, Operator, NewLine, ParentheseOpen, ParentheseClose, Assign, Id, Print, Discard}
+    public enum TokenType 
+    { 
+        Operator,
+        NewLine,
+        ParentheseOpen,
+        ParentheseClose,
+        BraceOpen,
+        BraceClose,
+        Comma,
+        Dot,
+        Assign,
+        Discard,
+        Arrow,
+        Pipe,
+        Eof,
+
+        //Oporators
+        Minus, Plus, Slash, Star,
+
+        //logical oporators
+        Equal, NotEqual, GreaterThen, GreaterOrEqual, LessOrEqual, LessThen, Not,
+        And, Or,
+
+        //Literals
+        Numeral, String, Bool, Id, Null,
+
+        //Keywords
+        If, Else, When, 
+        Print,
+        True, False,
+        For, While,
+        Var,
+    }
+
+    
 
     public class Token
     {
         public TokenType Type { get; init; }
-        public string value { get; init; }
+        public string Lexeme { get; init; }
+        public object Literal { get; init; }
+        public int Line { get; init; }
+        public int Character { get; init; }
 
-        public Token(TokenType type, string value)
+        public Token(TokenType type, int line, int character)
         {
             Type = type;
-            this.value = value;
+            Line = line;
+            Character = character;
+        }
+
+        public Token(TokenType type, int line, int character, string lexeme, object literal = null)
+        {
+            Type = type;
+            Line = line;
+            Character = character; 
+            Lexeme = lexeme;
+            Literal = literal;
         }
 
         public bool IsHigherPrecidence(string oporator)
@@ -24,7 +71,7 @@ namespace Interpreter
             var result = oporator switch
             {
                 "-" or "+" => false,
-                _ when oporator == "*" || oporator == "/" => value == "-" || value == "+",
+                _ when oporator == "*" || oporator == "/" => Lexeme == "-" || Lexeme == "+",
                 _ => false
             };
 

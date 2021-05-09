@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Interpreter
+namespace FrostScript
 {
     public class Node
     {
@@ -28,7 +28,7 @@ namespace Interpreter
 
         public override string ToString()
         {
-            return $"{Left?.Token.value}{Token.value}{Right?.Token.value}";
+            return $"{Left?.Token.Lexeme}{Token.Lexeme}{Right?.Token.Lexeme}";
         }
     }
 }
