@@ -60,6 +60,11 @@ namespace FrostScript
 
                         yield return new Token(TokenType.Numeral, line, i + 1, digits, double.Parse(digits));
                         i += digits.Length - 1;
+
+                        //add a multiplication if numeric is followed by a parenthese
+                        if (characters[i + 1] == '(')
+                            yield return new Token(TokenType.Star, line, character);
+
                         break;
 
                     //ids and reserved words
