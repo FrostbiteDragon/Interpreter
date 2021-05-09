@@ -57,12 +57,12 @@ namespace FrostScript
             Character = character;
         }
 
-        public Token(TokenType type, int line, int character, string value, object literal = null)
+        public Token(TokenType type, int line, int character, string lexeme, object literal = null)
         {
             Type = type;
             Line = line;
             Character = character; 
-            Lexeme = value;
+            Lexeme = lexeme;
             Literal = literal;
         }
 

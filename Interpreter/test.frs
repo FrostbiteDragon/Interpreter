@@ -1,3 +1,7 @@
-﻿3 + 3
+﻿var x = when 
+	| 1 + 2 == 5 -> "i'm right"
+	| 1 + 2 == 4 -> "no, i'm right"
+	| 1 + 2 == 3 -> "y'all are idiots"
+	| -> "this question is stupid"
 
-print 2 + 5
+print x

@@ -7,7 +7,7 @@ namespace FrostScript
 {
     public static class Interpreter
     {
-        static readonly Dictionary<string, string> variables = new Dictionary<string, string>();
+        static readonly Dictionary<string, object> variables = new Dictionary<string, object>();
 
         public static void ExecuteProgram(IEnumerable<Statement> statements)
         {
@@ -29,6 +29,10 @@ namespace FrostScript
                 case Print print:
                     Console.WriteLine(ExecuteExpression(print.Expression));
                     break;
+                case Bind (var id, var value):
+                    variables[id] = ExecuteExpression(value);
+                    break;
+
 
                 case ExpressionStatement exprStatement: break;
             }
@@ -39,6 +43,7 @@ namespace FrostScript
             switch (expression)
             {
                 case Literal literal: return literal.Value;
+                case Identifier identifier: return variables[identifier.Id]; 
 
                 case Binary binary:
 

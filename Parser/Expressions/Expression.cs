@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FrostScript.Expressions
 {
-    public class Expression
+    public abstract class Expression
     {
     }
 }

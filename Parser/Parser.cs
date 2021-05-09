@@ -40,8 +40,9 @@ namespace FrostScript
             {
                 return tokens[pos].Type switch
                 {
-                    TokenType.Print => GetPrint(pos, tokens),
+                    TokenType.Print => GetPrint(pos + 1, tokens),
                     TokenType.NewLine => GetStatement(pos + 1, tokens),
+                    TokenType.Var => GetBind(pos + 1, tokens),
                     _ => GetExpressionStatement(pos, tokens)
                 };
 
@@ -57,11 +58,27 @@ namespace FrostScript
 
             (Statement statement, int newPos) GetPrint(int pos, Token[] tokens)
             {
-                var (expression, newPos) = GetExpression(pos + 1, tokens);
+                var (expression, newPos) = GetExpression(pos, tokens);
 
                 return (new Print(expression), newPos);
             }
 
+            (Statement statement, int newPos) GetBind(int pos, Token[] tokens)
+            {
+                var id = tokens[pos].Type switch
+                {
+                    TokenType.Id => tokens[pos].Lexeme,
+                    _ => throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expected Id")
+                };
+
+                //check for '='
+                if (tokens[pos + 1].Type is not TokenType.Assign)
+                    throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expected '='");
+
+                var (value, newPos) = GetExpression(pos + 2, tokens);
+                return (new Bind(id, value), newPos);
+
+            }
 
 
             (Expression expression, int newPos) GetExpression(int pos, Token[] tokens)
@@ -215,6 +232,7 @@ namespace FrostScript
                     TokenType.Null or
                     TokenType.Numeral or
                     TokenType.String => (new Literal(tokens[pos].Literal), pos + 1),
+                    TokenType.Id => (new Identifier(tokens[pos].Lexeme), pos + 1),
 
                     TokenType.ParentheseOpen => Grouping(pos, tokens),
                     _ => throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expected an expression")

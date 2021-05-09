@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FrostScript.Statements
 {
-    public class Statement
+    public abstract class Statement
     {
     }
 }
