@@ -1,6 +1,7 @@
-﻿let x = false
+﻿let x = false;
 
+x = ""; 
 x = true
 
-print x
+print "Hello world"
 
