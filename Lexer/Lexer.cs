@@ -62,7 +62,7 @@ namespace FrostScript
                         i += digits.Length - 1;
 
                         //add a multiplication if numeric is followed by a parenthese
-                        if (characters[i + 1] == '(')
+                        if (i + 1 < characters.Length && characters[i + 1] == '(')
                             yield return new Token(TokenType.Star, line, character);
 
                         break;

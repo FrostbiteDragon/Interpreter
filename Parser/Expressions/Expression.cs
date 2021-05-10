@@ -8,5 +8,13 @@ namespace FrostScript.Expressions
 {
     public abstract class Expression
     {
+        public DataType Type { get; init; }
+
+        protected Expression() { }
+
+        protected Expression(DataType type)
+        {
+            Type = type;
+        }
     }
 }
