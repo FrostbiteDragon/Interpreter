@@ -12,7 +12,7 @@ namespace FrostScript.Expressions
         public Token Operator { get; init; }
         public Expression Right { get; init; }
 
-        public Binary(Expression left, Token @operator, Expression right)
+        public Binary(DataType type, Expression left, Token @operator, Expression right) : base(type)
         {
             Left = left;
             Operator = @operator;

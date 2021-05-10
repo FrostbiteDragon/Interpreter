@@ -29,7 +29,12 @@ namespace FrostScript
                 case Print print:
                     Console.WriteLine(ExecuteExpression(print.Expression));
                     break;
+
                 case Bind (var id, var value):
+                    variables[id] = ExecuteExpression(value);
+                    break;
+
+                case Assign(var id, var value):
                     variables[id] = ExecuteExpression(value);
                     break;
 
@@ -43,7 +48,26 @@ namespace FrostScript
             switch (expression)
             {
                 case Literal literal: return literal.Value;
-                case Identifier identifier: return variables[identifier.Id]; 
+                case Identifier identifier: return variables[identifier.Id];
+
+                case Unary unary:
+
+                    return unary.Expression.Type switch
+                    {
+                        DataType.Numeral => unary.Operator.Type switch
+                        {
+                            TokenType.Minus => -(double)ExecuteExpression(unary.Expression),
+                            TokenType.Plus => ExecuteExpression(unary.Expression),
+                            _ => throw new InterpretException($"Oporator {unary.Operator.Lexeme} not supported for type Numeric")
+                        },
+                        DataType.Bool => unary.Operator.Type switch
+                        {
+                            TokenType.Not => !(bool)ExecuteExpression(unary.Expression),
+                            _ => throw new InterpretException($"Oporator {unary.Operator.Lexeme} not supported for type Bool")
+                        },
+                        _ => throw new InterpretException($"Oporator {unary.Operator.Lexeme} not supported for type {unary.Expression.Type}")
+
+                    };
 
                 case Binary binary:
 

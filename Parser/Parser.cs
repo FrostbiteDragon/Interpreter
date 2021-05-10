@@ -10,6 +10,8 @@ namespace FrostScript
     {
         public static IEnumerable<Statement> GenerateAST(Token[] tokens)
         {
+            var identifiers = new Dictionary<string, (DataType Type, bool Mutable)>();
+
             int currentPosition = 0;
             while (tokens[currentPosition].Type != TokenType.Eof)
             {
@@ -40,13 +42,12 @@ namespace FrostScript
             {
                 return tokens[pos].Type switch
                 {
-                    TokenType.Print => GetPrint(pos + 1, tokens),
                     TokenType.NewLine => GetStatement(pos + 1, tokens),
-                    TokenType.Var => GetBind(pos + 1, tokens),
+                    TokenType.Print => GetPrint(pos, tokens),
+                    TokenType.Var or TokenType.Let => GetBind(pos, tokens),
+                    TokenType.Id => GetAssign(pos, tokens),
                     _ => GetExpressionStatement(pos, tokens)
                 };
-
-
             }
 
             (Statement statement, int newPos) GetExpressionStatement(int pos, Token[] tokens)
@@ -58,26 +59,60 @@ namespace FrostScript
 
             (Statement statement, int newPos) GetPrint(int pos, Token[] tokens)
             {
-                var (expression, newPos) = GetExpression(pos, tokens);
+                var (expression, newPos) = GetExpression(pos + 1, tokens);
 
                 return (new Print(expression), newPos);
             }
 
             (Statement statement, int newPos) GetBind(int pos, Token[] tokens)
             {
-                var id = tokens[pos].Type switch
+                var id = tokens[pos + 1].Type switch
                 {
-                    TokenType.Id => tokens[pos].Lexeme,
-                    _ => throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expected Id")
+                    TokenType.Id => tokens[pos + 1].Lexeme,
+                    _ => throw new ParseException(tokens[pos].Line, tokens[pos + 1].Character, $"Expected Id")
                 };
 
+                if (identifiers.ContainsKey(id))
+                    throw new ParseException(tokens[pos + 1].Line, tokens[pos + 1].Character, $"Cannot bind to {id}. binding {id} already exists");
+
                 //check for '='
-                if (tokens[pos + 1].Type is not TokenType.Assign)
+                if (tokens[pos + 2].Type is not TokenType.Assign)
                     throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expected '='");
 
-                var (value, newPos) = GetExpression(pos + 2, tokens);
+                var (value, newPos) = GetExpression(pos + 3, tokens);
+                
+                //temporaly store id
+                identifiers[id] = tokens[pos].Type switch
+                {
+                    TokenType.Var => (value.Type, true),
+                    TokenType.Let => (value.Type, false)
+                };
+
                 return (new Bind(id, value), newPos);
 
+            }
+
+            (Statement statement, int newPos) GetAssign(int pos, Token[] tokens)
+            {
+                var id = tokens[pos].Lexeme;
+
+                if (tokens[pos + 1].Type is not TokenType.Assign)
+                    throw new ParseException(tokens[pos + 1].Line, tokens[pos + 1].Character, $"Expected '='");
+
+                if (!identifiers.ContainsKey(id))
+                    throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Variable does not exist in current scope. did you forget a 'let' or 'var' binding?");
+
+                var (value, newPos) = GetExpression(pos + 2, tokens);
+
+                if (identifiers[id].Type != value.Type)
+                    throw new ParseException(tokens[pos + 2].Line, tokens[pos + 2].Character, $"binding {id} is of type {identifiers[id]}. It cannot be assigned a value of {value.Type}");
+
+                if (identifiers[id].Mutable == false)
+                    throw new ParseException(tokens[pos + 2].Line, tokens[pos + 2].Character, $"let bindings are not mutable");
+
+                identifiers[id] = (value.Type, true);
+
+                return new(new Assign(id, value), newPos);
             }
 
 
@@ -110,15 +145,16 @@ namespace FrostScript
                                 throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"expected \"->\" ");
 
                             var (expression, newPos) = GetExpression(boolResult.newPos + 1, tokens);
-                            var newWhen = new When(boolResult.expression, expression, null);
+                            var newWhen = new When(expression.Type, boolResult.expression, expression, null);
 
                             if (when is null)
                                 return GenerateWhen(newWhen, newPos, tokens);
                             else
                             {
                                 var result = GenerateWhen(newWhen, newPos, tokens);
-                                return (new When()
+                                return (new When
                                 {
+                                    Type = when.Type,
                                     IfExpresion = when.IfExpresion,
                                     ResultExpression = when.ResultExpression,
                                     ElseWhen = result.when
@@ -132,10 +168,12 @@ namespace FrostScript
                             {
                                 null => new When
                                 {
+                                    Type = expression.Type,
                                     ResultExpression = expression
                                 },
                                 _ => new When
                                 {
+                                    Type = when.Type,
                                     IfExpresion = when.IfExpresion,
                                     ResultExpression = when.ResultExpression,
                                     ElseWhen = new When { ResultExpression = expression }
@@ -157,7 +195,7 @@ namespace FrostScript
                 {
                     var result = Comparison(newPos + 1, tokens);
 
-                    expression = new Binary(expression, tokens[newPos], result.expression);
+                    expression = new Binary(DataType.Bool, expression, tokens[newPos], result.expression);
                     newPos = result.newPos;
                 }
 
@@ -172,7 +210,7 @@ namespace FrostScript
                 {
                     var result = Term(newPos + 1, tokens);
 
-                    expression = new Binary(expression, tokens[newPos], result.expression);
+                    expression = new Binary(DataType.Bool, expression, tokens[newPos], result.expression);
                     newPos = result.newPos;
                 }
 
@@ -187,8 +225,9 @@ namespace FrostScript
                 while (newPos < tokens.Length && tokens[newPos].Type is TokenType.Plus or TokenType.Minus)
                 {
                     var result = Factor(newPos + 1, tokens);
-
-                    expression = new Binary(expression, tokens[newPos], result.expression);
+                    
+                    //assume the type of the left expression [temporary]
+                    expression = new Binary(expression.Type, expression, tokens[newPos], result.expression);
                     newPos = result.newPos;
                 }
 
@@ -203,7 +242,8 @@ namespace FrostScript
                 {
                     var result = Unary(newPos + 1, tokens);
 
-                    expression = new Binary(expression, tokens[newPos], result.expression);
+                    //assume the type of the left expression [temporary]
+                    expression = new Binary(expression.Type, expression, tokens[newPos], result.expression);
                     newPos = result.newPos;
                 }
 
@@ -212,10 +252,10 @@ namespace FrostScript
 
             (Expression expression, int newPos) Unary(int pos, Token[] tokens)
             {
-                if (tokens[pos].Type is TokenType.Minus or TokenType.Not)
+                if (tokens[pos].Type is TokenType.Minus or TokenType.Plus or TokenType.Not)
                 {
-                    var (expression, newPos) = Primary(pos + 1, tokens);
-                    return (new Unary(tokens[pos], expression), newPos);
+                    var (expression, newPos) = Unary(pos + 1, tokens);
+                    return (new Unary(expression.Type, tokens[pos], expression), newPos);
                 }
                 else
                 {
@@ -227,12 +267,11 @@ namespace FrostScript
             {
                 return tokens[pos].Type switch
                 {
-                    TokenType.True or 
-                    TokenType.False or
-                    TokenType.Null or
-                    TokenType.Numeral or
-                    TokenType.String => (new Literal(tokens[pos].Literal), pos + 1),
-                    TokenType.Id => (new Identifier(tokens[pos].Lexeme), pos + 1),
+                    TokenType.True or TokenType.False => (new Literal(DataType.Bool, tokens[pos].Literal), pos + 1),
+                    TokenType.Numeral => (new Literal(DataType.Numeral, tokens[pos].Literal), pos + 1),
+                    TokenType.Null => (new Literal(DataType.Null, tokens[pos].Literal), pos + 1),
+                    TokenType.String => (new Literal(DataType.String, tokens[pos].Literal), pos + 1),
+                    TokenType.Id => (new Identifier(identifiers[tokens[pos].Lexeme].Type, tokens[pos].Lexeme), pos + 1),
 
                     TokenType.ParentheseOpen => Grouping(pos, tokens),
                     _ => throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expected an expression")

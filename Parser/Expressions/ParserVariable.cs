@@ -6,15 +6,10 @@ using System.Threading.Tasks;
 
 namespace FrostScript.Expressions
 {
-    public abstract class Expression
+    public class ParserVariable
     {
+        public string Id { get; init; }
         public DataType Type { get; init; }
-
-        protected Expression() { }
-
-        protected Expression(DataType type)
-        {
-            Type = type;
-        }
+        public bool Mutable { get; set; }
     }
 }

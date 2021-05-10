@@ -14,7 +14,7 @@ namespace FrostScript.Expressions
 
         public When() { }
 
-        public When(Expression ifExpresion, Expression resultExpression, When elseWhen)
+        public When(DataType type, Expression ifExpresion, Expression resultExpression, When elseWhen) : base(type)
         {
             IfExpresion = ifExpresion;
             ResultExpression = resultExpression;

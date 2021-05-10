@@ -10,7 +10,7 @@ namespace FrostScript.Expressions
     {
         public object Value { get; init; }
 
-        public Literal(object value)
+        public Literal(DataType type, object value) : base(type)
         {
             Value = value;
         }

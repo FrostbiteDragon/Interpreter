@@ -1,7 +1,6 @@
-﻿var x = when 
-	| 2(1 + 2) == 5 -> "i'm right"
-	| 2(1 + 2) == 4 -> "no, i'm right"
-	| 2(1 + 2) == 6 -> "y'all are idiots"
-	| -> "this question is stupid"
+﻿let x = false
+
+x = true
 
 print x
+

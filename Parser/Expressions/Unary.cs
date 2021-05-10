@@ -10,8 +10,8 @@ namespace FrostScript.Expressions
     {
         public Token Operator { get; init; }
         public Expression Expression { get; init; }
-       
-        public Unary(Token @operator, Expression expression)
+
+        public Unary(DataType type, Token @operator, Expression expression) : base(type)
         {
             Operator = @operator;
             Expression = expression;
