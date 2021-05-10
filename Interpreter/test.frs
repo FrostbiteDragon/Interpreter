@@ -1,4 +1,6 @@
-﻿var x = false
+﻿let x = false
+
+x = true
 
 print x
 

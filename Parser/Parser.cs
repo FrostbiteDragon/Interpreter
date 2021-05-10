@@ -10,7 +10,7 @@ namespace FrostScript
     {
         public static IEnumerable<Statement> GenerateAST(Token[] tokens)
         {
-            var identifiers = new Dictionary<string, DataType>();
+            var identifiers = new Dictionary<string, (DataType Type, bool Mutable)>();
 
             int currentPosition = 0;
             while (tokens[currentPosition].Type != TokenType.Eof)
@@ -44,7 +44,7 @@ namespace FrostScript
                 {
                     TokenType.NewLine => GetStatement(pos + 1, tokens),
                     TokenType.Print => GetPrint(pos, tokens),
-                    TokenType.Var => GetBind(pos, tokens),
+                    TokenType.Var or TokenType.Let => GetBind(pos, tokens),
                     TokenType.Id => GetAssign(pos, tokens),
                     _ => GetExpressionStatement(pos, tokens)
                 };
@@ -80,8 +80,14 @@ namespace FrostScript
                     throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expected '='");
 
                 var (value, newPos) = GetExpression(pos + 3, tokens);
-                //temporaly store id and type
-                identifiers[id] = value.Type;
+                
+                //temporaly store id
+                identifiers[id] = tokens[pos].Type switch
+                {
+                    TokenType.Var => (value.Type, true),
+                    TokenType.Let => (value.Type, false)
+                };
+
                 return (new Bind(id, value), newPos);
 
             }
@@ -98,10 +104,13 @@ namespace FrostScript
 
                 var (value, newPos) = GetExpression(pos + 2, tokens);
 
-                if (identifiers[id] != value.Type)
+                if (identifiers[id].Type != value.Type)
                     throw new ParseException(tokens[pos + 2].Line, tokens[pos + 2].Character, $"binding {id} is of type {identifiers[id]}. It cannot be assigned a value of {value.Type}");
 
-                identifiers[id] = value.Type;
+                if (identifiers[id].Mutable == false)
+                    throw new ParseException(tokens[pos + 2].Line, tokens[pos + 2].Character, $"let bindings are not mutable");
+
+                identifiers[id] = (value.Type, true);
 
                 return new(new Assign(id, value), newPos);
             }
@@ -262,7 +271,7 @@ namespace FrostScript
                     TokenType.Numeral => (new Literal(DataType.Numeral, tokens[pos].Literal), pos + 1),
                     TokenType.Null => (new Literal(DataType.Null, tokens[pos].Literal), pos + 1),
                     TokenType.String => (new Literal(DataType.String, tokens[pos].Literal), pos + 1),
-                    TokenType.Id => (new Identifier(identifiers[tokens[pos].Lexeme], tokens[pos].Lexeme), pos + 1),
+                    TokenType.Id => (new Identifier(identifiers[tokens[pos].Lexeme].Type, tokens[pos].Lexeme), pos + 1),
 
                     TokenType.ParentheseOpen => Grouping(pos, tokens),
                     _ => throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expected an expression")

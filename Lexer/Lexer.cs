@@ -86,6 +86,7 @@ namespace FrostScript
                             "while" => new Token(TokenType.While, line, i + 1, word),
 
                             "var" => new Token(TokenType.Var, line, i + 1, word),
+                            "let" => new Token(TokenType.Let, line, i + 1, word),
 
                             //new id
                             _ => new Token(TokenType.Id, line, i + 1, word)
