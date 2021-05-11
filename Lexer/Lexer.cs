@@ -28,10 +28,8 @@ namespace FrostScript
                     case '+': yield return new(TokenType.Plus, line, characterPos, character.ToString()); break;
                     case ';': yield return new(TokenType.NewLine, line, characterPos, character.ToString()); break;
                     case '*': yield return new(TokenType.Star, line, characterPos, character.ToString()); break;
-                    case '|':
-                        if (Match('>')) yield return new(TokenType.ReturnPipe, line, characterPos, character.ToString());
-                        else yield return new(TokenType.Pipe, line, characterPos, character.ToString()); 
-                        break;
+                    case '|': yield return new(TokenType.Pipe, line, characterPos, character.ToString()); break;
+
                     case '-':
                         if (characters.Skip(i + 1).Contains('>'))
                         {
@@ -45,7 +43,13 @@ namespace FrostScript
 
                     case '!': yield return Match('=') ? new(TokenType.NotEqual, line, characterPos, character.ToString()) : new(TokenType.Not, line, characterPos, character.ToString()); break;
                     case '=': yield return Match('=') ? new(TokenType.Equal, line, characterPos, character.ToString()) : new(TokenType.Assign, line, characterPos, character.ToString()); break;
-                    case '<': yield return Match('=') ? new(TokenType.LessOrEqual, line, characterPos, character.ToString()) : new(TokenType.LessThen, line, characterPos, character.ToString()); break;
+                    case '<':
+                        if (Match('=')) yield return new(TokenType.LessOrEqual, line, characterPos, character.ToString());
+                        else if (Match('|')) yield return new(TokenType.ClosePipe, line, characterPos, character.ToString());
+                        else yield return new(TokenType.LessThen, line, characterPos, character.ToString());
+
+                        break;
+
                     case '>': yield return Match('=') ? new(TokenType.GreaterOrEqual, line, characterPos, character.ToString()) : new(TokenType.GreaterThen, line, characterPos, character.ToString()); break;
 
                     //string litteral
@@ -98,6 +102,7 @@ namespace FrostScript
                         };
 
                         i += word.Length - 1;
+                        characterPos += word.Length - 1;
                         break;
 
 
@@ -134,6 +139,7 @@ namespace FrostScript
                         return false;
 
                     i++;
+                    characterPos++;
                     return true;
                 }
             }

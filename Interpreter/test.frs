@@ -1,11 +1,13 @@
 ﻿
 let x =
-| var y = when {
-	5 == 5 -> 1,
-	-> 2 
-}
-| y = y * 6
-|> y * 10
-
+| let y =
+	| let z = 
+		when {
+			true -> 2,
+			-> 1
+		}
+	| z <|
+| let a = y
+| a <|
 
 print x

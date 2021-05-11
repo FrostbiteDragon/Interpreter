@@ -19,12 +19,13 @@ namespace FrostScript
                 return Result.Pass(ast);
 
 
-            IEnumerable<Statement> GenerateAST(Token[] tokens)
+            IEnumerable<Statement> GenerateAST(Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers = null)
             {
-                var identifiers = new Dictionary<string, (DataType Type, bool Mutable)>();
+                if (identifiers is null)
+                    identifiers = new Dictionary<string, (DataType Type, bool Mutable)>();
 
                 int currentPosition = 0;
-                while (tokens[currentPosition].Type != TokenType.Eof)
+                while (currentPosition < tokens.Length && !(tokens[currentPosition].Type is TokenType.ClosePipe or TokenType.Eof))
                 {
                     var (statement, newPos) = TryGetStatement(currentPosition, tokens);
 
@@ -40,6 +41,7 @@ namespace FrostScript
                         (Statement statement, int newPos) = tokens[pos].Type switch
                         {
                             TokenType.NewLine => TryGetStatement(pos + 1, tokens),
+                            TokenType.Pipe => TryGetStatement(pos + 1, tokens),
                             TokenType.Print => GetPrint(pos, tokens),
                             TokenType.Var or TokenType.Let => GetBind(pos, tokens),
                             TokenType.Id when tokens[pos + 1].Type is TokenType.Assign => GetAssign(pos, tokens),
@@ -58,9 +60,6 @@ namespace FrostScript
                 (Statement statement, int newPos) GetExpressionStatement(int pos, Token[] tokens)
                 {
                     var (expression, newPos) = GetExpression(pos, tokens);
-
-                    if (tokens[pos].Type is not TokenType.ReturnPipe)
-                        throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"An Expression cannot be a statement. did you forget a \"|>\"?", newPos);
 
                     return (new ExpressionStatement(expression), newPos);
                 }
@@ -97,12 +96,17 @@ namespace FrostScript
 
                     var (value, newPos) = GetExpression(pos + 3, tokens);
 
-                    //temporaly store id
-                    identifiers[id] = tokens[pos].Type switch
+                    if (value is null)
+                        return (null, newPos);
+                    else
                     {
-                        TokenType.Var => (value.Type, true),
-                        _ => (value.Type, false)
-                    };
+                        //temporaly store id
+                        identifiers[id] = tokens[pos].Type switch
+                        {
+                            TokenType.Var => (value.Type, true),
+                            _ => (value.Type, false)
+                        };
+                    }
 
                     return (new Bind(id, value), newPos);
                 }
@@ -211,38 +215,50 @@ namespace FrostScript
                     }
                 }
 
-                (Expression expression, int newPos) ExpressionBlock(int InitialPos, Token[] tokens)
+                (Expression expression, int newPos) ExpressionBlock(int initialPos, Token[] tokens)
                 {
-                    if (tokens[InitialPos].Type is not TokenType.Pipe)
-                        return When(InitialPos, tokens);
+                    if (tokens[initialPos].Type is not TokenType.Pipe)
+                        return When(initialPos, tokens);
 
-                    var pos = InitialPos;
-                    var statements = GetBlockStatements().ToArray();
+                    var pos = initialPos;
+
+                    var blockTokens = GetBlockTokens(tokens).ToArray();
+
+                    IEnumerable<Token> GetBlockTokens(Token[] tokens)
+                    {
+                        var blockCount = 1;
+
+                        for (int i = initialPos; i < tokens.Length; i++)
+                        {
+                            //if another block is opened
+                            if (tokens[i].Type is TokenType.Pipe)
+                                if (i - 1 > initialPos && tokens[i - 1].Type is TokenType.Assign)
+                                    blockCount += 1;
+
+                            if (tokens[i].Type is TokenType.ClosePipe)
+                            {
+                                blockCount -= 1;
+
+                                yield return tokens[i];
+
+                                if (blockCount == 0)
+                                    yield break;
+                            }
+                            else yield return tokens[i];
+
+                        }
+                    }
+
+                    var statements = GenerateAST(blockTokens, new(identifiers)).ToArray();
+                    pos += blockTokens.Length;
 
                     if (statements.Any(x => x is null))
                         return (null, pos);
 
                     if (statements.Last() is not ExpressionStatement)
-                        throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expression blocks must end in a expression", pos);
+                        throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expression blocks must end in an expression", pos);
 
                     return new(new ExpressionBlock(statements), pos);
-
-                    IEnumerable<Statement> GetBlockStatements()
-                    {
-                        while (pos < tokens.Length && tokens[pos].Type is TokenType.Pipe)
-                        {
-                            var (statement, newPos) = TryGetStatement(pos + 1, tokens);
-                            pos = newPos;
-                            yield return statement;
-                        }
-
-                        if (pos < tokens.Length && tokens[pos].Type is TokenType.ReturnPipe)
-                        {
-                            var (expression, newPos) = GetExpression(pos + 1, tokens);
-                            pos = newPos;
-                            yield return new ExpressionStatement(expression);
-                        }
-                    }
                 }
 
                 (Expression expression, int newPos) When(int pos, Token[] tokens)
@@ -314,7 +330,11 @@ namespace FrostScript
                             var newWhen = new When(boolResult.expression, expression, null);
 
                             if (tokens[newPos].Type is not TokenType.Comma)
-                                throw new ParseException(tokens[newPos].Line, tokens[newPos].Character, $"expected \',\'", newPos);
+                                throw new ParseException(
+                                    tokens[newPos].Line,
+                                    tokens[newPos].Character,
+                                    $"expected \',\'",
+                                    newPos + tokens.Skip(newPos).TakeWhile(x => x.Type is not TokenType.BraceClose).Count() + 1);
 
                             if (when is null)
                                 return GenerateWhen(newWhen, newPos + 1, tokens);
@@ -343,10 +363,14 @@ namespace FrostScript
                         TokenType.Numeral => (new Literal(DataType.Numeral, tokens[pos].Literal), pos + 1),
                         TokenType.Null => (new Literal(DataType.Null, tokens[pos].Literal), pos + 1),
                         TokenType.String => (new Literal(DataType.String, tokens[pos].Literal), pos + 1),
-                        TokenType.Id => (new Identifier(identifiers[tokens[pos].Lexeme].Type, tokens[pos].Lexeme), pos + 1),
+                        TokenType.Id => identifiers.ContainsKey(tokens[pos].Lexeme) switch
+                        {
+                            true => (new Identifier(identifiers[tokens[pos].Lexeme].Type, tokens[pos].Lexeme), pos + 1),
+                            false => throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"The variable {tokens[pos].Lexeme} either does not exist or is out of scope", pos + 1)
+                        },
 
                         TokenType.ParentheseOpen => Grouping(pos, tokens),
-                        _ => throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expected an expression", pos)
+                        _ => throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expected an expression", pos + 1)
                     };
                 }
 

@@ -9,10 +9,10 @@ namespace FrostScript
 {
     public static class Interpreter
     {
-
-        public static Result ExecuteProgram(IEnumerable<Statement> statements)
+        public static Result ExecuteProgram(IEnumerable<Statement> statements, Dictionary<string, object> variables = null)
         {
-            Dictionary<string, object> variables = new Dictionary<string, object>();
+            if (variables is null)
+                variables = new Dictionary<string, object>();
 
             try
             {
@@ -169,7 +169,7 @@ namespace FrostScript
                         }
 
                     case ExpressionBlock expressionBlock:
-                        return (ExecuteProgram(expressionBlock.Statements) as Pass<object>).Value;
+                        return (ExecuteProgram(expressionBlock.Statements, new(variables)) as Pass<object>).Value;
 
                     case null: throw new InterpretException("Errors must be addressed before interpretation can commence");
 
