@@ -51,7 +51,7 @@ namespace FrostScript
                     catch (ParseException exception)
                     {
                         Reporter.Report(exception.Line, exception.CharacterPos, exception.Message);
-                        return (null, pos + 1);
+                        return (null, exception.PickupPoint);
                     }
                 }
 
@@ -74,15 +74,22 @@ namespace FrostScript
                     var id = tokens[pos + 1].Type switch
                     {
                         TokenType.Id => tokens[pos + 1].Lexeme,
-                        _ => throw new ParseException(tokens[pos].Line, tokens[pos + 1].Character, $"Expected Id")
+                        _ => throw new ParseException(tokens[pos + 1].Line, tokens[pos + 1].Character, $"Expected Id", pos)
                     };
 
                     if (identifiers.ContainsKey(id))
-                        throw new ParseException(tokens[pos + 1].Line, tokens[pos + 1].Character, $"Cannot bind to {id}. binding {id} already exists");
+                        throw new ParseException(tokens[pos + 1].Line, tokens[pos + 1].Character, $"Cannot bind to {id}. binding {id} already exists", pos);
 
                     //check for '='
                     if (tokens[pos + 2].Type is not TokenType.Assign)
-                        throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expected '='");
+                        throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expected '='", pos + 2);
+
+                    //store id regardless if exression throws error. this is to not log errors where there may not be one
+                    identifiers[id] = tokens[pos].Type switch
+                    {
+                        TokenType.Var => (DataType.Unknown, true),
+                        _ => (DataType.Unknown, false)
+                    };
 
                     var (value, newPos) = GetExpression(pos + 3, tokens);
 
@@ -94,7 +101,6 @@ namespace FrostScript
                     };
 
                     return (new Bind(id, value), newPos);
-
                 }
 
                 (Statement statement, int newPos) GetAssign(int pos, Token[] tokens)
@@ -102,18 +108,18 @@ namespace FrostScript
                     var id = tokens[pos].Lexeme;
 
                     if (tokens[pos + 1].Type is not TokenType.Assign)
-                        throw new ParseException(tokens[pos + 1].Line, tokens[pos + 1].Character, $"Expected '='");
+                        throw new ParseException(tokens[pos + 1].Line, tokens[pos + 1].Character, $"Expected '='", pos);
 
                     if (!identifiers.ContainsKey(id))
-                        throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Variable does not exist in current scope. did you forget a 'let' or 'var' binding?");
+                        throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Variable does not exist in current scope. did you forget a 'let' or 'var' binding?", pos);
+
+                    if (identifiers[id].Mutable == false)
+                        throw new ParseException(tokens[pos + 2].Line, tokens[pos + 2].Character, $"let bindings are not mutable", pos + 2);
 
                     var (value, newPos) = GetExpression(pos + 2, tokens);
 
                     if (identifiers[id].Type != value.Type)
-                        throw new ParseException(tokens[pos + 2].Line, tokens[pos + 2].Character, $"binding {id} is of type {identifiers[id]}. It cannot be assigned a value of {value.Type}");
-
-                    if (identifiers[id].Mutable == false)
-                        throw new ParseException(tokens[pos + 2].Line, tokens[pos + 2].Character, $"let bindings are not mutable");
+                        throw new ParseException(tokens[pos + 2].Line, tokens[pos + 2].Character, $"binding {id} is of type {identifiers[id].Type}. It cannot be assigned a value of {value.Type}", pos + 2);
 
                     identifiers[id] = (value.Type, true);
 
@@ -131,14 +137,28 @@ namespace FrostScript
                     if (tokens[pos].Type is not TokenType.When)
                         return Equality(pos, tokens);
 
-                    pos++;
+                    var when = GenerateWhen(null, pos + 1, tokens);
 
-                    return GenerateWhen(null, pos, tokens);
+                    if (!VerrifyWhen(when.when))
+                        throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"All clauses in a when expression must return the same type", when.pos);
+
+                    return when;
+
+                    bool VerrifyWhen(When when)
+                    {
+                        if (when.ElseWhen is not null)
+                        {
+                            if (when.Type == when.ElseWhen.Type)
+                                return VerrifyWhen(when.ElseWhen);
+                            else return false;
+                        }
+                        else return true;
+                    }
 
                     (When when, int pos) GenerateWhen(When when, int pos, Token[] tokens)
                     {
                         if (pos >= tokens.Length)
-                            throw new ParseException(tokens.Last().Line, tokens.Last().Character, $"Missing default clause");
+                            throw new ParseException(tokens.Last().Line, tokens.Last().Character, $"Missing default clause", pos);
 
                         if (tokens[pos].Type is TokenType.Pipe)
                         {
@@ -147,19 +167,19 @@ namespace FrostScript
                                 var boolResult = GetExpression(pos + 1, tokens);
 
                                 if (tokens[boolResult.newPos].Type is not TokenType.Arrow)
-                                    throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"expected \"->\" ");
+                                    throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"expected \"->\" ", pos);
 
                                 var (expression, newPos) = GetExpression(boolResult.newPos + 1, tokens);
-                                var newWhen = new When(expression.Type, boolResult.expression, expression, null);
+                                var newWhen = new When(boolResult.expression, expression, null);
 
                                 if (when is null)
                                     return GenerateWhen(newWhen, newPos, tokens);
                                 else
                                 {
                                     var result = GenerateWhen(newWhen, newPos, tokens);
+
                                     return (new When
                                     {
-                                        Type = when.Type,
                                         IfExpresion = when.IfExpresion,
                                         ResultExpression = when.ResultExpression,
                                         ElseWhen = result.when
@@ -169,6 +189,7 @@ namespace FrostScript
                             else if (tokens[pos + 1].Type is TokenType.Arrow)
                             {
                                 var (expression, newPos) = GetExpression(pos + 2, tokens);
+
                                 var newWhen = when switch
                                 {
                                     null => new When
@@ -186,9 +207,9 @@ namespace FrostScript
                                 };
                                 return (newWhen, newPos);
                             }
-                            else throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Missing default clause");
+                            else throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Missing default clause", pos);
                         }
-                        else throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"expected \"|\"");
+                        else throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"expected \"|\"", pos);
                     }
                 }
 
@@ -279,7 +300,7 @@ namespace FrostScript
                         TokenType.Id => (new Identifier(identifiers[tokens[pos].Lexeme].Type, tokens[pos].Lexeme), pos + 1),
 
                         TokenType.ParentheseOpen => Grouping(pos, tokens),
-                        _ => throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expected an expression")
+                        _ => throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expected an expression", pos)
                     };
                 }
 

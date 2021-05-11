@@ -11,37 +11,39 @@ namespace FrostScript
             var characters = sourceCode.ToCharArray();
 
             var line = 1;
+            var characterPos = 0;
 
             for (int i = 0; i < characters.Length; i++)
             {
                 var character = characters[i];
-
+                characterPos++;
                 switch (character)
                 {
-                    case '(': yield return new(TokenType.ParentheseOpen, line, i + 1, character.ToString()); break;
-                    case ')': yield return new(TokenType.ParentheseClose, line, i + 1, character.ToString()); break;
-                    case '{': yield return new(TokenType.BraceOpen, line, i + 1, character.ToString()); break;
-                    case '}': yield return new(TokenType.BraceClose, line, i + 1, character.ToString()); break;
-                    case ',': yield return new(TokenType.Comma, line, i + 1, character.ToString()); break;
-                    case '.': yield return new(TokenType.Dot, line, i + 1, character.ToString()); break;
-                    case '+': yield return new(TokenType.Plus, line, i + 1, character.ToString()); break;
-                    case ';': yield return new(TokenType.NewLine, line, i + 1, character.ToString()); break;
-                    case '*': yield return new(TokenType.Star, line, i + 1, character.ToString()); break;
-                    case '|': yield return new(TokenType.Pipe, line, i + 1, character.ToString()); break;
+                    case '(': yield return new(TokenType.ParentheseOpen, line, characterPos, character.ToString()); break;
+                    case ')': yield return new(TokenType.ParentheseClose, line, characterPos, character.ToString()); break;
+                    case '{': yield return new(TokenType.BraceOpen, line, characterPos, character.ToString()); break;
+                    case '}': yield return new(TokenType.BraceClose, line, characterPos, character.ToString()); break;
+                    case ',': yield return new(TokenType.Comma, line, characterPos, character.ToString()); break;
+                    case '.': yield return new(TokenType.Dot, line, characterPos, character.ToString()); break;
+                    case '+': yield return new(TokenType.Plus, line, characterPos, character.ToString()); break;
+                    case ';': yield return new(TokenType.NewLine, line, characterPos, character.ToString()); break;
+                    case '*': yield return new(TokenType.Star, line, characterPos, character.ToString()); break;
+                    case '|': yield return new(TokenType.Pipe, line, characterPos, character.ToString()); break;
                     case '-':
                         if (characters.Skip(i + 1).Contains('>'))
                         {
-                            yield return new(TokenType.Arrow, line, i + 2, character.ToString());
+                            yield return new(TokenType.Arrow, line, characterPos + 1, character.ToString());
                             i++;
+                            characterPos++;
                         }
-                        else yield return new(TokenType.Minus, line, i + 1, character.ToString());
+                        else yield return new(TokenType.Minus, line, characterPos, character.ToString());
 
                         break;
 
-                    case '!': yield return Match('=') ? new(TokenType.NotEqual, line, i + 1, character.ToString()) : new(TokenType.Not, line, i + 1, character.ToString()); break;
-                    case '=': yield return Match('=') ? new(TokenType.Equal, line, i + 1, character.ToString()) : new(TokenType.Assign, line, i + 1, character.ToString()); break;
-                    case '<': yield return Match('=') ? new(TokenType.LessOrEqual, line, i + 1, character.ToString()) : new(TokenType.LessThen, line, i + 1, character.ToString()); break;
-                    case '>': yield return Match('=') ? new(TokenType.GreaterOrEqual, line, i + 1, character.ToString()) : new(TokenType.GreaterThen, line, i + 1, character.ToString()); break;
+                    case '!': yield return Match('=') ? new(TokenType.NotEqual, line, characterPos, character.ToString()) : new(TokenType.Not, line, characterPos, character.ToString()); break;
+                    case '=': yield return Match('=') ? new(TokenType.Equal, line, characterPos, character.ToString()) : new(TokenType.Assign, line, characterPos, character.ToString()); break;
+                    case '<': yield return Match('=') ? new(TokenType.LessOrEqual, line, characterPos, character.ToString()) : new(TokenType.LessThen, line, characterPos, character.ToString()); break;
+                    case '>': yield return Match('=') ? new(TokenType.GreaterOrEqual, line, characterPos, character.ToString()) : new(TokenType.GreaterThen, line, characterPos, character.ToString()); break;
 
                     //string litteral
                     case '"':
@@ -49,7 +51,7 @@ namespace FrostScript
                             Reporter.Report(line, i + 1, $"string literal was not closed");
                         var stringCharacters = characters.Skip(i + 1).TakeWhile(x => x != '"').ToArray();
                         var stringLit = new string(stringCharacters);
-                        yield return new Token(TokenType.String, line, i + 1, stringLit, stringLit);
+                        yield return new Token(TokenType.String, line, characterPos, stringLit, stringLit);
 
                         i += stringCharacters.Length + 1;
                         break;
@@ -58,7 +60,7 @@ namespace FrostScript
                     case char _ when char.IsDigit(character):
                         var digits = new string(characters.Skip(i).TakeWhile(x => char.IsDigit(x) || x == '.').ToArray());
 
-                        yield return new Token(TokenType.Numeral, line, i + 1, digits, double.Parse(digits));
+                        yield return new Token(TokenType.Numeral, line, characterPos, digits, double.Parse(digits));
                         i += digits.Length - 1;
 
                         //add a multiplication if numeric is followed by a parenthese
@@ -72,21 +74,21 @@ namespace FrostScript
                         var word = new string(characters.Skip(i).TakeWhile(x => char.IsLetterOrDigit(x)).ToArray());
                         yield return word switch
                         {
-                            "if" => new Token(TokenType.If, line, i + 1, word),
-                            "else" => new Token(TokenType.Else, line, i + 1, word),
-                            "when" => new Token(TokenType.When, line, i + 1, word),
+                            "if" => new Token(TokenType.If, line, characterPos, word),
+                            "else" => new Token(TokenType.Else, line, characterPos, word),
+                            "when" => new Token(TokenType.When, line, characterPos, word),
 
-                            "print" => new Token(TokenType.Print, line, i + 1, word),
+                            "print" => new Token(TokenType.Print, line, characterPos, word),
 
-                            "true" => new Token(TokenType.True, line, i + 1, word, true),
-                            "false" => new Token(TokenType.False, line, i + 1, word, false),
-                            "null" => new Token(TokenType.Null, line, i + 1, word),
+                            "true" => new Token(TokenType.True, line, characterPos, word, true),
+                            "false" => new Token(TokenType.False, line, characterPos, word, false),
+                            "null" => new Token(TokenType.Null, line, characterPos, word),
 
-                            "for" => new Token(TokenType.For, line, i + 1, word),
-                            "while" => new Token(TokenType.While, line, i + 1, word),
+                            "for" => new Token(TokenType.For, line, characterPos, word),
+                            "while" => new Token(TokenType.While, line, characterPos, word),
 
-                            "var" => new Token(TokenType.Var, line, i + 1, word),
-                            "let" => new Token(TokenType.Let, line, i + 1, word),
+                            "var" => new Token(TokenType.Var, line, characterPos, word),
+                            "let" => new Token(TokenType.Let, line, characterPos, word),
 
                             //new id
                             _ => new Token(TokenType.Id, line, i + 1, word)
@@ -106,7 +108,7 @@ namespace FrostScript
                             continue;
                         }
                         else
-                            yield return new(TokenType.Slash, line, i + 1, character.ToString());
+                            yield return new(TokenType.Slash, line, characterPos, character.ToString());
                         break;
 
                     //ignore white space
@@ -115,7 +117,7 @@ namespace FrostScript
                     case '\t':
                         break;
 
-                    case '\n': line++; break;
+                    case '\n': line++; characterPos = 0; break;
 
                     default: Reporter.Report(line, i + 1, $"Charactor {character} not supported"); break;
                 }

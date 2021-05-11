@@ -1,7 +1,5 @@
-﻿let x = false;
+﻿let x = when
+	| false -> 1
+	| -> "2"
 
-x = ""; 
-x = true
-
-print "Hello world"
-
+print x
