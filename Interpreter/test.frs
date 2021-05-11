@@ -1,7 +1,11 @@
-﻿let x = when
-	| false -> 1
-	| -> when
-		| false -> "2"
-		| -> 3
+﻿
+let x =
+| var y = when {
+	5 == 5 -> 1,
+	-> 2 
+}
+| y = y * 6
+|> y * 10
+
 
 print x

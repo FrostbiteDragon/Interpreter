@@ -28,7 +28,10 @@ namespace FrostScript
                     case '+': yield return new(TokenType.Plus, line, characterPos, character.ToString()); break;
                     case ';': yield return new(TokenType.NewLine, line, characterPos, character.ToString()); break;
                     case '*': yield return new(TokenType.Star, line, characterPos, character.ToString()); break;
-                    case '|': yield return new(TokenType.Pipe, line, characterPos, character.ToString()); break;
+                    case '|':
+                        if (Match('>')) yield return new(TokenType.ReturnPipe, line, characterPos, character.ToString());
+                        else yield return new(TokenType.Pipe, line, characterPos, character.ToString()); 
+                        break;
                     case '-':
                         if (characters.Skip(i + 1).Contains('>'))
                         {

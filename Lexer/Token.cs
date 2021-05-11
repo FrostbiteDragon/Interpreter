@@ -20,6 +20,7 @@ namespace FrostScript
         Discard,
         Arrow,
         Pipe,
+        ReturnPipe,
         Eof,
 
         //Oporators
