@@ -12,11 +12,14 @@ namespace FrostScript
         public int CharacterPos { get; }
         public override string Message { get; }
 
-        public ParseException(int line, int character, string message)
+        public int PickupPoint { get; }
+
+        public ParseException(int line, int character, string message, int pickupPoint)
         {
             Line = line;
             CharacterPos = character;
             Message = message;
+            PickupPoint = pickupPoint;
         }
     }
 }
