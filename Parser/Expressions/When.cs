@@ -14,11 +14,12 @@ namespace FrostScript.Expressions
 
         public When() { }
 
-        public When(Expression ifExpresion, Expression resultExpression, When elseWhen) : base(resultExpression.Type)
+        public When(Expression ifExpresion, Expression resultExpression, When elseWhen)
         {
             IfExpresion = ifExpresion;
             ResultExpression = resultExpression;
             ElseWhen = elseWhen;
+            Type = resultExpression.Type;
         }
     }
 }

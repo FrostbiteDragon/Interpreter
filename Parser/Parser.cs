@@ -180,6 +180,7 @@ namespace FrostScript
 
                                     return (new When
                                     {
+                                        Type = when.ResultExpression.Type,
                                         IfExpresion = when.IfExpresion,
                                         ResultExpression = when.ResultExpression,
                                         ElseWhen = result.when
@@ -199,10 +200,10 @@ namespace FrostScript
                                     },
                                     _ => new When
                                     {
-                                        Type = when.Type,
+                                        Type = when.ResultExpression.Type,
                                         IfExpresion = when.IfExpresion,
                                         ResultExpression = when.ResultExpression,
-                                        ElseWhen = new When { ResultExpression = expression }
+                                        ElseWhen = new When { ResultExpression = expression, Type = expression.Type }
                                     }
                                 };
                                 return (newWhen, newPos);
