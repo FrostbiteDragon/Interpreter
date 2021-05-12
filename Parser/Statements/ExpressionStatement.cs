@@ -9,6 +9,7 @@ namespace FrostScript.Statements
 {
     public class ExpressionStatement : Statement
     {
+        public DataType Type => Expression.Type;
         public Expression Expression { get; init; }
 
         public ExpressionStatement(Expression expression)

@@ -5,7 +5,7 @@ namespace FrostScript.Expressions
     {
         public string Id { get; init; }
 
-        public Identifier(string id)
+        public Identifier(DataType type, string id) : base(type)
         {
             Id = id;
         }

@@ -1,7 +1,14 @@
-﻿var x = when 
-	| 1 + 2 == 5 -> "i'm right"
-	| 1 + 2 == 4 -> "no, i'm right"
-	| 1 + 2 == 3 -> "y'all are idiots"
-	| -> "this question is stupid"
+﻿
+let x =
+| let y =
+	| let z = 
+		when {
+			| let number = 5
+			| number == 6 <| -> 1,
+			-> 2
+		}
+	| z <|
+| let a = y
+| a <|
 
 print x

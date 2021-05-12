@@ -19,6 +19,7 @@ namespace FrostScript.Expressions
             IfExpresion = ifExpresion;
             ResultExpression = resultExpression;
             ElseWhen = elseWhen;
+            Type = resultExpression.Type;
         }
     }
 }
