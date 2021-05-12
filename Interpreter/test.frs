@@ -1,14 +1,15 @@
 ﻿
 let x =
+| print "hello"
 | let y =
 	| let z = 
 		when {
 			| let number = 5
-			| number == 6 <| -> 1,
+			|> number == 5 -> 1,
 			-> 2
 		}
-	| z <|
+	|> z
 | let a = y
-| a <|
+|> a
 
 print x
