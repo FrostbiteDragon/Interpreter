@@ -21,6 +21,7 @@ namespace FrostScript
         Arrow,
         Pipe,
         ClosePipe,
+        ReturnPipe,
         Eof,
 
         //Oporators
