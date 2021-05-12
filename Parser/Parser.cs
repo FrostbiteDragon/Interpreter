@@ -232,7 +232,7 @@ namespace FrostScript
                         {
                             //if another block is opened
                             if (tokens[i].Type is TokenType.Pipe)
-                                if (i - 1 > initialPos && tokens[i - 1].Type is TokenType.Assign or TokenType.BraceOpen)
+                                if (i - 1 > initialPos && tokens[i - 1].Type is TokenType.Assign or TokenType.BraceOpen or TokenType.Arrow)
                                     blockCount += 1;
 
                             if (tokens[i].Type is TokenType.ClosePipe)
