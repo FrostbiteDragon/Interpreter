@@ -42,11 +42,12 @@ namespace FrostScript
                     (Statement statement, int newPos) = tokens[pos].Type switch
                     {
                         TokenType.NewLine => TryGetStatement(pos + 1, tokens, identifiers),
-                        TokenType.Pipe => TryGetStatement(pos + 1, tokens, identifiers),
-                        TokenType.Print => GetPrint(pos, tokens, identifiers),
-                        TokenType.Var or TokenType.Let => GetBind(pos, tokens, identifiers),
-                        TokenType.Id when tokens[pos + 1].Type is TokenType.Assign => GetAssign(pos, tokens, identifiers),
-                        _ => GetExpressionStatement(pos, tokens, identifiers)
+                        TokenType.Pipe => BlockStatement(pos, tokens, identifiers),
+                        TokenType.Print => Print(pos, tokens, identifiers),
+                        TokenType.Var or TokenType.Let => Bind(pos, tokens, identifiers),
+                        TokenType.Id when tokens[pos + 1].Type is TokenType.Assign => Assign(pos, tokens, identifiers),
+                        TokenType.If => If(pos, tokens, identifiers),
+                        _ => ExpressionStatement(pos, tokens, identifiers)
                     };
 
                     return (statement, newPos);
@@ -58,21 +59,39 @@ namespace FrostScript
                 }
             }
 
-            (Statement statement, int newPos) GetExpressionStatement(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            (Statement statement, int newPos) BlockStatement(int initialPos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            {
+                var blockIdentifiers = new Dictionary<string, (DataType Type, bool Mutable)>(identifiers);
+
+                var pos = initialPos;
+                return (new StatementBlock(GetBlockStatements(initialPos).ToArray()) , pos);
+                IEnumerable<Statement> GetBlockStatements(int initialPos)
+                {
+                    while (tokens[pos].Type is TokenType.Pipe)
+                    {
+                        var (statement, newPos) = TryGetStatement(pos + 1, tokens, blockIdentifiers);
+                        pos = newPos;
+
+                        yield return statement;
+                    }
+                }
+            }
+
+            (Statement statement, int newPos) ExpressionStatement(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
             {
                 var (expression, newPos) = GetExpression(pos, tokens.ToArray(), identifiers);
 
                 return (new ExpressionStatement(expression), newPos);
             }
 
-            (Statement statement, int newPos) GetPrint(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            (Statement statement, int newPos) Print(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
             {
                 var (expression, newPos) = GetExpression(pos + 1, tokens, identifiers);
 
                 return (new Print(expression), newPos);
             }
 
-            (Statement statement, int newPos) GetBind(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            (Statement statement, int newPos) Bind(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
             {
                 var id = tokens[pos + 1].Type switch
                 {
@@ -116,7 +135,7 @@ namespace FrostScript
                 return (new Bind(id, value), newPos);
             }
 
-            (Statement statement, int newPos) GetAssign(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            (Statement statement, int newPos) Assign(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
             {
                 var id = tokens[pos].Lexeme;
 
@@ -139,6 +158,98 @@ namespace FrostScript
                 return new(new Assign(id, value), newPos);
             }
 
+            (Statement expression, int newPos) If(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            {
+                if (tokens[pos + 1].Type is not TokenType.BraceOpen)
+                    throw new ParseException(tokens[pos + 1].Line, tokens[pos + 1].Character, "expected '{'", pos + 1);
+
+                var (ifStmt, newPos) = GenerateIf(null, pos + 2, tokens, identifiers);
+
+                if (tokens[newPos].Type is not TokenType.BraceClose)
+                    throw new ParseException(tokens[newPos].Line, tokens[newPos].Character, "expected '}'. \"when\" was never closed", newPos);
+
+                return (ifStmt, newPos + 1);
+
+
+                (If ifStmt, int pos) GenerateIf(If ifStmt, int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+                {
+                    if (pos >= tokens.Length)
+                        return (ifStmt, pos);
+
+                    if (tokens[pos].Type is TokenType.BraceClose)
+                        return (ifStmt, pos);
+
+                    //default clause
+                    if (tokens[pos].Type is TokenType.Arrow)
+                    {
+                        var (statment, newPos) = TryGetStatement(pos + 1, tokens, identifiers);
+
+                        var newIf = ifStmt switch
+                        {
+                            null => new If
+                            {
+                                ResultStatement = statment
+                            },
+                            _ => new If
+                            {
+                                IfExpresion = ifStmt.IfExpresion,
+                                ResultStatement = ifStmt.ResultStatement,
+                                ElseIf = new If { ResultStatement = statment }
+                            }
+                        };
+                        return (newIf, newPos);
+
+                    }
+                    //if clause
+                    else
+                    {
+                        var boolResult = GetExpression(pos, tokens, identifiers);
+
+                        if (tokens[boolResult.newPos].Type is not TokenType.Arrow)
+                            throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"expected \"->\"", pos);
+
+                        var (statement, newPos) = TryGetStatement(boolResult.newPos + 1, tokens, identifiers);
+                        var newIf = new If(boolResult.expression, statement, null);
+
+                        //end of if
+                        if (tokens[newPos].Type is TokenType.BraceClose)
+                        {
+                            if (ifStmt is null)
+                                return (newIf, newPos);
+                            else
+                            {
+                                return (new If
+                                {
+                                    IfExpresion = ifStmt.IfExpresion,
+                                    ResultStatement = ifStmt.ResultStatement,
+                                    ElseIf = newIf
+                                }, newPos);
+                            }
+                        }
+
+                        if (tokens[newPos].Type is not TokenType.Comma)
+                            throw new ParseException(
+                                tokens[newPos].Line,
+                                tokens[newPos].Character,
+                                $"expected \',\'",
+                                newPos + tokens.Skip(newPos).TakeWhile(x => x.Type is not TokenType.BraceClose).Count() + 1);
+
+                        if (ifStmt is null)
+                            return GenerateIf(newIf, newPos + 1, tokens, identifiers);
+                        else
+                        {
+                            var result = GenerateIf(newIf, newPos + 1, tokens, identifiers);
+
+                            return (new If
+                            {
+                                IfExpresion = ifStmt.IfExpresion,
+                                ResultStatement = ifStmt.ResultStatement,
+                                ElseIf = result.ifStmt
+                            }, result.pos);
+                        }
+                    }
+                }
+            }
 
             (Expression expression, int newPos) GetExpression(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
             {
@@ -243,63 +354,29 @@ namespace FrostScript
                 if (tokens[initialPos].Type is not TokenType.Pipe)
                     return When(initialPos, tokens, identifiers);
 
+                var blockIdentifiers = new Dictionary<string, (DataType Type, bool Mutable)>(identifiers);
+
                 var pos = initialPos;
-
-                var blockTokens = GetBlockTokens(tokens).ToArray();
-
-                IEnumerable<Token> GetBlockTokens(Token[] tokens)
+                var statements = GetBlockStatements(initialPos).ToList();
+                IEnumerable<Statement> GetBlockStatements(int initialPos)
                 {
-                    var blockCount = 1;
-
-                    for (int i = initialPos; i < tokens.Length; i++)
+                    while (tokens[pos].Type is TokenType.Pipe)
                     {
-                        //if another block is opened [this is gross. find another way]
-                        if (tokens[i].Type is TokenType.Pipe)
-                            if (i - 1 > initialPos && tokens[i - 1].Type 
-                                is TokenType.Assign
-                                or TokenType.BraceOpen
-                                or TokenType.Arrow
-                                or TokenType.Plus
-                                or TokenType.Minus
-                                or TokenType.Star
-                                or TokenType.Slash
-                                or TokenType.GreaterThen
-                                or TokenType.LessThen
-                                or TokenType.GreaterOrEqual
-                                or TokenType.LessOrEqual
-                                or TokenType.Equal
-                                or TokenType.NotEqual
-                                or TokenType.Or
-                                or TokenType.And)
-                                blockCount += 1;
+                        var (statement, newPos) = TryGetStatement(pos + 1, tokens, blockIdentifiers);
+                        pos = newPos;
 
-                        if (tokens[i].Type is TokenType.ReturnPipe)
-                        {
-                            blockCount -= 1;
-
-                            yield return tokens[i];
-
-                            if (blockCount == 0)
-                                yield break;
-                        }
-                        else yield return tokens[i];
+                        yield return statement;
                     }
                 }
 
-                var blockIdentifiers = new Dictionary<string, (DataType Type, bool Mutable)>(identifiers);
+                if (tokens[pos].Type is not TokenType.ReturnPipe)
+                    throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expected \"|>\". expression blocks must return a value", pos + 1);
 
-                var statements = GenerateAST(blockTokens, blockIdentifiers).ToList();
-                pos += blockTokens.Length;
+                var (expression, newPos) = GetExpression(pos + 1, tokens, blockIdentifiers);
 
-                if (statements.Any(x => x is null))
-                    return (null, pos);
+                statements.Add(new ExpressionStatement(expression));
 
-                var (exprStatement, newPos) = GetExpressionStatement(pos, tokens, blockIdentifiers);
-
-                pos = newPos;
-                statements.Add(exprStatement);
-
-                return new(new ExpressionBlock(statements), pos);
+                return (new ExpressionBlock(statements), newPos);
             }
 
             (Expression expression, int newPos) When(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)

@@ -8,9 +8,9 @@ namespace FrostScript.Statements
 {
     public class StatementBlock : Statement
     {
-        public List<Statement> Statements { get; init; }
+        public Statement[] Statements { get; init; }
 
-        public StatementBlock(List<Statement> statements)
+        public StatementBlock(Statement[] statements)
         {
             Statements = statements;
         }

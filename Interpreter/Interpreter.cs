@@ -56,7 +56,30 @@ namespace FrostScript
                         variables[id] = ExecuteExpression(value);
                         break;
 
+                    case If ifStmt:
+                        ExecuteIf(ifStmt);
 
+                        void ExecuteIf(If ifStmt)
+                        {
+                            var ifExpression = ifStmt.IfExpresion != null ? ExecuteExpression(ifStmt.IfExpresion) : null;
+
+                            //default clause
+                            if (ifExpression is null)
+                                ExecuteStatement(ifStmt.ResultStatement);
+                            //if clause is true execute
+                            else if ((bool)ifExpression)
+                                ExecuteStatement(ifStmt.ResultStatement);
+                            //else check next clause
+                            else
+                                ExecuteIf(ifStmt.ElseIf);
+                        }
+                        break;
+
+                    case StatementBlock statementBlock:
+                        foreach(var blockStatement in statementBlock.Statements)
+                            ExecuteStatement(blockStatement);
+
+                        break;
                     case ExpressionStatement exprStatement: break;
                 }
             }
