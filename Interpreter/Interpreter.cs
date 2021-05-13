@@ -87,6 +87,12 @@ namespace FrostScript
 
                         };
 
+                    case And and:
+                        if ((bool)ExecuteExpression(and.Left))
+                            return ExecuteExpression(and.Right);
+                        else 
+                            return false;
+
                     case Binary binary:
 
                         var leftResult = ExecuteExpression(binary.Left);
@@ -137,6 +143,8 @@ namespace FrostScript
                             {
                                 TokenType.Equal => leftBool == rightBool,
                                 TokenType.NotEqual => leftBool != rightBool,
+
+                                TokenType.Or => leftBool || rightBool, 
 
                                 _ => throw new InterpretException(
                                         binary.Operator.Line,

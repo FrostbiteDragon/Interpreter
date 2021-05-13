@@ -1,15 +1,15 @@
 ﻿
-let x =
+let function1 =
 | print "hello"
-| let y =
-	| let z = 
-		when {
-			| let number = 5
-			|> number == 5 -> 1,
-			-> 2
-		}
-	|> z
-| let a = y
-|> a
+|> when {
+	| let number = 5
+	|> number == 5 -> 1,
+	-> 2
+}
 
-print x
+// let function2(string word, string word2) = 
+// |> word + " " + word2
+
+// function2 "Hello" "world"
+
+print function1

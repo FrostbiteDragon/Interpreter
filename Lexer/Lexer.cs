@@ -97,6 +97,9 @@ namespace FrostScript
                             "for" => new Token(TokenType.For, line, characterPos, word),
                             "while" => new Token(TokenType.While, line, characterPos, word),
 
+                            "and" => new Token(TokenType.And, line, characterPos, word),
+                            "or" => new Token(TokenType.Or, line, characterPos, word),
+
                             "var" => new Token(TokenType.Var, line, characterPos, word),
                             "let" => new Token(TokenType.Let, line, characterPos, word),
 

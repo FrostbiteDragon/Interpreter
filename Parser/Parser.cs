@@ -142,9 +142,39 @@ namespace FrostScript
 
             (Expression expression, int newPos) GetExpression(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
             {
-
-                return Equality(pos, tokens, identifiers);
+                return Or(pos, tokens, identifiers);
             }
+
+            (Expression expression, int newPos) Or(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            {
+                var (expression, newPos) = And(pos, tokens, identifiers);
+
+                while (newPos < tokens.Length && tokens[newPos].Type is TokenType.Or)
+                {
+                    var result = And(newPos + 1, tokens, identifiers);
+
+                    expression = new Binary(DataType.Bool, expression, tokens[newPos], result.expression);
+                    newPos = result.newPos;
+                }
+
+                return (expression, newPos);
+            }
+
+            (Expression expression, int newPos) And(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            {
+                var (expression, newPos) = Equality(pos, tokens, identifiers);
+
+                while (newPos < tokens.Length && tokens[newPos].Type is TokenType.And)
+                {
+                    var result = Equality(newPos + 1, tokens, identifiers);
+
+                    expression = new And(expression, result.expression);
+                    newPos = result.newPos;
+                }
+
+                return (expression, newPos);
+            }
+
 
             (Expression expression, int newPos) Equality(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
             {
