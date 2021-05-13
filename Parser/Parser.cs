@@ -224,11 +224,11 @@ namespace FrostScript
 
             (Expression expression, int newPos) Factor(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
             {
-                var (expression, newPos) = Unary(pos, tokens, identifiers);
+                var (expression, newPos) = ExpressionBlock(pos, tokens, identifiers);
 
                 while (newPos < tokens.Length && tokens[newPos].Type is TokenType.Star or TokenType.Slash)
                 {
-                    var result = Unary(newPos + 1, tokens, identifiers);
+                    var result = ExpressionBlock(newPos + 1, tokens, identifiers);
 
                     //assume the type of the left expression [temporary]
                     expression = new Binary(expression.Type, expression, tokens[newPos], result.expression);
@@ -236,19 +236,6 @@ namespace FrostScript
                 }
 
                 return (expression, newPos);
-            }
-
-            (Expression expression, int newPos) Unary(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
-            {
-                if (tokens[pos].Type is TokenType.Minus or TokenType.Plus or TokenType.Not)
-                {
-                    var (expression, newPos) = Unary(pos + 1, tokens, identifiers);
-                    return (new Unary(expression.Type, tokens[pos], expression), newPos);
-                }
-                else
-                {
-                    return ExpressionBlock(pos, tokens, identifiers);
-                }
             }
 
             (Expression expression, int newPos) ExpressionBlock(int initialPos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
@@ -266,9 +253,24 @@ namespace FrostScript
 
                     for (int i = initialPos; i < tokens.Length; i++)
                     {
-                        //if another block is opened
+                        //if another block is opened [this is gross. find another way]
                         if (tokens[i].Type is TokenType.Pipe)
-                            if (i - 1 > initialPos && tokens[i - 1].Type is TokenType.Assign or TokenType.BraceOpen or TokenType.Arrow)
+                            if (i - 1 > initialPos && tokens[i - 1].Type 
+                                is TokenType.Assign
+                                or TokenType.BraceOpen
+                                or TokenType.Arrow
+                                or TokenType.Plus
+                                or TokenType.Minus
+                                or TokenType.Star
+                                or TokenType.Slash
+                                or TokenType.GreaterThen
+                                or TokenType.LessThen
+                                or TokenType.GreaterOrEqual
+                                or TokenType.LessOrEqual
+                                or TokenType.Equal
+                                or TokenType.NotEqual
+                                or TokenType.Or
+                                or TokenType.And)
                                 blockCount += 1;
 
                         if (tokens[i].Type is TokenType.ReturnPipe)
@@ -303,7 +305,7 @@ namespace FrostScript
             (Expression expression, int newPos) When(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
             {
                 if (tokens[pos].Type is not TokenType.When)
-                    return Primary(pos, tokens, identifiers);
+                    return Unary(pos, tokens, identifiers);
 
                 if (tokens[pos + 1].Type is not TokenType.BraceOpen)
                     throw new ParseException(tokens[pos + 1].Line, tokens[pos + 1].Character, "expected '{' after when", pos + 1);
@@ -390,6 +392,19 @@ namespace FrostScript
                             }, result.pos);
                         }
                     }
+                }
+            }
+
+            (Expression expression, int newPos) Unary(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            {
+                if (tokens[pos].Type is TokenType.Minus or TokenType.Plus or TokenType.Not)
+                {
+                    var (expression, newPos) = Unary(pos + 1, tokens, identifiers);
+                    return (new Unary(expression.Type, tokens[pos], expression), newPos);
+                }
+                else
+                {
+                    return Primary(pos, tokens, identifiers);
                 }
             }
 

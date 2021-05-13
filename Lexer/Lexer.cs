@@ -34,13 +34,9 @@ namespace FrostScript
 
 
                     case '-':
-                        if (characters.Skip(i + 1).Contains('>'))
-                        {
-                            yield return new(TokenType.Arrow, line, characterPos + 1, character.ToString());
-                            i++;
-                            characterPos++;
-                        }
-                        else yield return new(TokenType.Minus, line, characterPos, character.ToString());
+                        yield return Match('>') ?
+                            new(TokenType.Arrow, line, characterPos + 1, character.ToString()) :
+                            new(TokenType.Minus, line, characterPos, character.ToString());
 
                         break;
 
