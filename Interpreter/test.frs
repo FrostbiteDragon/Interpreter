@@ -1,14 +1,4 @@
-﻿var x = 0
-
-for var i = 0 to i < 1000 {
-	x = i
-	print i
+﻿for let i = 0
+downto i >= -5 {
+    print i
 }
-
-while true {
-	print "oh fuck"
-	print "it's an infinit loop"
-}
-
-print "last number is: " 
-print x

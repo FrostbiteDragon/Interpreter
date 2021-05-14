@@ -96,26 +96,21 @@ namespace FrostScript
 
                         var bindValue = (double)ExecuteExpression(@for.Bind.Value);
 
-                        if (@for.Crement is Crement.Increment)
+                        while ((bool)ExecuteExpression(@for.EndExpression))
                         {
-                            for (var i = (double)ExecuteExpression(@for.Bind.Value); (bool)ExecuteExpression(@for.EndExpression); i++)
+                            foreach (var bodyStatement in @for.Body)
+                                ExecuteStatement(bodyStatement);
+
+                            bindValue += @for.Crement switch
                             {
-                                bindValue += 1;
-                                ExecuteStatement(new Assign(@for.Bind.Id, new Literal(DataType.Numeral, bindValue)));
-                                foreach (var bodyStatement in @for.Body)
-                                    ExecuteStatement(bodyStatement);
-                            }
+                                Crement.Increment => 1,
+                                Crement.Decrement => -1,
+                                _ => throw new ArgumentOutOfRangeException(nameof(@for.Crement))
+                            };
+
+                            ExecuteStatement(new Assign(@for.Bind.Id, new Literal(DataType.Numeral, bindValue)));
                         }
-                        else
-                        {
-                            for (var i = (double)ExecuteExpression(@for.Bind.Value); (bool)ExecuteExpression(@for.EndExpression); i--)
-                            {
-                                bindValue -= 1;
-                                ExecuteStatement(new Assign(@for.Bind.Id, new Literal(DataType.Numeral, bindValue)));
-                                foreach (var bodyStatement in @for.Body)
-                                    ExecuteStatement(bodyStatement);
-                            }
-                        }
+                     
                         break;
 
                     case ExpressionStatement exprStatement: break;
