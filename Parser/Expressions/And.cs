@@ -6,12 +6,14 @@ using System.Threading.Tasks;
 
 namespace FrostScript.Expressions
 {
-    public class And : Expression
+    public class And : IExpression
     {
-        public Expression Left { get; init; }
-        public Expression Right { get; init; }
+        public IExpression Left { get; init; }
+        public IExpression Right { get; init; }
 
-        public And(Expression left, Expression right) : base(DataType.Bool)
+        public DataType Type => DataType.Bool;
+
+        public And(IExpression left, IExpression right)
         {
             Left = left;
             Right = right;

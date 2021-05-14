@@ -2,18 +2,18 @@
 
 namespace FrostScript.Statements
 {
-    public class Bind : Statement
+    public class Bind : IStatement
     {
         public string Id { get; set; }
-        public Expression Value { get; set; }
+        public IExpression Value { get; set; }
 
-        public Bind(string id, Expression value)
+        public Bind(string id, IExpression value)
         {
             Id = id;
             Value = value;
         }
 
-        public void Deconstruct(out string id, out Expression value)
+        public void Deconstruct(out string id, out IExpression value)
         {
             id = Id;
             value = Value;

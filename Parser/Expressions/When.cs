@@ -6,20 +6,21 @@ using System.Threading.Tasks;
 
 namespace FrostScript.Expressions
 {
-    public class When : Expression
+    public class When : IExpression
     {
-        public Expression IfExpresion { get; init; }
-        public Expression ResultExpression { get; init; }
+        public IExpression IfExpresion { get; init; }
+        public IExpression ResultExpression { get; init; }
         public When ElseWhen { get; set; }
+
+        public DataType Type => ResultExpression.Type;
 
         public When() { }
 
-        public When(Expression ifExpresion, Expression resultExpression, When elseWhen)
+        public When(IExpression ifExpresion, IExpression resultExpression, When elseWhen)
         {
             IfExpresion = ifExpresion;
             ResultExpression = resultExpression;
             ElseWhen = elseWhen;
-            Type = resultExpression.Type;
         }
     }
 }

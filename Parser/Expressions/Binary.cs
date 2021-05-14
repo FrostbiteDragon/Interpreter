@@ -6,17 +6,21 @@ using System.Threading.Tasks;
 
 namespace FrostScript.Expressions
 {
-    public class Binary : Expression
+    public class Binary : IExpression
     {
-        public Expression Left { get; init; }
+        public IExpression Left { get; init; }
         public Token Operator { get; init; }
-        public Expression Right { get; init; }
+        public IExpression Right { get; init; }
 
-        public Binary(DataType type, Expression left, Token @operator, Expression right) : base(type)
+        public DataType Type { get; }
+
+        public Binary(DataType type, IExpression left, Token @operator, IExpression right)
         {
             Left = left;
             Operator = @operator;
             Right = right;
+
+            Type = type;
         }
     }
 }

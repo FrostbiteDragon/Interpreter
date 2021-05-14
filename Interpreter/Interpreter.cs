@@ -9,7 +9,7 @@ namespace FrostScript
 {
     public static class Interpreter
     {
-        public static Result ExecuteProgram(IEnumerable<Statement> statements, Dictionary<string, object> variables = null)
+        public static Result ExecuteProgram(IEnumerable<IStatement> statements, Dictionary<string, object> variables = null)
         {
             if (variables is null)
                 variables = new Dictionary<string, object>();
@@ -40,7 +40,7 @@ namespace FrostScript
             }
 
 
-            void ExecuteStatement(Statement statement)
+            void ExecuteStatement(IStatement statement)
             {
                 switch (statement)
                 {
@@ -94,7 +94,7 @@ namespace FrostScript
                 }
             }
 
-            object ExecuteExpression(Expression expression)
+            object ExecuteExpression(IExpression expression)
             {
                 switch (expression)
                 {

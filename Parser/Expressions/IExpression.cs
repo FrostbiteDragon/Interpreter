@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FrostScript.Statements
+namespace FrostScript.Expressions
 {
-    public abstract class Statement
+    public interface IExpression
     {
+        public DataType Type { get; }
     }
 }

@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace FrostScript.Statements
 {
-    public class ExpressionStatement : Statement
+    public class ExpressionStatement : IStatement, IExpression
     {
         public DataType Type => Expression.Type;
-        public Expression Expression { get; init; }
+        public IExpression Expression { get; init; }
 
-        public ExpressionStatement(Expression expression)
+        public ExpressionStatement(IExpression expression)
         {
             Expression = expression;
         }

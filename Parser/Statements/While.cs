@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace FrostScript.Statements
 {
-    public class While : Statement
+    public class While : IStatement
     {
-        public Expression Condition { get; init; }
-        public Statement Statement { get; init; }
+        public IExpression Condition { get; init; }
+        public IStatement Statement { get; init; }
 
-        public While(Expression condition, Statement statement)
+        public While(IExpression condition, IStatement statement)
         {
             Condition = condition;
             Statement = statement;
