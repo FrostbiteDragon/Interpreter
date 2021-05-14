@@ -47,6 +47,7 @@ namespace FrostScript
                         TokenType.Var or TokenType.Let => Bind(pos, tokens, identifiers),
                         TokenType.Id when tokens[pos + 1].Type is TokenType.Assign => Assign(pos, tokens, identifiers),
                         TokenType.If => If(pos, tokens, identifiers),
+                        TokenType.While => While(pos, tokens, identifiers),
                         _ => ExpressionStatement(pos, tokens, identifiers)
                     };
 
@@ -251,6 +252,24 @@ namespace FrostScript
                 }
             }
 
+            (Statement statement, int newPos) While(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            {
+                if (tokens[pos + 1].Type is not TokenType.BraceOpen)
+                    throw new ParseException(tokens[pos + 1].Line, tokens[pos + 1].Character, $"Expected \"{{\" instead got {tokens[pos + 1].Lexeme}", pos + 1);
+
+                var (condition, expressionPos) = GetExpression(pos + 2, tokens, identifiers);
+
+                if (tokens[expressionPos].Type is not TokenType.Arrow)
+                    throw new ParseException(tokens[expressionPos].Line, tokens[expressionPos].Character, $"Expected \"->\" instead got {tokens[expressionPos].Lexeme}", expressionPos + 1);
+
+                var (statement, statementPos) = TryGetStatement(expressionPos + 1, tokens, identifiers);
+
+                if (tokens[statementPos].Type is not TokenType.BraceClose)
+                    throw new ParseException(tokens[statementPos].Line, tokens[statementPos].Character, $"Expected \"}}\" instead got {tokens[statementPos].Lexeme}", statementPos);
+
+                return (new While(condition, statement), statementPos + 1);
+            }
+
             (Expression expression, int newPos) GetExpression(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
             {
                 return Or(pos, tokens, identifiers);
@@ -351,7 +370,7 @@ namespace FrostScript
 
             (Expression expression, int newPos) ExpressionBlock(int initialPos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
             {
-                if (tokens[initialPos].Type is not TokenType.Pipe)
+                if (tokens[initialPos].Type is not (TokenType.Pipe or TokenType.ReturnPipe))
                     return When(initialPos, tokens, identifiers);
 
                 var blockIdentifiers = new Dictionary<string, (DataType Type, bool Mutable)>(identifiers);
@@ -370,7 +389,7 @@ namespace FrostScript
                 }
 
                 if (tokens[pos].Type is not TokenType.ReturnPipe)
-                    throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expected \"|>\". expression blocks must return a value", pos + 1);
+                    throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expected \"|>\". expression blocks must return a value", pos);
 
                 var (expression, newPos) = GetExpression(pos + 1, tokens, blockIdentifiers);
 
@@ -500,7 +519,7 @@ namespace FrostScript
                     },
 
                     TokenType.ParentheseOpen => Grouping(pos, tokens, identifiers),
-                    _ => throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expected an expression", pos + 1)
+                    _ => throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expected an expression. instead got \"{tokens[pos].Lexeme}\"", pos + 1)
                 };
             }
 

@@ -80,7 +80,17 @@ namespace FrostScript
                             ExecuteStatement(blockStatement);
 
                         break;
+
+                    case While @while:
+                        while ((bool)ExecuteExpression(@while.Condition))
+                            ExecuteStatement(@while.Statement);
+
+                        break;
+
                     case ExpressionStatement exprStatement: break;
+
+
+                    default: throw new NotImplementedException();
                 }
             }
 

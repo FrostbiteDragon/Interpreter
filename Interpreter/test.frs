@@ -1,10 +1,28 @@
-﻿if {
-	5 + 6 == 11 ->
-	| let a = 2
-	| print "Hello"
-	| print | let x = "wor"
-			| let y = "ld"
-			|> x + y,
+﻿for 
+	var i = | let x = 1 
+			|> x + 1 
+downto 10 {
+	var j = i
+	while j < 10 {
+		print j
+		j = j + 1
+	}
+}
 
-	true -> print "Goodbye world"
+for {
+	var i = 0,
+	i < 10 -> print i
+}
+
+for {
+ 
+	var i = | let x = 1 
+			|> x + 1,
+	10 ->
+	| var j = i
+	| while {
+		j < 10 ->
+		| print j
+		| j = j + 1
+	}
 }
