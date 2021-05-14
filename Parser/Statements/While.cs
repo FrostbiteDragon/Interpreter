@@ -10,12 +10,12 @@ namespace FrostScript.Statements
     public class While : IStatement
     {
         public IExpression Condition { get; init; }
-        public IStatement Statement { get; init; }
+        public IStatement[] Body { get; init; }
 
-        public While(IExpression condition, IStatement statement)
+        public While(IExpression condition, IEnumerable<IStatement> body)
         {
             Condition = condition;
-            Statement = statement;
+            Body = body.ToArray();
         }
     }
 }

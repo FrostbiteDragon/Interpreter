@@ -91,6 +91,8 @@ namespace FrostScript
                             "null" => new Token(TokenType.Null, line, characterPos, word),
 
                             "for" => new Token(TokenType.For, line, characterPos, word),
+                            "to" => new Token(TokenType.To, line, characterPos, word),
+                            "downto" => new Token(TokenType.DownTo, line, characterPos, word),
                             "while" => new Token(TokenType.While, line, characterPos, word),
 
                             "and" => new Token(TokenType.And, line, characterPos, word),

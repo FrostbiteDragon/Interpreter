@@ -1,7 +1,14 @@
-﻿let x = when {
-	true -> 1,
-	-> 2
+﻿var x = 0
+
+for var i = 0 to i < 1000 {
+	x = i
+	print i
 }
 
+while true {
+	print "oh fuck"
+	print "it's an infinit loop"
+}
 
-print x + 2
+print "last number is: " 
+print x

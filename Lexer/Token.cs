@@ -38,7 +38,7 @@ namespace FrostScript
         If, Else, When, 
         Print,
         True, False,
-        For, While,
+        For, To, DownTo, While,
         Var, Let,
     }
 

@@ -76,15 +76,46 @@ namespace FrostScript
                         break;
 
                     case StatementBlock statementBlock:
-                        foreach(var blockStatement in statementBlock.Statements)
+                        foreach (var blockStatement in statementBlock.Statements)
                             ExecuteStatement(blockStatement);
 
                         break;
 
                     case While @while:
                         while ((bool)ExecuteExpression(@while.Condition))
-                            ExecuteStatement(@while.Statement);
+                        {
+                            foreach (var bodyStatement in @while.Body)
+                                ExecuteStatement(bodyStatement);
+                        }
 
+                        break;
+
+                    case For @for:
+
+                        ExecuteStatement(@for.Bind);
+
+                        var bindValue = (double)ExecuteExpression(@for.Bind.Value);
+
+                        if (@for.Crement is Crement.Increment)
+                        {
+                            for (var i = (double)ExecuteExpression(@for.Bind.Value); (bool)ExecuteExpression(@for.EndExpression); i++)
+                            {
+                                bindValue += 1;
+                                ExecuteStatement(new Assign(@for.Bind.Id, new Literal(DataType.Numeral, bindValue)));
+                                foreach (var bodyStatement in @for.Body)
+                                    ExecuteStatement(bodyStatement);
+                            }
+                        }
+                        else
+                        {
+                            for (var i = (double)ExecuteExpression(@for.Bind.Value); (bool)ExecuteExpression(@for.EndExpression); i--)
+                            {
+                                bindValue -= 1;
+                                ExecuteStatement(new Assign(@for.Bind.Id, new Literal(DataType.Numeral, bindValue)));
+                                foreach (var bodyStatement in @for.Body)
+                                    ExecuteStatement(bodyStatement);
+                            }
+                        }
                         break;
 
                     case ExpressionStatement exprStatement: break;

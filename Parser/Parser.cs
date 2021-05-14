@@ -45,9 +45,10 @@ namespace FrostScript
                         TokenType.Pipe => BlockStatement(pos, tokens, identifiers),
                         TokenType.Print => Print(pos, tokens, identifiers),
                         TokenType.Var or TokenType.Let => Bind(pos, tokens, identifiers),
-                        TokenType.Id when tokens[pos + 1].Type is TokenType.Assign => Assign(pos, tokens, identifiers),
                         TokenType.If => If(pos, tokens, identifiers),
                         TokenType.While => While(pos, tokens, identifiers),
+                        TokenType.For => For(pos, tokens, identifiers),
+                        TokenType.Id when tokens[pos + 1].Type is TokenType.Assign => Assign(pos, tokens, identifiers),
                         _ => ExpressionStatement(pos, tokens, identifiers)
                     };
 
@@ -252,22 +253,75 @@ namespace FrostScript
                 }
             }
 
+            (IStatement statement, int newPos) For(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            {
+                var ifIdentifiers = new Dictionary<string, (DataType Type, bool Mutable)>(identifiers);
+
+                var (bind, bindPos) = Bind(pos + 1, tokens, ifIdentifiers);
+
+                var crement = tokens[bindPos].Type switch
+                {
+                    TokenType.To => Crement.Increment,
+                    TokenType.DownTo => Crement.Decrement,
+                    _ => throw new ParseException(
+                        tokens[bindPos].Line,
+                        tokens[bindPos].Character,
+                        $"Expected \"to\" or \"downto\" but got {tokens[bindPos].Lexeme}",
+                        bindPos + tokens.Skip(bindPos).TakeWhile(x => x.Type is not TokenType.BraceClose).Count() + 1)
+                };
+
+                var (endExpression, expressionPos) = GetExpression(bindPos + 1, tokens, ifIdentifiers);
+
+                if (tokens[expressionPos].Type is not TokenType.BraceOpen)
+                    throw new ParseException(tokens[expressionPos].Line, tokens[expressionPos].Character, $"Expected \"{{\" but got {tokens[expressionPos].Lexeme}", expressionPos);
+
+                var statements = new List<IStatement>();
+                var bodyPos = expressionPos + 1;
+
+                while (tokens[bodyPos].Type is not TokenType.BraceClose)
+                {
+                    var (statement, statementPos) = TryGetStatement(bodyPos, tokens, ifIdentifiers);
+
+                    bodyPos = statementPos;
+
+                    if (statement is null)
+                        return (null, bodyPos);
+                    else
+                        statements.Add(statement);
+                }
+
+                if (tokens[bodyPos].Type is not TokenType.BraceClose)
+                    throw new ParseException(tokens[bodyPos].Line, tokens[bodyPos].Character, $"Expected \"}}\" but got {tokens[bodyPos].Lexeme}", bodyPos);
+
+                return (new For(bind as Bind, endExpression, crement, statements), bodyPos + 1);
+            }
+
             (IStatement statement, int newPos) While(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
             {
-                if (tokens[pos + 1].Type is not TokenType.BraceOpen)
-                    throw new ParseException(tokens[pos + 1].Line, tokens[pos + 1].Character, $"Expected \"{{\" instead got {tokens[pos + 1].Lexeme}", pos + 1);
+                var (condition, expressionPos) = GetExpression(pos + 1, tokens, identifiers);
 
-                var (condition, expressionPos) = GetExpression(pos + 2, tokens, identifiers);
+                if (tokens[expressionPos].Type is not TokenType.BraceOpen)
+                    throw new ParseException(tokens[expressionPos].Line, tokens[expressionPos].Character, $"Expected \"{{\" but got {tokens[expressionPos].Lexeme}", expressionPos);
 
-                if (tokens[expressionPos].Type is not TokenType.Arrow)
-                    throw new ParseException(tokens[expressionPos].Line, tokens[expressionPos].Character, $"Expected \"->\" instead got {tokens[expressionPos].Lexeme}", expressionPos + 1);
+                var statements = new List<IStatement>();
+                var bodyPos = expressionPos + 1;
 
-                var (statement, statementPos) = TryGetStatement(expressionPos + 1, tokens, identifiers);
+                while (tokens[bodyPos].Type is not TokenType.BraceClose)
+                {
+                    var (statement, statementPos) = TryGetStatement(bodyPos, tokens, identifiers);
 
-                if (tokens[statementPos].Type is not TokenType.BraceClose)
-                    throw new ParseException(tokens[statementPos].Line, tokens[statementPos].Character, $"Expected \"}}\" instead got {tokens[statementPos].Lexeme}", statementPos);
+                    bodyPos = statementPos;
 
-                return (new While(condition, statement), statementPos + 1);
+                    if (statement is null)
+                        return (null, bodyPos);
+                    else
+                        statements.Add(statement);
+                }
+
+                if (tokens[bodyPos].Type is not TokenType.BraceClose)
+                    throw new ParseException(tokens[bodyPos].Line, tokens[bodyPos].Character, $"Expected \"}}\" but got {tokens[bodyPos].Lexeme}", bodyPos);
+
+                return (new While(condition, statements), bodyPos + 1);
             }
 
             (IExpression expression, int newPos) GetExpression(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
