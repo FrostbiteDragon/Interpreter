@@ -4,8 +4,8 @@ A custom, interpreted language for study and fun
 ## Table of Contents
 * [Introduction](#introduction)
 * [Getting Started](#getting-started)
-* [Todo](#todo)
 * [Technologies](#technologies)
+* [Wiki](https://github.com/FrostbiteDragon/FrostScript/wiki)
 
 # Introduction
 This project aims to make a multi-paradigm, interpreted scripting language inspired by C# and F# with both a strong functional and object-oriented identity.
