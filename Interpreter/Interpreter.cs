@@ -249,9 +249,6 @@ namespace FrostScript
                         return partialFunc.Body;
 
                     case Call call:
-                        //needs to resolve functions one at a time not all at the same time to allow curying
-
-
                         var arguments = Array.Empty<IExpression>();
 
                         var callee = call as IExpression;
@@ -271,7 +268,6 @@ namespace FrostScript
                                 PartiallyAppliedFunction partialFunc => ExecuteExpression(partialFunc, functionVariables),
                                 IExpression expr => expr
                             },
-                            PartiallyAppliedFunction partialFunc => ExecuteExpression(partialFunc, functionVariables),
                             _ => callee
                         };
                         while (i < arguments.Length && result is Function func)

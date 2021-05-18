@@ -11,11 +11,11 @@ let helloWorld2 =
 	fun string:word1 string:word2 string:symbol ->
 		word1 + " " + word2 + symbol
 
-let helloWorld3 string:word1 string:word2 string:symbol = 
+let helloWorld3 string:word1 string:word2 =
+	fun string:symbol ->
 	word1 + " " + word2 + symbol
 
-let result = helloWorld("Goodbye")("you")
+let result = helloWorld3("Goodbye")("you")
 
-//print helloWorld("Hello")("World")("!")
-print result("?")
+print result("!")
 
