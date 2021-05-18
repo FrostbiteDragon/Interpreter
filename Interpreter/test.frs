@@ -1,4 +1,21 @@
-﻿for let i = 0
-downto i >= -5 {
-    print i
-}
+﻿let helloWorld = 
+	fun string:word1 ->
+	| print "word1 is " + word1
+	|> fun string:word2 -> 
+		| print "word 2 is " + word2
+		|> fun string:symbol -> 
+			| print "symbol is " + symbol
+			|> word1 + " " + word2 + symbol
+
+let helloWorld2 = 
+	fun string:word1 string:word2 string:symbol ->
+		word1 + " " + word2 + symbol
+
+let helloWorld3 string:word1 string:word2 string:symbol = 
+	word1 + " " + word2 + symbol
+
+let result = helloWorld("Goodbye")("you")
+
+//print helloWorld("Hello")("World")("!")
+print result("?")
+

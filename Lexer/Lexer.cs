@@ -28,6 +28,7 @@ namespace FrostScript
                     case '+': yield return new(TokenType.Plus, line, characterPos, character.ToString()); break;
                     case ';': yield return new(TokenType.NewLine, line, characterPos, character.ToString()); break;
                     case '*': yield return new(TokenType.Star, line, characterPos, character.ToString()); break;
+                    case ':': yield return new(TokenType.Colon, line, characterPos, character.ToString()); break;
                     case '|': yield return Match('>') ? 
                             new(TokenType.ReturnPipe, line, characterPos, character.ToString()) : 
                             new(TokenType.Pipe, line, characterPos, character.ToString()); break;
@@ -95,11 +96,17 @@ namespace FrostScript
                             "downto" => new Token(TokenType.DownTo, line, characterPos, word),
                             "while" => new Token(TokenType.While, line, characterPos, word),
 
+                            "fun" => new Token(TokenType.Fun, line, characterPos, word),
+
                             "and" => new Token(TokenType.And, line, characterPos, word),
                             "or" => new Token(TokenType.Or, line, characterPos, word),
 
                             "var" => new Token(TokenType.Var, line, characterPos, word),
                             "let" => new Token(TokenType.Let, line, characterPos, word),
+
+                            "int" => new Token(TokenType.IntType, line, characterPos, word),
+                            "string" => new Token(TokenType.StringType, line, characterPos, word),
+                            "bool" => new Token(TokenType.BoolType, line, characterPos, word),
 
                             //new id
                             _ => new Token(TokenType.Id, line, i + 1, word)

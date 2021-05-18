@@ -11,7 +11,6 @@ var tokens = Lexer.GetTokens(File.ReadAllText(args[0])).ToArray();
 switch (Parser.GetAST(tokens))
 {
     case Pass<IStatement[]> pass : Interpreter.ExecuteProgram(pass.Value); break;
-
 }
 
 

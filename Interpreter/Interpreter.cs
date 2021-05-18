@@ -9,10 +9,10 @@ namespace FrostScript
 {
     public static class Interpreter
     {
-        public static Result ExecuteProgram(IEnumerable<IStatement> statements, Dictionary<string, object> variables = null)
+        public static Result ExecuteProgram(IEnumerable<IStatement> statements, Dictionary<string, IExpression> variables = null)
         {
             if (variables is null)
-                variables = new Dictionary<string, object>();
+                variables = new Dictionary<string, IExpression>();
 
             try
             {
@@ -23,7 +23,7 @@ namespace FrostScript
                     foreach (var statement in statements.SkipLast(1))
                         ExecuteStatement(statement);
 
-                    return Result.Pass(ExecuteExpression(result.Expression));
+                    return Result.Pass(ExecuteExpression(result.Expression, variables));
                 }
                 else
                 {
@@ -45,15 +45,15 @@ namespace FrostScript
                 switch (statement)
                 {
                     case Print print:
-                        Console.WriteLine(ExecuteExpression(print.Expression));
+                        Console.WriteLine(ExecuteExpression(print.Expression, variables));
                         break;
 
                     case Bind(var id, var value):
-                        variables[id] = ExecuteExpression(value);
+                        variables[id] = value;
                         break;
 
                     case Assign(var id, var value):
-                        variables[id] = ExecuteExpression(value);
+                        variables[id] = value;
                         break;
 
                     case If ifStmt:
@@ -61,7 +61,7 @@ namespace FrostScript
 
                         void ExecuteIf(If ifStmt)
                         {
-                            var ifExpression = ifStmt.IfExpresion != null ? ExecuteExpression(ifStmt.IfExpresion) : null;
+                            var ifExpression = ifStmt.IfExpresion != null ? ExecuteExpression(ifStmt.IfExpresion, variables) : null;
 
                             //default clause
                             if (ifExpression is null)
@@ -82,7 +82,7 @@ namespace FrostScript
                         break;
 
                     case While @while:
-                        while ((bool)ExecuteExpression(@while.Condition))
+                        while ((bool)ExecuteExpression(@while.Condition, variables))
                         {
                             foreach (var bodyStatement in @while.Body)
                                 ExecuteStatement(bodyStatement);
@@ -94,9 +94,9 @@ namespace FrostScript
 
                         ExecuteStatement(@for.Bind);
 
-                        var bindValue = (double)ExecuteExpression(@for.Bind.Value);
+                        var bindValue = (double)ExecuteExpression(@for.Bind.Value, variables);
 
-                        while ((bool)ExecuteExpression(@for.EndExpression))
+                        while ((bool)ExecuteExpression(@for.EndExpression, variables))
                         {
                             foreach (var bodyStatement in @for.Body)
                                 ExecuteStatement(bodyStatement);
@@ -120,12 +120,12 @@ namespace FrostScript
                 }
             }
 
-            object ExecuteExpression(IExpression expression)
+            object ExecuteExpression(IExpression expression, Dictionary<string, IExpression> variables)
             {
                 switch (expression)
                 {
                     case Literal literal: return literal.Value;
-                    case Identifier identifier: return variables[identifier.Id];
+                    case Identifier identifier: return ExecuteExpression(variables[identifier.Id], variables);
 
                     case Unary unary:
 
@@ -133,13 +133,13 @@ namespace FrostScript
                         {
                             DataType.Numeral => unary.Operator.Type switch
                             {
-                                TokenType.Minus => -(double)ExecuteExpression(unary.Expression),
-                                TokenType.Plus => ExecuteExpression(unary.Expression),
+                                TokenType.Minus => -(double)ExecuteExpression(unary.Expression, variables),
+                                TokenType.Plus => ExecuteExpression(unary.Expression, variables),
                                 _ => throw new InterpretException($"Oporator {unary.Operator.Lexeme} not supported for type Numeric")
                             },
                             DataType.Bool => unary.Operator.Type switch
                             {
-                                TokenType.Not => !(bool)ExecuteExpression(unary.Expression),
+                                TokenType.Not => !(bool)ExecuteExpression(unary.Expression, variables),
                                 _ => throw new InterpretException($"Oporator {unary.Operator.Lexeme} not supported for type Bool")
                             },
                             _ => throw new InterpretException($"Oporator {unary.Operator.Lexeme} not supported for type {unary.Expression.Type}")
@@ -147,15 +147,15 @@ namespace FrostScript
                         };
 
                     case And and:
-                        if ((bool)ExecuteExpression(and.Left))
-                            return ExecuteExpression(and.Right);
+                        if ((bool)ExecuteExpression(and.Left, variables))
+                            return ExecuteExpression(and.Right, variables);
                         else 
                             return false;
 
                     case Binary binary:
 
-                        var leftResult = ExecuteExpression(binary.Left);
-                        var rightResult = ExecuteExpression(binary.Right);
+                        var leftResult = ExecuteExpression(binary.Left, variables);
+                        var rightResult = ExecuteExpression(binary.Right, variables);
 
                         return binary.Operator.Type switch
                         {
@@ -211,8 +211,8 @@ namespace FrostScript
                                         $"Oporator {binary.Operator.Type} is not valid between bools")
                             },
 
-                            TokenType.Equal => ExecuteExpression(binary.Left) == ExecuteExpression(binary.Right),
-                            TokenType.NotEqual => ExecuteExpression(binary.Left) != ExecuteExpression(binary.Right),
+                            TokenType.Equal => ExecuteExpression(binary.Left, variables) == ExecuteExpression(binary.Right, variables),
+                            TokenType.NotEqual => ExecuteExpression(binary.Left, variables) != ExecuteExpression(binary.Right, variables),
 
                             _ => throw new InterpretException(
                                         binary.Operator.Line,
@@ -226,19 +226,65 @@ namespace FrostScript
 
                         object ExecuteWhen(When when)
                         {
-                            var ifExpression = when.IfExpresion != null ? ExecuteExpression(when.IfExpresion) : null;
+                            var ifExpression = when.IfExpresion != null ? ExecuteExpression(when.IfExpresion, variables) : null;
 
                             return ifExpression switch
                             {
-                                null => ExecuteExpression(when.ResultExpression),
-                                bool boolResult => boolResult ? ExecuteExpression(when.ResultExpression) : ExecuteWhen(when.ElseWhen),
+                                null => ExecuteExpression(when.ResultExpression, variables),
+                                bool boolResult => boolResult ? ExecuteExpression(when.ResultExpression, variables) : ExecuteWhen(when.ElseWhen),
                             };
                         }
 
                     case ExpressionBlock expressionBlock:
                         return (ExecuteProgram(expressionBlock.Statements, new(variables)) as Pass<object>).Value;
 
-                    case null: throw new InterpretException("Errors must be addressed before interpretation can commence");
+                    case Function function:
+                        return function;
+
+
+                    case PartiallyAppliedFunction partialFunc:
+                        foreach (var argument in partialFunc.Arguments)
+                            variables[argument.Key] = argument.Value;
+
+                        return partialFunc.Body;
+
+                    case Call call:
+                        //needs to resolve functions one at a time not all at the same time to allow curying
+
+
+                        var arguments = Array.Empty<IExpression>();
+
+                        var callee = call as IExpression;
+                        while (callee is Call childCall)
+                        {
+                            arguments = arguments.Prepend(childCall.Argument).ToArray();
+                            callee = childCall.Callee;
+                        }
+
+                        var functionVariables = new Dictionary<string, IExpression>(variables);
+
+                        var i = 0;
+                        object result = callee switch
+                        {
+                            Identifier funcId when callee is Identifier  => ExecuteExpression(funcId, variables) switch 
+                            {
+                                PartiallyAppliedFunction partialFunc => ExecuteExpression(partialFunc, functionVariables),
+                                IExpression expr => expr
+                            },
+                            PartiallyAppliedFunction partialFunc => ExecuteExpression(partialFunc, functionVariables),
+                            _ => callee
+                        };
+                        while (i < arguments.Length && result is Function func)
+                        {
+                            functionVariables[func.Parameter.Id] = arguments[i];
+                            
+                            result = ExecuteExpression(func.Body, functionVariables);
+                            i++;
+                        }
+
+                        return result is Function bodyFunc ?
+                            new PartiallyAppliedFunction(functionVariables.Except(variables).ToDictionary(x => x.Key, x => x.Value), bodyFunc) 
+                            : result;
 
                     default: throw new NotImplementedException();
                 };
