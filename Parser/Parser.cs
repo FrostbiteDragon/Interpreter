@@ -9,9 +9,10 @@ namespace FrostScript
 {
     public static class Parser
     {
-        public static Result GetAST(Token[] tokens)
+        public static Result GetAST(Token[] tokens, Dictionary<string, IExpression> nativeFunctions)
         {
-            var ast = GenerateAST(tokens).ToArray();
+            var globalIdentifiers = nativeFunctions.ToDictionary(x => x.Key, x => (x.Value, false));
+            var ast = GenerateAST(tokens, globalIdentifiers).ToArray();
 
             if (ast.Contains(null))
                 return Result.Fail();
@@ -43,7 +44,6 @@ namespace FrostScript
                     {
                         TokenType.NewLine => TryGetStatement(pos + 1, tokens, identifiers),
                         TokenType.Pipe => BlockStatement(pos, tokens, identifiers),
-                        TokenType.Print => Print(pos, tokens, identifiers),
                         TokenType.Var or TokenType.Let => Bind(pos, tokens, identifiers),
                         TokenType.If => If(pos, tokens, identifiers),
                         TokenType.While => While(pos, tokens, identifiers),
@@ -84,13 +84,6 @@ namespace FrostScript
                 var (expression, newPos) = GetExpression(pos, tokens.ToArray(), identifiers);
 
                 return (new ExpressionStatement(expression), newPos);
-            }
-
-            (IStatement statement, int newPos) Print(int pos, Token[] tokens, Dictionary<string, (IExpression Expression, bool Mutable)> identifiers)
-            {
-                var (expression, newPos) = GetExpression(pos + 1, tokens, identifiers);
-
-                return (new Print(expression), newPos);
             }
 
             (IStatement statement, int newPos) Bind(int pos, Token[] tokens, Dictionary<string, (IExpression Expression, bool Mutable)> identifiers)

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FrostScript.Expressions
 {
-    public class Function : IExpression, ICallable
+    public class Function : IExpression
     {
         public Parameter Parameter { get; }
         public IExpression Body { get; }
