@@ -85,7 +85,7 @@ namespace FrostScript
                             "else" => new Token(TokenType.Else, line, characterPos, word),
                             "when" => new Token(TokenType.When, line, characterPos, word),
 
-                            "print" => new Token(TokenType.Print, line, characterPos, word),
+                            //"print" => new Token(TokenType.Print, line, characterPos, word),
 
                             "true" => new Token(TokenType.True, line, characterPos, word, true),
                             "false" => new Token(TokenType.False, line, characterPos, word, false),

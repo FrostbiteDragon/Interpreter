@@ -1,21 +1,8 @@
-﻿let helloWorld = 
-	fun string:word1 ->
-	| print "word1 is " + word1
-	|> fun string:word2 -> 
-		| print "word 2 is " + word2
-		|> fun string:symbol -> 
-			| print "symbol is " + symbol
-			|> word1 + " " + word2 + symbol
+﻿var x = 2 + 4 * 2
 
-let helloWorld2 = 
-	fun string:word1 string:word2 string:symbol ->
-		word1 + " " + word2 + symbol
+for var i = 0 to i < 1000000
+{
+	print(i)
+}
 
-let helloWorld3 string:word1 string:word2 =
-	fun string:symbol ->
-	word1 + " " + word2 + symbol
-
-let result = helloWorld3("Goodbye")("you")
-
-print result("!")
-
+print(clock(""))
