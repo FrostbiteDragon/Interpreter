@@ -1,4 +1,8 @@
-﻿for let i = 0
-downto i >= -5 {
-    print i
+﻿var x = 2 + 4 * 2
+
+for var i = 0 to i < 1000
+{
+	print(i)
 }
+
+print(clock())

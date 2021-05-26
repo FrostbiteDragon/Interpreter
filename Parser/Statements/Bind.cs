@@ -1,11 +1,14 @@
 ﻿using FrostScript.Expressions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace FrostScript.Statements
 {
     public class Bind : IStatement
     {
-        public string Id { get; set; }
-        public IExpression Value { get; set; }
+        public string Id { get; }
+        public IExpression Value { get; }
 
         public Bind(string id, IExpression value)
         {

@@ -3,16 +3,20 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using FrostScript;
+using FrostScript.Expressions;
+using FrostScript.NativeFunctions;
 using FrostScript.Statements;
 using Frostware.Result;
 
 var tokens = Lexer.GetTokens(File.ReadAllText(args[0])).ToArray();
 
-switch (Parser.GetAST(tokens))
+Dictionary<string, IExpression> nativeFunctions = new()
 {
-    case Pass<IStatement[]> pass : Interpreter.ExecuteProgram(pass.Value); break;
+    ["print"] = new PrintFunction(),
+    ["clock"] = new ClockFunction()
+};
 
+switch (Parser.GetAST(tokens, nativeFunctions))
+{
+    case Pass<IStatement[]> pass : Interpreter.ExecuteProgram(pass.Value, nativeFunctions); break;
 }
-
-
-
