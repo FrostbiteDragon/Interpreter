@@ -22,6 +22,7 @@ namespace FrostScript
         Pipe,
         ClosePipe,
         ReturnPipe,
+        Colon,
         Eof,
 
         //Oporators
@@ -38,8 +39,14 @@ namespace FrostScript
         If, Else, When, 
         Print,
         True, False,
-        For, While,
+        For, To, DownTo, While,
         Var, Let,
+        Fun,
+
+        //types
+        IntType, 
+        BoolType,
+        StringType
     }
 
     

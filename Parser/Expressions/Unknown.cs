@@ -6,13 +6,11 @@ using System.Threading.Tasks;
 
 namespace FrostScript.Expressions
 {
-    public abstract class Expression
+    public class Unknown : IExpression
     {
-        public DataType Type { get; init; }
+        public DataType Type { get; }
 
-        protected Expression() { }
-
-        protected Expression(DataType type)
+        public Unknown(DataType type = DataType.Unknown) 
         {
             Type = type;
         }

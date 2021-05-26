@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace FrostScript.Statements
 {
-    public class StatementBlock : Statement
+    public class StatementBlock : IStatement
     {
-        public List<Statement> Statements { get; init; }
+        public IStatement[] Statements { get; init; }
 
-        public StatementBlock(List<Statement> statements)
+        public StatementBlock(IStatement[] statements)
         {
             Statements = statements;
         }

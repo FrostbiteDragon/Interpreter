@@ -7,13 +7,15 @@ using System.Threading.Tasks;
 
 namespace FrostScript.Statements
 {
-    public class Print : Statement
+    public class Parameter : IStatement
     {
-        public Expression Expression { get; init; }
+        public string Id { get; }
+        public DataType Type { get; }
 
-        public Print(Expression expression)
+        public Parameter(string id, DataType type)
         {
-            Expression = expression;
+            Id = id;
+            Type = type;
         }
     }
 }
