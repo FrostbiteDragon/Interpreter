@@ -249,7 +249,9 @@ namespace FrostScript
 
                     var callee = ExecuteExpression(call.Callee, variables);
                     if (callee is ICallable callable)
-                        return callable.Call(ExecuteExpression(call.Argument, variables));
+                        return call.Argument is not null ? 
+                            callable.Call(ExecuteExpression(call.Argument, variables)) :
+                            callable.Call(null);
                     else
                         throw new InterpretException($"Expression of type {callee.GetType()} is not callable");
                         //return callee;

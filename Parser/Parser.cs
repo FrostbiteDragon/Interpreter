@@ -627,6 +627,9 @@ namespace FrostScript
                 var callee = expression;
                 while (tokens[currentPos].Type is TokenType.ParentheseOpen)
                 {
+                    if (tokens[currentPos + 1].Type is TokenType.ParentheseClose)
+                        return (new Call(callee), currentPos + 2);
+
                     var (argument, argumentPos) = GetExpression(currentPos + 1, tokens, identifiers);
 
                     if (tokens[argumentPos].Type is not TokenType.ParentheseClose)

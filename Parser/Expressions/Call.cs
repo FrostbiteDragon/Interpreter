@@ -13,7 +13,7 @@ namespace FrostScript.Expressions
 
         public DataType Type => Callee.Type;
 
-        public Call(IExpression callee, IExpression argument)
+        public Call(IExpression callee, IExpression argument = null)
         {
             Callee = callee;
             Argument = argument;
