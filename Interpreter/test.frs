@@ -1,15 +1,8 @@
-﻿
-let x =
-| print "hello"
-| let y =
-	| let z = 
-		when {
-			| let number = 5
-			|> number == 5 -> 1,
-			-> 2
-		}
-	|> z
-| let a = y
-|> a
+﻿var x = 2 + 4 * 2
 
-print x
+for var i = 0 to i < 1000
+{
+	print(i)
+}
+
+print(clock())

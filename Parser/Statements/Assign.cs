@@ -2,18 +2,18 @@
 
 namespace FrostScript.Statements
 {
-    public class Assign : Statement
+    public class Assign : IStatement
     {
         public string Id { get; init; }
-        public Expression Value { get; init; }
+        public IExpression Value { get; init; }
 
-        public Assign(string id, Expression value)
+        public Assign(string id, IExpression value)
         {
             Id = id;
             Value = value;
         }
 
-        public void Deconstruct(out string id, out Expression value)
+        public void Deconstruct(out string id, out IExpression value)
         {
             id = Id;
             value = Value;

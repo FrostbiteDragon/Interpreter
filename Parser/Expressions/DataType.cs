@@ -12,6 +12,7 @@ namespace FrostScript.Expressions
         Numeral,
         Bool,
         Null,
+        Void,
         Unknown
     }
 }

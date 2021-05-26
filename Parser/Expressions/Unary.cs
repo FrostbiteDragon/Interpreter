@@ -6,12 +6,14 @@ using System.Threading.Tasks;
 
 namespace FrostScript.Expressions
 {
-    public class Unary : Expression
+    public class Unary : IExpression
     {
         public Token Operator { get; init; }
-        public Expression Expression { get; init; }
+        public IExpression Expression { get; init; }
 
-        public Unary(DataType type, Token @operator, Expression expression) : base(type)
+        public DataType Type => Expression.Type;
+
+        public Unary(Token @operator, IExpression expression)
         {
             Operator = @operator;
             Expression = expression;

@@ -4,13 +4,13 @@ using System.Linq;
 
 namespace FrostScript.Expressions
 {
-    public class ExpressionBlock : Expression
+    public class ExpressionBlock : IExpression
     {
-        public Statement[] Statements { get; init; }
+        public IStatement[] Statements { get; init; }
+        public IExpression Value { get; set; }
+        public DataType Type => (Statements.Last() as ExpressionStatement).Type;
 
-        public Expression Value { get; set; }
-
-        public ExpressionBlock(IEnumerable<Statement> statements) : base((statements.Last() as ExpressionStatement).Type)
+        public ExpressionBlock(IEnumerable<IStatement> statements)
         {
             Statements = statements.ToArray();
         }
