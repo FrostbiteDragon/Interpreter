@@ -16,6 +16,9 @@ namespace FrostScript
 
             try
             {
+                if (statements.Count() == 0)
+                    return Result.Pass();
+
                 if (statements.Last() is ExpressionStatement)
                 {
                     var result = statements.Last() as ExpressionStatement;
