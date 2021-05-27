@@ -22,7 +22,8 @@ namespace FrostScript
 
         public object Call(object argument)
         {
-            closure[Function.Parameter.Id] = new Literal(Function.Parameter.Type, argument);
+            if (argument is not null)
+                closure[Function.Parameter.Id] = new Literal(Function.Parameter.Type, argument);
 
             return Interpreter.ExecuteExpression(Function.Body, closure);
         }

@@ -96,6 +96,9 @@ namespace FrostScript
                     _ => throw new ParseException(tokens[pos + 1].Line, tokens[pos + 1].Character, $"Expected Id", pos + 1)
                 };
 
+                if (identifiers.ContainsKey(id))
+                    throw new ParseException(tokens[pos + 1].Line, tokens[pos + 1].Character, $"Varriable {id} already exists in scope", pos + 1);
+
                 var blockIdentifiers = new Dictionary<string, (IExpression Expression, bool Mutable)>(identifiers);
 
                 //add id to the identifier dictionary but not the block's
