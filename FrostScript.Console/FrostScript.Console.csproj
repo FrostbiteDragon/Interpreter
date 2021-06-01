@@ -3,7 +3,6 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
-    <AssemblyName>frostscript</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,13 +10,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Parser\Parser.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="test.frs">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <ProjectReference Include="..\FrostScript.Interpreter\FrostScript.Interpreter.csproj" />
+    <ProjectReference Include="..\FrostScript.Lexer\FrostScript.Lexer.csproj" />
+    <ProjectReference Include="..\FrostScript.Parser\FrostScript.Parser.csproj" />
   </ItemGroup>
 
 </Project>

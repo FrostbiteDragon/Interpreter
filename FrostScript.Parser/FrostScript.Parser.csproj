@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <RootNamespace>FrostScript</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Lexer\Lexer.csproj" />
+    <ProjectReference Include="..\FrostScript.Lexer\FrostScript.Lexer.csproj" />
   </ItemGroup>
 
 </Project>
