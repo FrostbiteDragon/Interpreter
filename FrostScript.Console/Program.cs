@@ -16,7 +16,5 @@ Dictionary<string, IExpression> nativeFunctions = new()
     ["clock"] = new ClockFunction()
 };
 
-switch (Parser.GetAST(tokens, nativeFunctions))
-{
-    case Pass<IStatement[]> pass : Interpreter.ExecuteProgram(pass.Value, nativeFunctions); break;
-}
+if (Parser.GetAST(tokens, nativeFunctions) is Pass<IStatement[]> program)
+    Interpreter.ExecuteProgram(program.Value, nativeFunctions);

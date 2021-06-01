@@ -1,8 +1,7 @@
 {
   "profiles": {
     "Interpreter": {
-      "commandName": "Project",
-      "commandLineArgs": "\"test.frs\""
+      "commandName": "Project"
     }
   }
 }

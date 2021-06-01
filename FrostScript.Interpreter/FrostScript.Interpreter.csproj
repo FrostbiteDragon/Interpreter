@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
@@ -12,12 +12,6 @@
   <ItemGroup>
     <ProjectReference Include="..\FrostScript.Lexer\FrostScript.Lexer.csproj" />
     <ProjectReference Include="..\FrostScript.Parser\FrostScript.Parser.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="test.frs">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>
