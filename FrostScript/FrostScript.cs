@@ -58,7 +58,6 @@ namespace FrostScript
                 ["clock"] = new ClockFunction()
             };
 
-
             if (Parser.GetAST(tokens, nativeFunctions) is Pass<IStatement[]> ast)
             {
                 if (Interpreter.ExecuteProgram(ast.Value, nativeFunctions) is Fail)
