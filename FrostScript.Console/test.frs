@@ -1,0 +1,66 @@
+﻿//class
+class Human : Animal {
+    prop Name:string
+	prop NickName:string {
+		get -> Name
+	}
+	prop mutable LastName:string
+	prop mutable Age:int {
+		get age -> 
+		| let x = 20
+		|> x + age
+		set input -> 
+		| let x = 20
+		|> x + input
+	}
+
+	//implement interface
+	IWalkable {
+		prop mutable Speed:int
+
+		method Walk =
+			move(speed)
+	}
+
+	//constructor
+	new name:string LastName:string age:int speed:int =
+	| Name = name
+	| Lastname = lastName
+	| Nickname = nickName
+	| Age = age
+	| Speed = speed
+
+	method Method1 word:string =
+	| let newString = string
+	|> newString
+
+	static { 
+		let Default = new Human {
+			Name = "Cameron"
+			Age = 20
+		}
+		let Default2 = new Human {
+			Name = "Zack"
+			Age = 21
+		}
+	}
+}
+ 
+//record
+record Human {
+	name string
+	age int
+
+	method NickName = name.first3
+
+	static method cameron = Human {
+		Name = "Cameron"
+		Age = 20
+	}
+}
+
+//anonymous record
+new {
+	age = 20
+	name = "Cameron"
+}

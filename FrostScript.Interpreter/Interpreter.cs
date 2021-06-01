@@ -10,7 +10,7 @@ namespace FrostScript
 {
     public static class Interpreter
     {
-        public static Stopwatch Stopwatch = new Stopwatch(); 
+        public static readonly Stopwatch Stopwatch = new Stopwatch();
 
         public static Result ExecuteProgram(IEnumerable<IStatement> statements, Dictionary<string, IExpression> variables = null)
         {
@@ -21,13 +21,11 @@ namespace FrostScript
 
             try
             {
-                if (statements.Count() == 0)
+                if (!statements.Any())
                     return Result.Pass();
 
-                if (statements.Last() is ExpressionStatement)
+                if (statements.Last() is ExpressionStatement result)
                 {
-                    var result = statements.Last() as ExpressionStatement;
-
                     foreach (var statement in statements.SkipLast(1))
                         ExecuteStatement(statement, variables);
 

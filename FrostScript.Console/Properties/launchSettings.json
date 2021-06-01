@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "Interpreter": {
+    "FrostScript.Console": {
       "commandName": "Project",
       "commandLineArgs": "\"test.frs\""
     }
