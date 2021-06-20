@@ -254,7 +254,7 @@ namespace FrostScript
                             callable.Call(ExecuteExpression(call.Argument, variables)) :
                             callable.Call(null);
                     else
-                        throw new InterpretException($"Expression of type {callee.GetType()} is not callable");
+                        throw new InterpretException($"Expression of type {callee?.GetType().ToString() ?? "void"} is not callable");
                         //return callee;
 
                 default: throw new NotImplementedException();

@@ -20,3 +20,4 @@ if (Parser.GetAST(tokens, nativeFunctions) is Pass<IStatement[]> program)
     Interpreter.ExecuteProgram(program.Value, nativeFunctions);
 else
     Console.WriteLine("Parsing failed");
+
