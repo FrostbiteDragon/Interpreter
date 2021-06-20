@@ -5,13 +5,7 @@ VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FrostScript.Console", "FrostScript.Console\FrostScript.Console.csproj", "{AD007A4C-EDBD-42F0-B644-4C1A7CEF1417}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FrostScript.Interpreter", "FrostScript.Interpreter\FrostScript.Interpreter.csproj", "{E961D154-42B6-4A32-BDF0-5BCE145ECBD1}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FrostScript.Parser", "FrostScript.Parser\FrostScript.Parser.csproj", "{62C7BEBA-6263-4909-84DD-CB5CC20E9215}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FrostScript.Lexer", "FrostScript.Lexer\FrostScript.Lexer.csproj", "{09E2539E-6B27-4E84-ADCD-E96CD1064B7C}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrostScript", "FrostScript\FrostScript.csproj", "{657F357B-15C0-4D73-8A75-5F684F149318}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FrostScript", "FrostScript\FrostScript.csproj", "{657F357B-15C0-4D73-8A75-5F684F149318}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,18 +17,6 @@ Global
 		{AD007A4C-EDBD-42F0-B644-4C1A7CEF1417}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AD007A4C-EDBD-42F0-B644-4C1A7CEF1417}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AD007A4C-EDBD-42F0-B644-4C1A7CEF1417}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E961D154-42B6-4A32-BDF0-5BCE145ECBD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E961D154-42B6-4A32-BDF0-5BCE145ECBD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E961D154-42B6-4A32-BDF0-5BCE145ECBD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E961D154-42B6-4A32-BDF0-5BCE145ECBD1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{62C7BEBA-6263-4909-84DD-CB5CC20E9215}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{62C7BEBA-6263-4909-84DD-CB5CC20E9215}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{62C7BEBA-6263-4909-84DD-CB5CC20E9215}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{62C7BEBA-6263-4909-84DD-CB5CC20E9215}.Release|Any CPU.Build.0 = Release|Any CPU
-		{09E2539E-6B27-4E84-ADCD-E96CD1064B7C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{09E2539E-6B27-4E84-ADCD-E96CD1064B7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{09E2539E-6B27-4E84-ADCD-E96CD1064B7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{09E2539E-6B27-4E84-ADCD-E96CD1064B7C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{657F357B-15C0-4D73-8A75-5F684F149318}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{657F357B-15C0-4D73-8A75-5F684F149318}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{657F357B-15C0-4D73-8A75-5F684F149318}.Release|Any CPU.ActiveCfg = Release|Any CPU

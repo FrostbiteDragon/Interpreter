@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using FrostScript;
@@ -17,3 +18,5 @@ Dictionary<string, IExpression> nativeFunctions = new()
 
 if (Parser.GetAST(tokens, nativeFunctions) is Pass<IStatement[]> program)
     Interpreter.ExecuteProgram(program.Value, nativeFunctions);
+else
+    Console.WriteLine("Parsing failed");

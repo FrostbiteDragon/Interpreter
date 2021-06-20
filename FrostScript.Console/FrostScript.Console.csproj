@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,9 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FrostScript.Interpreter\FrostScript.Interpreter.csproj" />
-    <ProjectReference Include="..\FrostScript.Lexer\FrostScript.Lexer.csproj" />
-    <ProjectReference Include="..\FrostScript.Parser\FrostScript.Parser.csproj" />
+    <ProjectReference Include="..\FrostScript\FrostScript.csproj" />
   </ItemGroup>
 
   <ItemGroup>

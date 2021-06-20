@@ -1,17 +1,12 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Frostware.Result" Version="1.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\FrostScript.Interpreter\FrostScript.Interpreter.csproj" />
-    <ProjectReference Include="..\FrostScript.Lexer\FrostScript.Lexer.csproj" />
-    <ProjectReference Include="..\FrostScript.Parser\FrostScript.Parser.csproj" />
   </ItemGroup>
 
 </Project>
