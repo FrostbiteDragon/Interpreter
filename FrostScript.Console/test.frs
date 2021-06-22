@@ -1,10 +1,11 @@
 ﻿
-let helloWorld
-| print("Hello world")
+var i = 0
 
-let x = print("x")
+let printI i:int
+| let j = i + 1
+| print(i + j)
 
-if {
-	false -> print (1),
-	-> print (2)
-}
+
+printI(i)
+printI(i)
+printI(i)

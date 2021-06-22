@@ -55,7 +55,7 @@ namespace FrostScript
                     break;
 
                 case Assign(var id, var value):
-                    variables[id] = value;
+                    variables[id] = new Literal(value.Type, ExecuteExpression(value, variables));
                     break;
 
                 case If ifStmt:
