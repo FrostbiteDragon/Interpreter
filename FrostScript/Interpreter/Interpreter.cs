@@ -156,70 +156,21 @@ namespace FrostScript
 
                 case Binary binary:
 
-                    var leftResult = ExecuteExpression(binary.Left, variables);
-                    var rightResult = ExecuteExpression(binary.Right, variables);
+                    dynamic leftResult = ExecuteExpression(binary.Left, variables);
+                    dynamic rightResult = ExecuteExpression(binary.Right, variables);
 
                     return binary.Operator.Type switch
                     {
-                        //strings
-                        _ when leftResult is string leftString && rightResult is string rightString =>
-                             binary.Operator.Type switch
-                             {
-                                 TokenType.Plus => leftString + rightString,
-
-                                 TokenType.Equal => leftString == rightString,
-                                 TokenType.NotEqual => leftString != rightString,
-
-                                 _ => throw new InterpretException(
-                                     binary.Operator.Line,
-                                     binary.Operator.Character,
-                                     $"Oporator \"{binary.Operator.Lexeme}\" is not valid between strings")
-                             },
-
-                        //numerals
-                        _ when leftResult is double leftDouble && rightResult is double rightDouble =>
-                             binary.Operator.Type switch
-                             {
-                                 TokenType.Plus => leftDouble + rightDouble,
-                                 TokenType.Minus => leftDouble - rightDouble,
-                                 TokenType.Star => leftDouble * rightDouble,
-                                 TokenType.Slash => leftDouble / rightDouble,
-                                 TokenType.GreaterThen => leftDouble > rightDouble,
-                                 TokenType.GreaterOrEqual => leftDouble >= rightDouble,
-                                 TokenType.LessThen => leftDouble < rightDouble,
-                                 TokenType.LessOrEqual => leftDouble <= rightDouble,
-
-                                 TokenType.Equal => leftDouble == rightDouble,
-                                 TokenType.NotEqual => leftDouble != rightDouble,
-
-                                 _ => throw new InterpretException(
-                                    binary.Operator.Line,
-                                    binary.Operator.Character,
-                                    $"Oporator {binary.Operator.Type} is not valid between numerals")
-                             },
-
-                        // bools
-                        _ when leftResult is bool leftBool && rightResult is bool rightBool =>
-                        binary.Operator.Type switch
-                        {
-                            TokenType.Equal => leftBool == rightBool,
-                            TokenType.NotEqual => leftBool != rightBool,
-
-                            TokenType.Or => leftBool || rightBool,
-
-                            _ => throw new InterpretException(
-                                    binary.Operator.Line,
-                                    binary.Operator.Character,
-                                    $"Oporator {binary.Operator.Type} is not valid between bools")
-                        },
-
-                        TokenType.Equal => ExecuteExpression(binary.Left, variables) == ExecuteExpression(binary.Right, variables),
-                        TokenType.NotEqual => ExecuteExpression(binary.Left, variables) != ExecuteExpression(binary.Right, variables),
-
-                        _ => throw new InterpretException(
-                                    binary.Operator.Line,
-                                    binary.Operator.Character,
-                                    $"Oporator {binary.Operator.Type} is not valid between types {leftResult.GetType()} and {rightResult.GetType()}")
+                        TokenType.Plus => leftResult + rightResult,
+                        TokenType.Minus => leftResult - rightResult,
+                        TokenType.Star => leftResult * rightResult,
+                        TokenType.Slash => leftResult / rightResult,
+                        TokenType.GreaterThen => leftResult > rightResult,
+                        TokenType.GreaterOrEqual => leftResult >= rightResult,
+                        TokenType.LessThen => leftResult < rightResult,
+                        TokenType.LessOrEqual => leftResult <= rightResult,
+                        TokenType.Equal => leftResult == rightResult,
+                        TokenType.NotEqual => leftResult != rightResult
                     };
 
                 case When whenExpr:

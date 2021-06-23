@@ -67,7 +67,11 @@ namespace FrostScript
                     case char _ when char.IsDigit(character):
                         var digits = new string(characters.Skip(i).TakeWhile(x => char.IsDigit(x) || x == '.').ToArray());
 
-                        yield return new Token(TokenType.Numeral, line, characterPos, digits, double.Parse(digits));
+
+                        yield return digits.Contains('.') ?
+                            new Token(TokenType.Double, line, characterPos, digits, double.Parse(digits)) :
+                            new Token(TokenType.Int, line, characterPos, digits, int.Parse(digits));
+
                         i += digits.Length - 1;
 
                         //add a multiplication if numeric is followed by a parenthese
@@ -87,7 +91,7 @@ namespace FrostScript
 
                             "true" => new Token(TokenType.True, line, characterPos, word, true),
                             "false" => new Token(TokenType.False, line, characterPos, word, false),
-                            "null" => new Token(TokenType.Null, line, characterPos, word),
+                            "void" => new Token(TokenType.Void, line, characterPos, word),
 
                             "for" => new Token(TokenType.For, line, characterPos, word),
                             "to" => new Token(TokenType.To, line, characterPos, word),

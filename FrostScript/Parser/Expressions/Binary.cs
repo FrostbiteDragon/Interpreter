@@ -14,6 +14,8 @@ namespace FrostScript.Expressions
 
         public DataType Type { get; }
 
+        public Binary() { }
+
         public Binary(DataType type, IExpression left, Token @operator, IExpression right)
         {
             Left = left;

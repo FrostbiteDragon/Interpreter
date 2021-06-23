@@ -5,6 +5,7 @@ using System.Linq;
 using FrostScript;
 using FrostScript.Expressions;
 using FrostScript.NativeFunctions;
+using FrostScript.Nodes;
 using FrostScript.Statements;
 using Frostware.Result;
 
@@ -16,8 +17,14 @@ Dictionary<string, IExpression> nativeFunctions = new()
     ["clock"] = new ClockFunction()
 };
 
-if (Parser.GetAST(tokens, nativeFunctions) is Pass<IStatement[]> program)
-    Interpreter.ExecuteProgram(program.Value, nativeFunctions);
-else
-    Console.WriteLine("Parsing failed");
+if (NodeParser.GenerateNodes(tokens) is Pass<INode> ast)
+{
+    if (ast.Value.ToTypedNode(nativeFunctions) is Pass<IExpression> typedNode)
+        Interpreter.ExecuteExpression(typedNode.Value, nativeFunctions);
+}
+
+//if (Parser.GetAST(tokens, nativeFunctions) is Pass<IStatement[]> program)
+//    Interpreter.ExecuteProgram(program.Value, nativeFunctions);
+//else
+//    Console.WriteLine("Parsing failed");
 

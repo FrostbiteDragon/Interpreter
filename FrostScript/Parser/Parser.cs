@@ -11,17 +11,17 @@ namespace FrostScript
     {
         public static Result GetAST(Token[] tokens, Dictionary<string, IExpression> nativeFunctions)
         {
-            var globalIdentifiers = nativeFunctions.ToDictionary(x => x.Key, x => (x.Value.Type, false));
+            var globalIdentifiers = nativeFunctions.ToDictionary(x => x.Key, x => false);
             var ast = GenerateAST(tokens, globalIdentifiers).ToArray();
 
             return ast.Contains(null) ?
                 Result.Fail() :
                 Result.Pass(ast);
 
-            IEnumerable<IStatement> GenerateAST(Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers = null)
+            IEnumerable<IStatement> GenerateAST(Token[] tokens, Dictionary<string, bool> identifiers = null)
             {
                 if (identifiers is null)
-                    identifiers = new Dictionary<string, (DataType Type, bool Mutable)>();
+                    identifiers = new Dictionary<string, bool>();
 
                 int currentPosition = 0;
                 while (currentPosition < tokens.Length && !(tokens[currentPosition].Type is TokenType.ClosePipe or TokenType.ReturnPipe or TokenType.Eof))
@@ -35,7 +35,7 @@ namespace FrostScript
 
             }
 
-            (IStatement statement, int newPos) TryGetStatement(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            (IStatement statement, int newPos) TryGetStatement(int pos, Token[] tokens, Dictionary<string, bool> identifiers)
             {
                 try
                 {
@@ -59,9 +59,9 @@ namespace FrostScript
                     return (null, exception.PickupPoint);
                 }
             }
-            (IStatement statement, int newPos) BlockStatement(int initialPos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            (IStatement statement, int newPos) BlockStatement(int initialPos, Token[] tokens, Dictionary<string, bool> identifiers)
             {
-                var blockIdentifiers = new Dictionary<string, (DataType Type, bool Mutable)>(identifiers);
+                var blockIdentifiers = new Dictionary<string, bool>(identifiers);
 
                 var pos = initialPos;
                 return (new StatementBlock(GetBlockStatements(initialPos).ToArray()), pos);
@@ -76,29 +76,27 @@ namespace FrostScript
                     }
                 }
             }
-            (IStatement statement, int newPos) ExpressionStatement(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            (IStatement statement, int newPos) ExpressionStatement(int pos, Token[] tokens, Dictionary<string, bool> identifiers)
             {
                 var (expression, newPos) = GetExpression(pos, tokens.ToArray(), identifiers);
 
                 return (new ExpressionStatement(expression), newPos);
             }
-            (IStatement statement, int newPos) Bind(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            (IStatement statement, int newPos) Bind(int pos, Token[] tokens, Dictionary<string, bool> identifiers)
             {
-                var mutability = tokens[pos].Type is TokenType.Var;
-
                 var id = tokens[pos + 1].Type switch
                 {
                     TokenType.Id => tokens[pos + 1].Lexeme,
-                    _ => throw new ParseException(tokens[pos + 1].Line, tokens[pos + 1].Character, $"Expected Id", pos + 1)
+                     _ => throw new ParseException(tokens[pos + 1].Line, tokens[pos + 1].Character, $"Expected Id", pos + 1)
                 };
 
                 if (identifiers.ContainsKey(id))
                     throw new ParseException(tokens[pos + 1].Line, tokens[pos + 1].Character, $"Varriable {id} already exists in scope", pos + 1);
 
-                var blockIdentifiers = new Dictionary<string, (DataType Type, bool Mutable)>(identifiers);
+                var blockIdentifiers = new Dictionary<string, bool>(identifiers);
 
                 //add id to the identifier dictionary but not the block's
-                identifiers[id] = (DataType.Unknown, mutability);
+                identifiers[id] = tokens[pos].Type is TokenType.Var;
 
                 var parameters = new List<Parameter>();
                 var currentPos = pos + 2;
@@ -107,8 +105,6 @@ namespace FrostScript
                 if (tokens[currentPos].Type is TokenType.Assign)
                 {
                     var (value, expressionPos) = GetExpression(currentPos + 1, tokens, blockIdentifiers);
-                    //set new id's value
-                    identifiers[id] = (value.Type, mutability);
                     return (new Bind(id, value), expressionPos);
                 }
 
@@ -116,15 +112,12 @@ namespace FrostScript
                 while (tokens[currentPos].Type is not (TokenType.Pipe or TokenType.ReturnPipe))
                 {
                     var (paramater, newPos) = Parameter(currentPos, tokens, blockIdentifiers);
-                    blockIdentifiers[paramater.Id] = (paramater.Type, false);
+                    blockIdentifiers[paramater.Id] = false;
                     parameters.Add(paramater);
                     currentPos = newPos;
                 }
 
                 var (body, bodyPos) = GetExpression(currentPos, tokens, blockIdentifiers);
-
-                //set new id's value
-                identifiers[id] = (body.Type, mutability);
 
                 if (!parameters.Any())
                     return (new Bind(id, new Function(null, body)), bodyPos);
@@ -142,7 +135,7 @@ namespace FrostScript
 
                 return (new Bind(id, function), bodyPos);
             }
-            (Parameter statement, int newPos) Parameter(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            (Parameter parameter, int newPos) Parameter(int pos, Token[] tokens, Dictionary<string, bool> identifiers)
             {
                 var id = tokens[pos].Type switch
                 {
@@ -163,7 +156,7 @@ namespace FrostScript
 
                 return (new Parameter(id, type), pos + 3);
             }
-            (IStatement statement, int newPos) Assign(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            (IStatement statement, int newPos) Assign(int pos, Token[] tokens, Dictionary<string, bool> identifiers)
             {
                 var id = tokens[pos].Lexeme;
 
@@ -173,19 +166,14 @@ namespace FrostScript
                 if (!identifiers.ContainsKey(id))
                     throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Variable does not exist in current scope. did you forget a 'let' or 'var' binding?", pos);
 
-                if (identifiers[id].Mutable == false)
+                if (identifiers[id] == false)
                     throw new ParseException(tokens[pos + 2].Line, tokens[pos + 2].Character, $"let bindings are not mutable", pos + 2);
 
                 var (value, newPos) = GetExpression(pos + 2, tokens, identifiers);
 
-                if (identifiers[id].Type != value.Type)
-                    throw new ParseException(tokens[pos + 2].Line, tokens[pos + 2].Character, $"binding {id} is of type {identifiers[id].Type}. It cannot be assigned a value of {value.Type}", pos + 2);
-
-                identifiers[id] = (value.Type, true);
-
                 return new(new Assign(id, value), newPos);
             }
-            (IStatement statement, int newPos) If(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            (IStatement statement, int newPos) If(int pos, Token[] tokens, Dictionary<string, bool> identifiers)
             {
                 if (tokens[pos + 1].Type is not TokenType.BraceOpen)
                     throw new ParseException(tokens[pos + 1].Line, tokens[pos + 1].Character, "expected '{'", pos + 1);
@@ -198,7 +186,7 @@ namespace FrostScript
                 return (ifStmt, newPos + 1);
 
 
-                (If ifStmt, int pos) GenerateIf(If ifStmt, int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+                (If ifStmt, int pos) GenerateIf(If ifStmt, int pos, Token[] tokens, Dictionary<string, bool> identifiers)
                 {
                     if (pos >= tokens.Length)
                         return (ifStmt, pos);
@@ -277,9 +265,9 @@ namespace FrostScript
                     }
                 }
             }
-            (IStatement statement, int newPos) For(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            (IStatement statement, int newPos) For(int pos, Token[] tokens, Dictionary<string, bool> identifiers)
             {
-                var ifIdentifiers = new Dictionary<string, (DataType Type, bool Mutable)>(identifiers);
+                var ifIdentifiers = new Dictionary<string, bool>(identifiers);
 
                 var (bind, bindPos) = Bind(pos + 1, tokens, ifIdentifiers);
 
@@ -319,7 +307,7 @@ namespace FrostScript
 
                 return (new For(bind as Bind, endExpression, crement, statements), bodyPos + 1);
             }
-            (IStatement statement, int newPos) While(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            (IStatement statement, int newPos) While(int pos, Token[] tokens, Dictionary<string, bool> identifiers)
             {
                 var (condition, expressionPos) = GetExpression(pos + 1, tokens, identifiers);
 
@@ -347,11 +335,11 @@ namespace FrostScript
                 return (new While(condition, statements), bodyPos + 1);
             }
 
-            (IExpression expression, int newPos) GetExpression(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            (IExpression expression, int newPos) GetExpression(int pos, Token[] tokens, Dictionary<string, bool> identifiers)
             {
                 return Or(pos, tokens, identifiers);
             }
-            (IExpression expression, int newPos) Or(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            (IExpression expression, int newPos) Or(int pos, Token[] tokens, Dictionary<string, bool> identifiers)
             {
                 var (expression, newPos) = And(pos, tokens, identifiers);
 
@@ -365,7 +353,7 @@ namespace FrostScript
 
                 return (expression, newPos);
             }
-            (IExpression expression, int newPos) And(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            (IExpression expression, int newPos) And(int pos, Token[] tokens, Dictionary<string, bool> identifiers)
             {
                 var (expression, newPos) = Equality(pos, tokens, identifiers);
 
@@ -379,7 +367,7 @@ namespace FrostScript
 
                 return (expression, newPos);
             }
-            (IExpression expression, int newPos) Equality(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            (IExpression expression, int newPos) Equality(int pos, Token[] tokens, Dictionary<string, bool> identifiers)
             {
                 var (expression, newPos) = Comparison(pos, tokens, identifiers);
 
@@ -393,7 +381,7 @@ namespace FrostScript
 
                 return (expression, newPos);
             }
-            (IExpression expression, int newPos) Comparison(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            (IExpression expression, int newPos) Comparison(int pos, Token[] tokens, Dictionary<string, bool> identifiers)
             {
                 var (expression, newPos) = Term(pos, tokens, identifiers);
 
@@ -407,7 +395,7 @@ namespace FrostScript
 
                 return (expression, newPos);
             }
-            (IExpression expression, int newPos) Term(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            (IExpression expression, int newPos) Term(int pos, Token[] tokens, Dictionary<string, bool> identifiers)
             {
                 var (expression, newPos) = Factor(pos, tokens, identifiers);
 
@@ -422,7 +410,7 @@ namespace FrostScript
 
                 return (expression, newPos);
             }
-            (IExpression expression, int newPos) Factor(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            (IExpression expression, int newPos) Factor(int pos, Token[] tokens, Dictionary<string, bool> identifiers)
             {
                 var (expression, newPos) = ExpressionBlock(pos, tokens, identifiers);
 
@@ -437,12 +425,12 @@ namespace FrostScript
 
                 return (expression, newPos);
             }
-            (IExpression expression, int newPos) ExpressionBlock(int initialPos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            (IExpression expression, int newPos) ExpressionBlock(int initialPos, Token[] tokens, Dictionary<string, bool> identifiers)
             {
                 if (tokens[initialPos].Type is not (TokenType.Pipe or TokenType.ReturnPipe))
                     return When(initialPos, tokens, identifiers);
 
-                var blockIdentifiers = new Dictionary<string, (DataType Type, bool Mutable)>(identifiers);
+                var blockIdentifiers = new Dictionary<string, bool>(identifiers);
 
                 var pos = initialPos;
                 var statements = GetBlockStatements(initialPos).ToList();
@@ -467,7 +455,7 @@ namespace FrostScript
                 }
 
             }
-            (IExpression expression, int newPos) When(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            (IExpression expression, int newPos) When(int pos, Token[] tokens, Dictionary<string, bool> identifiers)
             {
                 if (tokens[pos].Type is not TokenType.When)
                     return Function(pos, tokens, identifiers);
@@ -496,7 +484,7 @@ namespace FrostScript
                     else return true;
                 }
 
-                (When when, int pos) GenerateWhen(When when, int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+                (When when, int pos) GenerateWhen(When when, int pos, Token[] tokens, Dictionary<string, bool> identifiers)
                 {
                     if (pos >= tokens.Length)
                         throw new ParseException(tokens.Last().Line, tokens.Last().Character, $"Missing default clause", pos);
@@ -556,19 +544,19 @@ namespace FrostScript
                     }
                 }
             }
-            (IExpression expression, int newPos) Function(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            (IExpression expression, int newPos) Function(int pos, Token[] tokens, Dictionary<string, bool> identifiers)
             {
                 if (tokens[pos].Type is not TokenType.Fun)
                     return Unary(pos, tokens, identifiers);
 
-                var blockIdentifiers = new Dictionary<string, (DataType Type, bool Mutable)>(identifiers);
+                var blockIdentifiers = new Dictionary<string, bool>(identifiers);
 
                 var parameters = new List<Parameter>();
                 var currentPos = pos + 1;
                 while (tokens[currentPos].Type is not TokenType.Arrow)
                 {
                     var (paramater, newPos) = Parameter(currentPos, tokens, blockIdentifiers);
-                    blockIdentifiers[paramater.Id] = (paramater.Type, false);
+                    blockIdentifiers[paramater.Id] = false;
                     parameters.Add(paramater);
                     currentPos = newPos;
                 }
@@ -598,7 +586,7 @@ namespace FrostScript
                 }
                 return (function, bodyPos);
             }
-            (IExpression expression, int newPos) Unary(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            (IExpression expression, int newPos) Unary(int pos, Token[] tokens, Dictionary<string, bool> identifiers)
             {
                 if (tokens[pos].Type is TokenType.Minus or TokenType.Plus or TokenType.Not)
                 {
@@ -610,7 +598,7 @@ namespace FrostScript
                     return Call(pos, tokens, identifiers);
                 }
             }
-            (IExpression expression, int newPos) Call(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            (IExpression expression, int newPos) Call(int pos, Token[] tokens, Dictionary<string, bool> identifiers)
             {
                 var (expression, newPos) = Primary(pos, tokens, identifiers);
 
@@ -632,17 +620,17 @@ namespace FrostScript
                     
                 return (callee, currentPos);
             }
-            (IExpression expression, int newPos) Primary(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            (IExpression expression, int newPos) Primary(int pos, Token[] tokens, Dictionary<string, bool> identifiers)
             {
                 return tokens[pos].Type switch
                 {
                     TokenType.True or TokenType.False => (new Literal(DataType.Bool, tokens[pos].Literal), pos + 1),
                     TokenType.Numeral => (new Literal(DataType.Numeral, tokens[pos].Literal), pos + 1),
-                    TokenType.Null => (new Literal(DataType.Null, tokens[pos].Literal), pos + 1),
+                    TokenType.Void => (new Literal(DataType.Null, tokens[pos].Literal), pos + 1),
                     TokenType.String => (new Literal(DataType.String, tokens[pos].Literal), pos + 1),
                     TokenType.Id => identifiers.ContainsKey(tokens[pos].Lexeme) switch
                     {
-                        true => (new Identifier(identifiers[tokens[pos].Lexeme].Type, tokens[pos].Lexeme), pos + 1),
+                        true => (new Identifier(DataType.Unknown, tokens[pos].Lexeme), pos + 1),
                         false => throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"The variable {tokens[pos].Lexeme} either does not exist or is out of scope", pos + 1)
                     },
 
@@ -650,7 +638,7 @@ namespace FrostScript
                     _ => throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expected an expression. instead got \"{tokens[pos].Lexeme}\"", pos + 1)
                 };
             }
-            (IExpression expression, int newPos) Grouping(int pos, Token[] tokens, Dictionary<string, (DataType Type, bool Mutable)> identifiers)
+            (IExpression expression, int newPos) Grouping(int pos, Token[] tokens, Dictionary<string, bool> identifiers)
             {
                 var (expression, newPos) = GetExpression(pos + 1, tokens, identifiers);
                 if (newPos >= tokens.Length || tokens[newPos].Type != TokenType.ParentheseClose)

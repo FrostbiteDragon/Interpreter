@@ -9,6 +9,8 @@ namespace FrostScript.Expressions
     public enum DataType
     {
         String,
+        Int,
+        Double,
         Numeral,
         Bool,
         Null,

@@ -33,7 +33,7 @@ namespace FrostScript
         And, Or,
 
         //Literals
-        Numeral, String, Bool, Id, Null,
+        Numeral, Int, Double, String, Bool, Id, Void,
 
         //Keywords
         If, Else, When, 
@@ -58,6 +58,11 @@ namespace FrostScript
         public object Literal { get; init; }
         public int Line { get; init; }
         public int Character { get; init; }
+
+        public Token(TokenType type)
+        {
+            Type = type;
+        }
 
         public Token(TokenType type, int line, int character)
         {
