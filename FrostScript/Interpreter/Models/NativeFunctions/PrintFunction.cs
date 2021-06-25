@@ -1,4 +1,5 @@
-﻿using FrostScript.Expressions;
+﻿using FrostScript.DataTypes;
+using FrostScript.Expressions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace FrostScript.NativeFunctions
 {
     public class PrintFunction : ICallable
     {
-        public DataType Type => DataType.Void;
+        public IDataType Type => DataType.Function(DataType.Any, DataType.Void);
 
         public object Call(object argument)
         {

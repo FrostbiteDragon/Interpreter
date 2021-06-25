@@ -1,1 +1,1 @@
-﻿print ((fun x:int y:double -> x + y)(2))
+﻿print ((fun x:int y:double -> x + y)(2)(3))

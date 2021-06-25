@@ -1,4 +1,5 @@
-﻿using FrostScript.Expressions;
+﻿using FrostScript.DataTypes;
+using FrostScript.Expressions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,9 +11,9 @@ namespace FrostScript.Statements
     public class Parameter : IStatement
     {
         public string Id { get; }
-        public DataType Type { get; }
+        public IDataType Type { get; }
 
-        public Parameter(string id, DataType type)
+        public Parameter(string id, IDataType type)
         {
             Id = id;
             Type = type;

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FrostScript.DataTypes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,7 +12,7 @@ namespace FrostScript.Expressions
         public IExpression Callee { get; }
         public IExpression Argument { get; }
 
-        public DataType Type => Callee.Type;
+        public IDataType Type => Callee.Type;
 
         public Call(IExpression callee, IExpression argument = null)
         {

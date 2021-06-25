@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FrostScript.DataTypes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,7 +13,7 @@ namespace FrostScript.Expressions
         public IExpression ResultExpression { get; }
         public When ElseWhen { get; }
 
-        public DataType Type => ResultExpression.Type;
+        public IDataType Type => ResultExpression.Type;
 
         public When(IExpression ifExpresion, IExpression resultExpression, When elseWhen)
         {

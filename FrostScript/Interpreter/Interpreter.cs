@@ -1,4 +1,5 @@
-﻿using FrostScript.Expressions;
+﻿using FrostScript.DataTypes;
+using FrostScript.Expressions;
 using FrostScript.Statements;
 using Frostware.Result;
 using System;
@@ -108,7 +109,7 @@ namespace FrostScript
                             _ => throw new ArgumentOutOfRangeException(nameof(@for.Crement))
                         };
 
-                        ExecuteStatement(new Assign(@for.Bind.Id, new Literal(DataType.Numeral, bindValue)), variables);
+                        ExecuteStatement(new Assign(@for.Bind.Id, new Literal(DataType.Int, bindValue)), variables);
                     }
 
                     break;
@@ -185,7 +186,7 @@ namespace FrostScript
                 case ExpressionBlock expressionBlock:
                     return (ExecuteProgram(expressionBlock.Statements, new(variables)) as Pass<object>).Value;
 
-                case Function function:
+                case Expressions.Function function:
                     return new FrostFunction(function, new(variables));
 
                 case ICallable icallable:

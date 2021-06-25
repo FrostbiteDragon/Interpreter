@@ -9,6 +9,7 @@ using static FrostScript.Nodes.LiteralNode;
 using static FrostScript.Nodes.WhenNode;
 using static FrostScript.Nodes.AndNode;
 using static FrostScript.Nodes.BlockNode;
+using FrostScript.DataTypes;
 
 namespace FrostScript
 {
@@ -71,7 +72,7 @@ namespace FrostScript
             if (tokens[pos + 1].Type is not TokenType.Colon)
                 throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expected ':' but got {tokens[pos].Lexeme}", pos + 3);
 
-            var type = tokens[pos + 2].Type switch
+            IDataType type = tokens[pos + 2].Type switch
             {
                 TokenType.IntType => DataType.Int,
                 TokenType.DoubleType => DataType.Double,

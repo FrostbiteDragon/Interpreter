@@ -1,4 +1,5 @@
-﻿using FrostScript.Expressions;
+﻿using FrostScript.DataTypes;
+using FrostScript.Expressions;
 using FrostScript.Statements;
 using System;
 using System.Collections.Generic;

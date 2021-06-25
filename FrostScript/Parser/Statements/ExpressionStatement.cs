@@ -1,4 +1,5 @@
-﻿using FrostScript.Expressions;
+﻿using FrostScript.DataTypes;
+using FrostScript.Expressions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace FrostScript.Statements
 {
     public class ExpressionStatement : IStatement, IExpression
     {
-        public DataType Type => Expression.Type;
+        public IDataType Type => Expression.Type;
         public IExpression Expression { get; init; }
 
         public ExpressionStatement(IExpression expression)

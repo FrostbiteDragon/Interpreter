@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FrostScript.DataTypes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,6 @@ namespace FrostScript.Expressions
 {
     public interface IExpression
     {
-        public DataType Type { get; }
+        public IDataType Type { get; }
     }
 }

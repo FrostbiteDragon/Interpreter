@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FrostScript.DataTypes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,7 +12,7 @@ namespace FrostScript.Expressions
         public Token Operator { get; init; }
         public IExpression Expression { get; init; }
 
-        public DataType Type => Expression.Type;
+        public IDataType Type => Expression.Type;
 
         public Unary(Token @operator, IExpression expression)
         {

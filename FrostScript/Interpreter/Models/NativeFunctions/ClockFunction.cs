@@ -1,4 +1,5 @@
-﻿using FrostScript.Expressions;
+﻿using FrostScript.DataTypes;
+using FrostScript.Expressions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,7 +11,7 @@ namespace FrostScript.NativeFunctions
 {
     public class ClockFunction : ICallable
     {
-        public DataType Type => DataType.Numeral;
+        public IDataType Type => DataType.Void;
 
         public object Call(object argument)
         {

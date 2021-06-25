@@ -1,4 +1,5 @@
-﻿using FrostScript.Expressions;
+﻿using FrostScript.DataTypes;
+using FrostScript.Expressions;
 using FrostScript.Nodes;
 using FrostScript.Statements;
 using Frostware.Result;
@@ -26,7 +27,7 @@ namespace FrostScript
                 return Result.Fail();
             }
 
-            IExpression Convert(INode node, Dictionary<string, DataType> identifiers)
+            IExpression Convert(INode node, Dictionary<string, IDataType> identifiers)
             {
                 return node switch
                 {
@@ -44,18 +45,18 @@ namespace FrostScript
                             TokenType.GreaterThen or
                             TokenType.LessOrEqual or
                             TokenType.Or or
-                            TokenType.LessThen => DataType.Bool,
+                            TokenType.LessThen => DataType.Int,
 
                             TokenType.Plus or
                             TokenType.Minus or
                             TokenType.Star or
                             TokenType.Slash => left.Type switch 
                             {
-                                DataType.Int => right.Type is DataType.Int or DataType.Double ?
+                                IntType => right.Type is IntType or DoubleType ?
                                     right.Type :
                                     throw new TypeException(binaryNode.Token, $"Oporator '{binaryNode.Token.Lexeme}' cannot be used with types int and {right.Type}"),
 
-                                DataType.Double => right.Type is DataType.Int or DataType.Double ?
+                                DoubleType => right.Type is IntType or DoubleType ?
                                     DataType.Double :
                                     throw new TypeException(binaryNode.Token, $"Oporator '{binaryNode.Token.Lexeme}' cannot be used with types double and {right.Type}"),
 
@@ -94,7 +95,7 @@ namespace FrostScript
 
                     BlockNode blockNode => new Func<IExpression>(() =>
                     {
-                        Dictionary<string, DataType> blockIdentifiers = new(identifiers);
+                        Dictionary<string, IDataType> blockIdentifiers = new(identifiers);
 
                         var expressions = blockNode.Body.Select(x => new ExpressionStatement(Convert(x, blockIdentifiers)));
 
@@ -103,11 +104,14 @@ namespace FrostScript
 
                     FunctionNode functionNode => new Func<IExpression>(() => 
                     {
-                        Dictionary<string, DataType> blockIdentifiers = new(identifiers) 
+                        Dictionary<string, IDataType> blockIdentifiers = new(identifiers) 
                         {
                             {functionNode.Parameter.Id, functionNode.Parameter.Type}
                         };
-                        return new Function(functionNode.Parameter, Convert(functionNode.Body, blockIdentifiers));
+
+                        var body = Convert(functionNode.Body, blockIdentifiers);
+
+                        return new Function(functionNode.Parameter, body, DataType.Function(functionNode.Parameter.Type, body.Type));
                     })(),
 
                     UnaryNode unaryNode => new Func<IExpression>(() =>
@@ -115,9 +119,9 @@ namespace FrostScript
                         var tokenType = unaryNode.Token.Type;
                         var expression = Convert(unaryNode.Expression, identifiers);
 
-                        if (tokenType is TokenType.Minus or TokenType.Plus && expression.Type is not (DataType.Double or DataType.Int))
+                        if (tokenType is TokenType.Minus or TokenType.Plus && expression.Type is not (DoubleType or IntType))
                             throw new TypeException(unaryNode.Token, $"Oporator '{unaryNode.Token.Lexeme}' cannot be used with type {expression.Type}");
-                        else if (tokenType is TokenType.Not && expression.Type is not DataType.Bool)
+                        else if (tokenType is TokenType.Not && expression.Type is not BoolType)
                             throw new TypeException(unaryNode.Token, $"Oporator '{unaryNode.Token.Lexeme}' cannot be used with type {expression.Type}");
 
                         return new Unary(unaryNode.Token, Convert(unaryNode.Expression, identifiers));
@@ -128,10 +132,10 @@ namespace FrostScript
                         var callee = Convert(callNode.Callee, identifiers);
                         var argument = Convert(callNode.Argument, identifiers);
 
-                        if (callee is ICallableExpression callable)
+                        if (callee.Type is FunctionType func)
                         {
-                            if (callable.Parameter.Type != argument.Type)
-                                throw new TypeException(0, 0, $"Function expected an argument of type {callable.Parameter.Type} but instead was given {argument.Type}");
+                            if (func.Parameter is not AnyType && func.Parameter != argument.Type)
+                                throw new TypeException(0, 0, $"Function expected an argument of type {func.Parameter} but instead was given {argument.Type}");
 
                             return new Call(callee, argument);
                         }
@@ -145,7 +149,7 @@ namespace FrostScript
                         TokenType.False => new Literal(DataType.Bool, false),
                         TokenType.Int => new Literal(DataType.Int, literalNode.Token.Literal),
                         TokenType.Double => new Literal(DataType.Double, literalNode.Token.Literal),
-                        TokenType.Void => new Literal(DataType.Null, literalNode.Token.Literal),
+                        TokenType.Void => new Literal(DataType.Void, literalNode.Token.Literal),
                         TokenType.String => new Literal(DataType.String, literalNode.Token.Literal),
                         TokenType.Id => identifiers.ContainsKey(literalNode.Token.Lexeme) ? 
                             new Identifier(identifiers[literalNode.Token.Lexeme], literalNode.Token.Lexeme) :

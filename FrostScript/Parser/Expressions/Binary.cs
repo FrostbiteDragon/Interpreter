@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FrostScript.DataTypes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,11 +13,11 @@ namespace FrostScript.Expressions
         public Token Operator { get; init; }
         public IExpression Right { get; init; }
 
-        public DataType Type { get; }
+        public IDataType Type { get; }
 
         public Binary() { }
 
-        public Binary(DataType type, IExpression left, Token @operator, IExpression right)
+        public Binary(IDataType type, IExpression left, Token @operator, IExpression right)
         {
             Left = left;
             Operator = @operator;

@@ -1,4 +1,5 @@
-﻿using FrostScript.Expressions;
+﻿using FrostScript.DataTypes;
+using FrostScript.Expressions;
 using FrostScript.Statements;
 using System;
 using System.Collections.Generic;
@@ -10,12 +11,12 @@ namespace FrostScript
 {
     public class FrostFunction : ICallable
     {
-        public Function Function { get; }
+        public Expressions.Function Function { get; }
         public Parameter Parameter => Function.Parameter;
-        public DataType Type => Function.Type;
+        public IDataType Type => Function.Type;
         private readonly Dictionary<string, IExpression> closure;
 
-        public FrostFunction(Function function, Dictionary<string, IExpression> closure)
+        public FrostFunction(Expressions.Function function, Dictionary<string, IExpression> closure)
         {
             Function = function;
             this.closure = closure;
@@ -33,11 +34,11 @@ namespace FrostScript
         {
             var funString = $"fun ";
 
-            void AddParameter(Function function)
+            void AddParameter(Expressions.Function function)
             {
                 funString += $"{function.Parameter.Id}:{function.Parameter.Type} -> ";
 
-                if (function.Body is Function body)
+                if (function.Body is Expressions.Function body)
                     AddParameter(body);
             }
 
