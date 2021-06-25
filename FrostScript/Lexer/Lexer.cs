@@ -107,6 +107,7 @@ namespace FrostScript
                             "let" => new Token(TokenType.Let, line, characterPos, word),
 
                             "int" => new Token(TokenType.IntType, line, characterPos, word),
+                            "double" => new Token(TokenType.DoubleType, line, characterPos, word),
                             "string" => new Token(TokenType.StringType, line, characterPos, word),
                             "bool" => new Token(TokenType.BoolType, line, characterPos, word),
 

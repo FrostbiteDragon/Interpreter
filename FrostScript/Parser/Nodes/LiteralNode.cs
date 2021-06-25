@@ -14,5 +14,19 @@ namespace FrostScript.Nodes
         {
             Token = token;
         }
+
+        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> Primary = (Grouping) => (pos, tokens) =>
+        {
+            var isPrimaryType = tokens[pos].Type is
+                TokenType.True or TokenType.False or
+                TokenType.Int or TokenType.Double or
+                TokenType.String or
+                TokenType.Id or
+                TokenType.Void;
+
+            if (isPrimaryType) return (new LiteralNode(tokens[pos]), pos + 1);
+            else if (tokens[pos].Type == TokenType.ParentheseOpen) return Grouping(pos + 1, tokens);
+            else throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expected an expression. instead got \"{tokens[pos].Lexeme}\"", pos + 1);
+        };
     }
 }

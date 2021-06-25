@@ -44,7 +44,8 @@ namespace FrostScript
         Fun,
 
         //types
-        IntType, 
+        IntType,
+        DoubleType,
         BoolType,
         StringType
     }

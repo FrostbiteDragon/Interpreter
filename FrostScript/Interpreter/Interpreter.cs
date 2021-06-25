@@ -131,22 +131,15 @@ namespace FrostScript
 
                 case Unary unary:
 
-                    return unary.Expression.Type switch
-                    {
-                        DataType.Numeral => unary.Operator.Type switch
-                        {
-                            TokenType.Minus => -(double)ExecuteExpression(unary.Expression, variables),
-                            TokenType.Plus => ExecuteExpression(unary.Expression, variables),
-                            _ => throw new InterpretException($"Oporator {unary.Operator.Lexeme} not supported for type Numeric")
-                        },
-                        DataType.Bool => unary.Operator.Type switch
-                        {
-                            TokenType.Not => !(bool)ExecuteExpression(unary.Expression, variables),
-                            _ => throw new InterpretException($"Oporator {unary.Operator.Lexeme} not supported for type Bool")
-                        },
-                        _ => throw new InterpretException($"Oporator {unary.Operator.Lexeme} not supported for type {unary.Expression.Type}")
+                    dynamic result = ExecuteExpression(unary.Expression, variables);
 
+                    return unary.Operator.Type switch
+                    {
+                        TokenType.Minus => -result,
+                        TokenType.Plus => +result,
+                        TokenType.Not => !result
                     };
+
 
                 case And and:
                     if ((bool)ExecuteExpression(and.Left, variables))
@@ -170,7 +163,8 @@ namespace FrostScript
                         TokenType.LessThen => leftResult < rightResult,
                         TokenType.LessOrEqual => leftResult <= rightResult,
                         TokenType.Equal => leftResult == rightResult,
-                        TokenType.NotEqual => leftResult != rightResult
+                        TokenType.NotEqual => leftResult != rightResult,
+                        TokenType.Or => leftResult || rightResult
                     };
 
                 case When whenExpr:
@@ -200,10 +194,9 @@ namespace FrostScript
                 case Call call:
 
                     var callee = ExecuteExpression(call.Callee, variables);
+
                     if (callee is ICallable callable)
-                        return call.Argument is not null ? 
-                            callable.Call(ExecuteExpression(call.Argument, variables)) :
-                            callable.Call(null);
+                        return callable.Call(ExecuteExpression(call.Argument, variables));
                     else
                         throw new InterpretException($"Expression of type {callee?.GetType().ToString() ?? "void"} is not callable");
                         //return callee;

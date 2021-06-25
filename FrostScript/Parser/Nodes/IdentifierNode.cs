@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace FrostScript.Nodes
 {
-    public class ExpressionBlock : INode
+    public class IdentifierNode : INode
     {
-        public INode[] Body { get; }
+        public string Id { get; }
 
-        public ExpressionBlock(INode[] body)
+        public IdentifierNode(string id)
         {
-            Body = body;
+            Id = id;
         }
     }
 }

@@ -457,92 +457,92 @@ namespace FrostScript
             }
             (IExpression expression, int newPos) When(int pos, Token[] tokens, Dictionary<string, bool> identifiers)
             {
-                if (tokens[pos].Type is not TokenType.When)
+                //if (tokens[pos].Type is not TokenType.When)
                     return Function(pos, tokens, identifiers);
 
-                if (tokens[pos + 1].Type is not TokenType.BraceOpen)
-                    throw new ParseException(tokens[pos + 1].Line, tokens[pos + 1].Character, "expected '{' after when", pos + 1);
+                //if (tokens[pos + 1].Type is not TokenType.BraceOpen)
+                //    throw new ParseException(tokens[pos + 1].Line, tokens[pos + 1].Character, "expected '{' after when", pos + 1);
 
-                var (when, newPos) = GenerateWhen(null, pos + 2, tokens, identifiers);
+                //var (when, newPos) = GenerateWhen(null, pos + 2, tokens, identifiers);
 
-                if (tokens[newPos].Type is not TokenType.BraceClose)
-                    throw new ParseException(tokens[newPos].Line, tokens[newPos].Character, "expected '}'. \"when\" was never closed", newPos);
+                //if (tokens[newPos].Type is not TokenType.BraceClose)
+                //    throw new ParseException(tokens[newPos].Line, tokens[newPos].Character, "expected '}'. \"when\" was never closed", newPos);
 
-                if (!VerrifyWhen(when))
-                    throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"All clauses in a when expression must return the same type", newPos + 1);
+                //if (!VerrifyWhen(when))
+                //    throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"All clauses in a when expression must return the same type", newPos + 1);
 
-                return (when, newPos + 1);
+                //return (when, newPos + 1);
 
-                bool VerrifyWhen(When when)
-                {
-                    if (when.ElseWhen is not null)
-                    {
-                        if (when.Type == when.ElseWhen.Type)
-                            return VerrifyWhen(when.ElseWhen);
-                        else return false;
-                    }
-                    else return true;
-                }
+                //bool VerrifyWhen(When when)
+                //{
+                //    if (when.ElseWhen is not null)
+                //    {
+                //        if (when.Type == when.ElseWhen.Type)
+                //            return VerrifyWhen(when.ElseWhen);
+                //        else return false;
+                //    }
+                //    else return true;
+                //}
 
-                (When when, int pos) GenerateWhen(When when, int pos, Token[] tokens, Dictionary<string, bool> identifiers)
-                {
-                    if (pos >= tokens.Length)
-                        throw new ParseException(tokens.Last().Line, tokens.Last().Character, $"Missing default clause", pos);
+                //(When when, int pos) GenerateWhen(When when, int pos, Token[] tokens, Dictionary<string, bool> identifiers)
+                //{
+                //    if (pos >= tokens.Length)
+                //        throw new ParseException(tokens.Last().Line, tokens.Last().Character, $"Missing default clause", pos);
 
-                    //default clause
-                    if (tokens[pos].Type is TokenType.Arrow)
-                    {
-                        var (expression, newPos) = GetExpression(pos + 1, tokens, identifiers);
+                //    //default clause
+                //    if (tokens[pos].Type is TokenType.Arrow)
+                //    {
+                //        var (expression, newPos) = GetExpression(pos + 1, tokens, identifiers);
 
-                        var newWhen = when switch
-                        {
-                            null => new When
-                            {
-                                ResultExpression = expression
-                            },
-                            _ => new When
-                            {
-                                IfExpresion = when.IfExpresion,
-                                ResultExpression = when.ResultExpression,
-                                ElseWhen = new When { ResultExpression = expression }
-                            }
-                        };
-                        return (newWhen, newPos);
+                //        var newWhen = when switch
+                //        {
+                //            null => new When
+                //            {
+                //                ResultExpression = expression
+                //            },
+                //            _ => new When
+                //            {
+                //                IfExpresion = when.IfExpresion,
+                //                ResultExpression = when.ResultExpression,
+                //                ElseWhen = new When { ResultExpression = expression }
+                //            }
+                //        };
+                //        return (newWhen, newPos);
 
-                    }
-                    //if clause
-                    else
-                    {
-                        var boolResult = GetExpression(pos, tokens, identifiers);
+                //    }
+                //    //if clause
+                //    else
+                //    {
+                //        var boolResult = GetExpression(pos, tokens, identifiers);
 
-                        if (tokens[boolResult.newPos].Type is not TokenType.Arrow)
-                            throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"expected \"->\"", pos);
+                //        if (tokens[boolResult.newPos].Type is not TokenType.Arrow)
+                //            throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"expected \"->\"", pos);
 
-                        var (expression, newPos) = GetExpression(boolResult.newPos + 1, tokens, identifiers);
-                        var newWhen = new When(boolResult.expression, expression, null);
+                //        var (expression, newPos) = GetExpression(boolResult.newPos + 1, tokens, identifiers);
+                //        var newWhen = new When(boolResult.expression, expression, null);
 
-                        if (tokens[newPos].Type is not TokenType.Comma)
-                            throw new ParseException(
-                                tokens[newPos].Line,
-                                tokens[newPos].Character,
-                                $"expected \',\'",
-                                newPos + tokens.Skip(newPos).TakeWhile(x => x.Type is not TokenType.BraceClose).Count() + 1);
+                //        if (tokens[newPos].Type is not TokenType.Comma)
+                //            throw new ParseException(
+                //                tokens[newPos].Line,
+                //                tokens[newPos].Character,
+                //                $"expected \',\'",
+                //                newPos + tokens.Skip(newPos).TakeWhile(x => x.Type is not TokenType.BraceClose).Count() + 1);
 
-                        if (when is null)
-                            return GenerateWhen(newWhen, newPos + 1, tokens, identifiers);
-                        else
-                        {
-                            var result = GenerateWhen(newWhen, newPos + 1, tokens, identifiers);
+                //        if (when is null)
+                //            return GenerateWhen(newWhen, newPos + 1, tokens, identifiers);
+                //        else
+                //        {
+                //            var result = GenerateWhen(newWhen, newPos + 1, tokens, identifiers);
 
-                            return (new When
-                            {
-                                IfExpresion = when.IfExpresion,
-                                ResultExpression = when.ResultExpression,
-                                ElseWhen = result.when
-                            }, result.pos);
-                        }
-                    }
-                }
+                //            return (new When
+                //            {
+                //                IfExpresion = when.IfExpresion,
+                //                ResultExpression = when.ResultExpression,
+                //                ElseWhen = result.when
+                //            }, result.pos);
+                //        }
+                //    }
+                //}
             }
             (IExpression expression, int newPos) Function(int pos, Token[] tokens, Dictionary<string, bool> identifiers)
             {

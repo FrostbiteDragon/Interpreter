@@ -1,10 +1,14 @@
-﻿using FrostScript.Nodes;
+﻿using FrostScript.Expressions;
+using FrostScript.Nodes;
+using FrostScript.Statements;
 using Frostware.Result;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using static FrostScript.Nodes.BinaryNode;
+using static FrostScript.Nodes.FunctionNode;
+using static FrostScript.Nodes.CallNode;
+using static FrostScript.Nodes.LiteralNode;
+using static FrostScript.Nodes.WhenNode;
+using static FrostScript.Nodes.AndNode;
+using static FrostScript.Nodes.BlockNode;
 
 namespace FrostScript
 {
@@ -14,7 +18,7 @@ namespace FrostScript
         {
             try
             {
-                var ast = Term(0, tokens).node;
+                var ast = Expression(0, tokens).node;
 
                 return Result.Pass(ast);
             }
@@ -23,78 +27,60 @@ namespace FrostScript
                 Reporter.Report(e.Line, e.CharacterPos, e.Message);
                 return Result.Fail();
             }
+        }
 
+        public static (INode node, int pos) Expression(int pos, Token[] tokens)
+        {
+            return
+                Comparison(
+                Binary((tokenType) => tokenType is TokenType.Or)(
+                And(
+                Binary((tokenType) => tokenType is TokenType.Equal)(
+                Binary((tokenType) => tokenType is TokenType.GreaterThen or TokenType.GreaterOrEqual or TokenType.LessThen or TokenType.LessOrEqual)(
+                Binary((tokenType) => tokenType is TokenType.Plus or TokenType.Minus)(
+                Binary((tokenType) => tokenType is TokenType.Star or TokenType.Slash)(
+                Block(
+                When(
+                Function(
+                ColonCall(
+                Call(
+                Primary(
+                Grouping
+                )))))))))))))(pos, tokens);
 
-            (INode node, int pos) Term(int pos, Token[] tokens)
+            static (INode node, int pos) Grouping(int pos, Token[] tokens)
             {
-                var (node, newPos) = Factor(pos, tokens);
-
-                while (newPos < tokens.Length && tokens[newPos].Type is TokenType.Plus or TokenType.Minus)
+                var (node, newPos) = Expression(pos, tokens);
+                if (newPos >= tokens.Length || tokens[newPos].Type != TokenType.ParentheseClose)
                 {
-                    var result = Call(newPos + 1, tokens);
-
-                    node = new BinaryNode(node, result.node, tokens[newPos]);
-                    newPos = result.pos;
+                    Reporter.Report(tokens[pos].Line, tokens[pos].Character, $"Parenthese not closed");
+                    return (node, newPos);
                 }
-
-                return (node, newPos);
+                else return (node, newPos + 1);
             }
+        }
 
-            (INode node, int pos) Factor(int pos, Token[] tokens)
+        public static (Parameter parameter, int newPos) Parameter(int pos, Token[] tokens)
+        {
+            var id = tokens[pos].Type switch
             {
-                var (node, newPos) = Call(pos, tokens);
+                TokenType.Id => tokens[pos].Lexeme,
+                _ => throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expected Id", pos + 3)
+            };
 
-                while (newPos < tokens.Length && tokens[newPos].Type is TokenType.Star or TokenType.Slash)
-                {
-                    var result = Call(newPos + 1, tokens);
+            if (tokens[pos + 1].Type is not TokenType.Colon)
+                throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expected ':' but got {tokens[pos].Lexeme}", pos + 3);
 
-                    node = new BinaryNode(node, result.node, tokens[newPos]);
-                    newPos = result.pos;
-                }
-
-                return (node, newPos);
-            }
-
-            (INode node, int pos) Call(int pos, Token[] tokens)
+            var type = tokens[pos + 2].Type switch
             {
-                var (node, newPos) = Primary(pos, tokens);
+                TokenType.IntType => DataType.Int,
+                TokenType.DoubleType => DataType.Double,
+                TokenType.StringType => DataType.String,
+                TokenType.BoolType => DataType.Bool,
+                _ => throw new ParseException(tokens[pos + 2].Line, tokens[pos + 2].Character, $"Expected type but got {tokens[pos + 2].Lexeme}", pos + 3)
+            };
 
-                var currentPos = newPos;
-                var callee = node;
-                while (tokens[currentPos].Type is TokenType.ParentheseOpen)
-                {
-                    if (tokens[currentPos + 1].Type is TokenType.ParentheseClose)
-                        return (
-                            new CallNode(callee, new LiteralNode(new(TokenType.Void))),
-                            currentPos + 2
-                        );
-
-                    var (argument, argumentPos) = Term(currentPos + 1, tokens);
-
-                    if (tokens[argumentPos].Type is not TokenType.ParentheseClose)
-                        throw new ParseException(tokens[argumentPos].Line, tokens[argumentPos].Character, $"Expected ')' but got {tokens[pos].Lexeme}", argumentPos + 1);
-
-                    callee = new CallNode(callee, argument);
-                    currentPos = argumentPos + 1;
-                }
-
-                return (callee, currentPos);
-            }
-
-
-            (INode node, int pos) Primary(int pos, Token[] tokens)
-            {
-                var isPrimaryType = tokens[pos].Type is
-                    TokenType.True or TokenType.False or
-                    TokenType.Int or TokenType.Double or
-                    TokenType.String or
-                    TokenType.Id or
-                    TokenType.Void;
-
-                if (isPrimaryType)
-                    return (new LiteralNode(tokens[pos]), pos + 1);
-                else throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expected an expression. instead got \"{tokens[pos].Lexeme}\"", pos + 1);
-            }
+            return (new Parameter(id, type), pos + 3);
         }
     }
 }

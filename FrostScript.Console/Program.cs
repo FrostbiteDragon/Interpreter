@@ -23,6 +23,12 @@ if (NodeParser.GenerateNodes(tokens) is Pass<INode> ast)
         Interpreter.ExecuteExpression(typedNode.Value, nativeFunctions);
 }
 
+//Railroad.Rail<INode, string[]>(
+//    NodeParser.GenerateNodes(tokens),
+//    (ast) => ast.ToTypedNode(nativeFunctions),
+//    (errors) => { foreach (var error in errors) Console.WriteLine(error); }
+//);
+
 //if (Parser.GetAST(tokens, nativeFunctions) is Pass<IStatement[]> program)
 //    Interpreter.ExecuteProgram(program.Value, nativeFunctions);
 //else

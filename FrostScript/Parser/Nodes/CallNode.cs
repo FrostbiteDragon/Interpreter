@@ -16,5 +16,54 @@ namespace FrostScript.Nodes
             Callee = callee;
             Argument = argument;
         }
+
+        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> Call = (next) => (pos, tokens) =>
+        {
+            var (node, newPos) = next(pos, tokens);
+
+            var currentPos = newPos;
+            var callee = node;
+            while (tokens[currentPos].Type is TokenType.ParentheseOpen)
+            {
+                if (tokens[currentPos + 1].Type is TokenType.ParentheseClose)
+                    return (
+                        new CallNode(callee, new LiteralNode(new(TokenType.Void))),
+                        currentPos + 2
+                    );
+
+                var (argument, argumentPos) = NodeParser.Expression(currentPos + 1, tokens);
+
+                if (tokens[argumentPos].Type is not TokenType.ParentheseClose)
+                    throw new ParseException(tokens[argumentPos].Line, tokens[argumentPos].Character, $"Expected ')' but got {tokens[pos].Lexeme}", argumentPos + 1);
+
+                callee = new CallNode(callee, argument);
+                currentPos = argumentPos + 1;
+            }
+
+            return (callee, currentPos);
+        };
+
+        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> ColonCall = (next) => (pos, tokens) =>
+        {
+            var (node, newPos) = next(pos, tokens);
+
+            var currentPos = newPos;
+            var callee = node;
+            while (tokens[currentPos].Type is TokenType.Colon)
+            {
+                if (tokens[currentPos + 1].Type is TokenType.Colon)
+                    return (
+                        new CallNode(callee, new LiteralNode(new(TokenType.Void))),
+                        currentPos + 2
+                    );
+
+                var (argument, argumentPos) = NodeParser.Expression(currentPos + 1, tokens);
+
+                callee = new CallNode(callee, argument);
+                currentPos = argumentPos;
+            }
+
+            return (callee, currentPos);
+        };
     }
 }

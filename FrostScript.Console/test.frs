@@ -1,1 +1,1 @@
-﻿print (5 / true)
+﻿print ((fun x:int y:double -> x + y)(2))
