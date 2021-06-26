@@ -20,7 +20,7 @@ namespace FrostScript.Nodes
             Token = token;
         }
 
-        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> And = (next) => (pos, tokens) =>
+        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> and = (next) => (pos, tokens) =>
         {
             var (node, newPos) = next(pos, tokens);
 

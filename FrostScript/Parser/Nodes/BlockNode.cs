@@ -16,7 +16,7 @@ namespace FrostScript.Nodes
             Body = body;
         }
 
-        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> Block = (next) => (initialPos, tokens) =>
+        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> block = (next) => (initialPos, tokens) =>
         {
             if (tokens[initialPos].Type is not (TokenType.Pipe or TokenType.ReturnPipe))
                 return next(initialPos, tokens);

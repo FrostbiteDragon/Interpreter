@@ -17,5 +17,10 @@ namespace FrostScript.NativeFunctions
             Console.WriteLine(argument);
             return null;
         }
+
+        public override string ToString()
+        {
+            return "fun any -> void";
+        }
     }
 }

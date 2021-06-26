@@ -17,11 +17,11 @@ namespace FrostScript.Nodes
             Expression = expression;
         }
 
-        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> Unary = (next) => (pos, tokens) =>
+        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> unary = (next) => (pos, tokens) =>
         {
             if (tokens[pos].Type is TokenType.Minus or TokenType.Plus or TokenType.Not)
             {
-                var (node, newPos) = Unary(next)(pos + 1, tokens);
+                var (node, newPos) = unary(next)(pos + 1, tokens);
                 return (new UnaryNode(tokens[pos], node), newPos);
             }
             else return next(pos, tokens);

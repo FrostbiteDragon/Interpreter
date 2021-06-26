@@ -6,18 +6,16 @@ using Frostware.Result;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FrostScript
 {
     public static class TypeChecker
     {
-        public static Result ToTypedNode(this INode ast, Dictionary<string, IExpression> nativeFunctions)
+        public static Result ToTypedNode(this INode[] ast, Dictionary<string, IExpression> nativeFunctions)
         {
             try
             {
-                var typedAst = Convert(ast, nativeFunctions.ToDictionary(x => x.Key, x => x.Value.Type));
+                var typedAst = ast.Select(x => Convert(x, nativeFunctions.ToDictionary(x => x.Key, x => x.Value.Type))).ToArray();
 
                 return Result.Pass(typedAst);
             }
@@ -134,7 +132,7 @@ namespace FrostScript
 
                         if (callee.Type is FunctionType func)
                         {
-                            if (func.Parameter is not AnyType && func.Parameter != argument.Type)
+                            if (func.Parameter is not AnyType && !func.Parameter.Equals(argument.Type))
                                 throw new TypeException(0, 0, $"Function expected an argument of type {func.Parameter} but instead was given {argument.Type}");
 
                             return new Call(callee, argument);

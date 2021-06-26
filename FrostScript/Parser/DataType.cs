@@ -10,12 +10,48 @@ namespace FrostScript.DataTypes
 {
     public interface IDataType { }
 
-    public class AnyType : IDataType { }
-    public class IntType : IDataType { }
-    public class DoubleType : IDataType { }
-    public class BoolType : IDataType { }
-    public class StringType : IDataType { }
-    public class VoidType : IDataType { }
+    public class AnyType : IDataType 
+    {
+        public override string ToString()
+        {
+            return $"any";
+        }
+    }
+    public class IntType : IDataType 
+    {
+        public override string ToString()
+        {
+            return $"int";
+        }
+    }
+    public class DoubleType : IDataType
+    {
+        public override string ToString()
+        {
+            return $"double";
+        }
+    }
+    public class BoolType : IDataType
+    {
+        public override string ToString()
+        {
+            return $"bool";
+        }
+    }
+    public class StringType : IDataType
+    {
+        public override string ToString()
+        {
+            return $"string";
+        }
+    }
+    public class VoidType : IDataType
+    {
+        public override string ToString()
+        {
+            return $"void";
+        }
+    }
     public class FunctionType : IDataType
     {
         public IDataType Parameter { get; }
@@ -25,6 +61,20 @@ namespace FrostScript.DataTypes
         {
             Parameter = parameter;
             Result = result;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is FunctionType function)
+            {
+                return function.Parameter == Parameter && function.Result == Result;
+            }
+            else return false;
+        }
+
+        public override string ToString()
+        {
+            return $"fun {Parameter} -> {Result}";
         }
     }
 

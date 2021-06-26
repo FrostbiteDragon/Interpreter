@@ -9,7 +9,12 @@ using static FrostScript.Nodes.LiteralNode;
 using static FrostScript.Nodes.WhenNode;
 using static FrostScript.Nodes.AndNode;
 using static FrostScript.Nodes.BlockNode;
+using static FrostScript.Nodes.UnaryNode;
 using FrostScript.DataTypes;
+using System.Collections.Generic;
+using System.Linq;
+using System;
+using Frostware.Pipe;
 
 namespace FrostScript
 {
@@ -18,8 +23,8 @@ namespace FrostScript
         public static Result GenerateNodes(Token[] tokens)
         {
             try
-            {
-                var ast = Expression(0, tokens).node;
+            {   
+                var ast = GetNodes(0, tokens).ToArray();
 
                 return Result.Pass(ast);
             }
@@ -28,28 +33,22 @@ namespace FrostScript
                 Reporter.Report(e.Line, e.CharacterPos, e.Message);
                 return Result.Fail();
             }
+
+            static IEnumerable<INode> GetNodes(int pos, Token[] tokens)
+            {
+                var currentpos = pos;
+                while (tokens[currentpos].Type is not TokenType.Eof )
+                {
+                    var (ast, newPos) = Expression(currentpos, tokens);
+                    currentpos = newPos;
+                    yield return ast;
+                }
+            }
         }
 
         public static (INode node, int pos) Expression(int pos, Token[] tokens)
         {
-            return
-                Comparison(
-                Binary((tokenType) => tokenType is TokenType.Or)(
-                And(
-                Binary((tokenType) => tokenType is TokenType.Equal)(
-                Binary((tokenType) => tokenType is TokenType.GreaterThen or TokenType.GreaterOrEqual or TokenType.LessThen or TokenType.LessOrEqual)(
-                Binary((tokenType) => tokenType is TokenType.Plus or TokenType.Minus)(
-                Binary((tokenType) => tokenType is TokenType.Star or TokenType.Slash)(
-                Block(
-                When(
-                Function(
-                ColonCall(
-                Call(
-                Primary(
-                Grouping
-                )))))))))))))(pos, tokens);
-
-            static (INode node, int pos) Grouping(int pos, Token[] tokens)
+            Func<int, Token[], (INode node, int pos)> grouping = (pos, tokens) =>
             {
                 var (node, newPos) = Expression(pos, tokens);
                 if (newPos >= tokens.Length || tokens[newPos].Type != TokenType.ParentheseClose)
@@ -58,7 +57,24 @@ namespace FrostScript
                     return (node, newPos);
                 }
                 else return (node, newPos + 1);
-            }
+            };
+
+            return 
+                grouping
+                .Pipe(primary)
+                .Pipe(call)
+                .Pipe(colonCall)
+                .Pipe(unary)
+                .Pipe(function)
+                .Pipe(when)
+                .Pipe(block)
+                .Pipe(factor)
+                .Pipe(term)
+                .Pipe(comparison)
+                .Pipe(equality)
+                .Pipe(and)
+                .Pipe(or)
+                .Pipe(comparison)(pos, tokens);
         }
 
         public static (Parameter parameter, int newPos) Parameter(int pos, Token[] tokens)

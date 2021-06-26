@@ -17,10 +17,11 @@ Dictionary<string, IExpression> nativeFunctions = new()
     ["clock"] = new ClockFunction()
 };
 
-if (NodeParser.GenerateNodes(tokens) is Pass<INode> ast)
+if (NodeParser.GenerateNodes(tokens) is Pass<INode[]> ast)
 {
-    if (ast.Value.ToTypedNode(nativeFunctions) is Pass<IExpression> typedNode)
-        Interpreter.ExecuteExpression(typedNode.Value, nativeFunctions);
+    if (ast.Value.ToTypedNode(nativeFunctions) is Pass<IExpression[]> typedNode)
+        foreach(var expr in typedNode.Value)
+            Interpreter.ExecuteExpression(expr, nativeFunctions);
 }
 
 //Railroad.Rail<INode, string[]>(

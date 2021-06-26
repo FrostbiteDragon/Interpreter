@@ -13,7 +13,7 @@ namespace FrostScript.Nodes
         public INode ResultExpression { get; init; }
         public WhenNode ElseWhen { get; set; }
 
-        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> When = (next) => (pos, tokens) =>
+        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> when = (next) => (pos, tokens) =>
         {
             if (tokens[pos].Type is not TokenType.When)
                 return next(pos, tokens);

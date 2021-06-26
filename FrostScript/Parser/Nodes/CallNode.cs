@@ -17,7 +17,7 @@ namespace FrostScript.Nodes
             Argument = argument;
         }
 
-        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> Call = (next) => (pos, tokens) =>
+        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> call = (next) => (pos, tokens) =>
         {
             var (node, newPos) = next(pos, tokens);
 
@@ -43,7 +43,7 @@ namespace FrostScript.Nodes
             return (callee, currentPos);
         };
 
-        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> ColonCall = (next) => (pos, tokens) =>
+        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> colonCall = (next) => (pos, tokens) =>
         {
             var (node, newPos) = next(pos, tokens);
 

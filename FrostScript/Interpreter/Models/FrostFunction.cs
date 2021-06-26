@@ -11,7 +11,7 @@ namespace FrostScript
 {
     public class FrostFunction : ICallable
     {
-        public Expressions.Function Function { get; }
+        public Function Function { get; }
         public Parameter Parameter => Function.Parameter;
         public IDataType Type => Function.Type;
         private readonly Dictionary<string, IExpression> closure;
@@ -34,11 +34,11 @@ namespace FrostScript
         {
             var funString = $"fun ";
 
-            void AddParameter(Expressions.Function function)
+            void AddParameter(Function function)
             {
                 funString += $"{function.Parameter.Id}:{function.Parameter.Type} -> ";
 
-                if (function.Body is Expressions.Function body)
+                if (function.Body is Function body)
                     AddParameter(body);
             }
 

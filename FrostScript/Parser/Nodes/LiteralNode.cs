@@ -15,7 +15,7 @@ namespace FrostScript.Nodes
             Token = token;
         }
 
-        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> Primary = (Grouping) => (pos, tokens) =>
+        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> primary = (Grouping) => (pos, tokens) =>
         {
             var isPrimaryType = tokens[pos].Type is
                 TokenType.True or TokenType.False or

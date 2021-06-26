@@ -20,7 +20,7 @@ namespace FrostScript.Nodes
             Token = token;
         }
 
-        public static readonly Func<Func<TokenType, bool>, Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>>> Binary = (checkTokens) => (next) => (pos, tokens) =>
+        public static readonly Func<Func<TokenType, bool>, Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>>> binary = (checkTokens) => (next) => (pos, tokens) =>
         {
             var (node, newPos) = next(pos, tokens);
 
@@ -35,13 +35,19 @@ namespace FrostScript.Nodes
             return (node, newPos);
         };
 
-        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> Comparison = 
-            Binary((tokenType) => tokenType is TokenType.GreaterThen or TokenType.GreaterOrEqual or TokenType.LessThen or TokenType.LessOrEqual);
+        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> equality =
+            binary((tokenType) => tokenType is TokenType.Equal);
 
-        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> Term =
-            Binary((tokenType) => tokenType is TokenType.Plus or TokenType.Minus);
+        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> or =
+           binary((tokenType) => tokenType is TokenType.Or);
 
-        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> Factor = 
-            Binary((tokenType) => tokenType is TokenType.Star or TokenType.Slash);
+        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> comparison = 
+            binary((tokenType) => tokenType is TokenType.GreaterThen or TokenType.GreaterOrEqual or TokenType.LessThen or TokenType.LessOrEqual);
+
+        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> term =
+            binary((tokenType) => tokenType is TokenType.Plus or TokenType.Minus);
+
+        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> factor = 
+            binary((tokenType) => tokenType is TokenType.Star or TokenType.Slash);
     }
 }
