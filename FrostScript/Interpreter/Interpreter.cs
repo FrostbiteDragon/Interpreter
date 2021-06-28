@@ -174,19 +174,10 @@ namespace FrostScript
 
                 case When whenExpr:
 
-                    return ExecuteWhen(whenExpr);
+                    var whenResult = whenExpr.Clauses.FirstOrDefault(x => ExecuteExpression(x.BoolExpression, variables) is null or true).ResultExpression;
 
-                    object ExecuteWhen(When when)
-                    {
-                        var ifExpression = when.IfExpresion != null ? ExecuteExpression(when.IfExpresion, variables) : null;
-
-                        return ifExpression switch
-                        {
-                            null => ExecuteExpression(when.ResultExpression, variables),
-                            bool boolResult => boolResult ? ExecuteExpression(when.ResultExpression, variables) : ExecuteWhen(when.ElseWhen),
-                        };
-                    }
-
+                    return whenResult is not null ? ExecuteExpression(whenResult, variables) : null;
+                   
                 case ExpressionBlock expressionBlock:
                     return (ExecuteProgram(expressionBlock.Statements, new(variables)) as Pass<object>).Value;
 

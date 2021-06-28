@@ -9,17 +9,13 @@ namespace FrostScript.Expressions
 {
     public class When : IExpression
     {
-        public IExpression IfExpresion { get; }
-        public IExpression ResultExpression { get; }
-        public When ElseWhen { get; }
+        public (IExpression BoolExpression, IExpression ResultExpression)[] Clauses { get; }
 
-        public IDataType Type => ResultExpression.Type;
+        public IDataType Type => Clauses.Last().ResultExpression.Type;
 
-        public When(IExpression ifExpresion, IExpression resultExpression, When elseWhen)
+        public When((IExpression BoolExpression, IExpression ResultExpression)[] clauses)
         {
-            IfExpresion = ifExpresion;
-            ResultExpression = resultExpression;
-            ElseWhen = elseWhen;
+            Clauses = clauses;
         }
     }
 }

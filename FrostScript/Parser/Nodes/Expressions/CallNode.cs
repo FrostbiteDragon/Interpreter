@@ -50,21 +50,18 @@ namespace FrostScript.Nodes
             var currentPos = newPos;
             var callee = node;
 
-            if (tokens[currentPos].Type is TokenType.SemiColon)
-                return (
-                    new CallNode(callee, new LiteralNode(new(TokenType.Void))),
-                    currentPos + 1
-                );
 
-            else
+            if (currentPos < tokens.Length && tokens[currentPos].Type is TokenType.Colon)
             {
-                //while (tokens[currentPos].Type is not TokenType.SemiColon)
-                if (currentPos + 1 < tokens.Length && tokens[currentPos + 1].Type is TokenType.SemiColon)
-                {
-                    var (argument, argumentPos) = NodeParser.Expression(currentPos, tokens);
-                    callee = new CallNode(callee, argument);
-                    currentPos = argumentPos;
-                }
+                if (tokens[currentPos + 1].Type is TokenType.Colon)
+                    return (
+                        new CallNode(callee, new LiteralNode(new(TokenType.Void))),
+                        currentPos + 1
+                    );
+
+                var (argument, argumentPos) = NodeParser.Expression(currentPos + 1, tokens);
+                callee = new CallNode(callee, argument);
+                currentPos = argumentPos;
             }
 
             return (callee, currentPos);

@@ -5,11 +5,11 @@ using static FrostScript.Nodes.BinaryNode;
 using static FrostScript.Nodes.FunctionNode;
 using static FrostScript.Nodes.CallNode;
 using static FrostScript.Nodes.LiteralNode;
-using static FrostScript.Nodes.WhenNode;
 using static FrostScript.Nodes.AndNode;
 using static FrostScript.Nodes.BlockNode;
 using static FrostScript.Nodes.UnaryNode;
 using static FrostScript.Nodes.BindNode;
+using static FrostScript.Nodes.WhenNode;
 using FrostScript.DataTypes;
 using System.Collections.Generic;
 using System.Linq;
@@ -64,10 +64,12 @@ namespace FrostScript
                 grouping
                 .Pipe(primary)
                 .Pipe(call)
+                .Pipe(colonCall)
                 .Pipe(pipe)
                 .Pipe(unary)
-                .Pipe(function)
                 .Pipe(when)
+                .Pipe(@if)
+                .Pipe(function)
                 .Pipe(block)
                 .Pipe(factor)
                 .Pipe(term)
@@ -76,7 +78,8 @@ namespace FrostScript
                 .Pipe(and)
                 .Pipe(or)
                  //statements
-                .Pipe(bind)(pos, tokens);
+                .Pipe(bind)
+                (pos, tokens);
         }
 
         public static (Parameter parameter, int newPos) Parameter(int pos, Token[] tokens)

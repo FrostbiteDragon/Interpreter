@@ -36,7 +36,7 @@ namespace FrostScript
 
                     case '-':
                         yield return Match('>') ?
-                            new(TokenType.Arrow, line, characterPos + 1, character.ToString()) :
+                            new(TokenType.Arrow, line, characterPos + 1, "->") :
                             new(TokenType.Minus, line, characterPos, character.ToString());
 
                         break;

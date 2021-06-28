@@ -39,14 +39,27 @@ namespace FrostScript
                         return bind;
                     })(),
 
+                    WhenNode ifNode => new Func<IExpression>(() =>
+                    {
+                        var clauses = ifNode.Clauses.Select(x => (Convert(x.boolExpression, identifiers), Convert(x.resultExpression, identifiers)));
+
+                        var type = clauses.First().Item2.Type;
+
+                        if (clauses.Any(x => x.Item2.Type != type))
+                            throw new TypeException(ifNode.Token, $"All branches in an \"when\" must return the same type");
+
+                        if (type is not VoidType && clauses.Last().Item1.Type is not VoidType)
+                            throw new TypeException(ifNode.Token, $"None void \"if\" or \"when\" must have a default clause");
+
+                        return new When(clauses.ToArray());
+                    })(),
+
                     AndNode andNode => new And(Convert(andNode.Left, identifiers), Convert(andNode.Right, identifiers)),
 
                     BinaryNode binaryNode => new Func<IExpression>(() =>
                     {
                         if (binaryNode.Token.Type is TokenType.PipeOp)
-                        {
                             return Convert(new CallNode(binaryNode.Right, binaryNode.Left), identifiers);
-                        }
 
                         var left = Convert(binaryNode.Left, identifiers);
                         var right = Convert(binaryNode.Right, identifiers);
@@ -80,30 +93,6 @@ namespace FrostScript
                         };
 
                         return new Binary(type,left, binaryNode.Token, right);
-                    })(),
-
-                    WhenNode whenNode => new Func<IExpression>(() => 
-                    {
-                        var when = new When(
-                            ifExpresion: whenNode.IfExpresion is not null ? Convert(whenNode.IfExpresion, identifiers) : null,
-                            resultExpression: Convert(whenNode.ResultExpression, identifiers),
-                            elseWhen: whenNode.ElseWhen is not null ? Convert(whenNode.ElseWhen, identifiers) as When : null);
-
-
-                        static bool VerrifyWhen(When when)
-                        {
-                            if (when.ElseWhen is not null)
-                            {
-                                if (when.Type == when.ElseWhen.Type)
-                                    return VerrifyWhen(when.ElseWhen);
-                                else return false;
-                            }
-                            else return true;
-                        }
-
-                        if (VerrifyWhen(when))
-                            return when;
-                        else throw new TypeException(0, 0, $"All branches in a when must return the same type");
                     })(),
 
                     BlockNode blockNode => new Func<IExpression>(() =>
@@ -147,7 +136,7 @@ namespace FrostScript
 
                         if (callee.Type is FunctionType func)
                         {
-                            if (func.ParameterType is not AnyType && !func.ParameterType.Equals(argument.Type))
+                            if (func.ParameterType is not AnyType && func.ParameterType != argument.Type)
                                 throw new TypeException(0, 0, $"Function expected an argument of type {func.ParameterType} but instead was given {argument.Type}");
 
                             return new Call(callee, argument, func.Result);
@@ -162,7 +151,7 @@ namespace FrostScript
                         TokenType.False => new Literal(DataType.Bool, false),
                         TokenType.Int => new Literal(DataType.Int, literalNode.Token.Literal),
                         TokenType.Double => new Literal(DataType.Double, literalNode.Token.Literal),
-                        TokenType.Void => new Literal(DataType.Void, literalNode.Token.Literal),
+                        TokenType.Void => new Literal(DataType.Void, null),
                         TokenType.String => new Literal(DataType.String, literalNode.Token.Literal),
                         TokenType.Id => identifiers.ContainsKey(literalNode.Token.Lexeme) ? 
                             new Identifier(identifiers[literalNode.Token.Lexeme], literalNode.Token.Lexeme) :

@@ -1,7 +1,9 @@
-﻿let add = fun x:int y:int -> x + y
+﻿print : when { 
+	false -> "Succeeded",
+	true -> "failed and suceeded",
+	-> "failed"
+}
 
-let x = 2
-/> add (3)
-/> add (3)
-
-print (x)
+print : if false -> "Succeeded"
+	    else false -> "failed and suceeded"
+	    else "failed"
