@@ -12,12 +12,13 @@ namespace FrostScript.Expressions
         public IExpression Callee { get; }
         public IExpression Argument { get; }
 
-        public IDataType Type => Callee.Type;
+        public IDataType Type { get; }
 
-        public Call(IExpression callee, IExpression argument = null)
+        public Call(IExpression callee, IExpression argument, IDataType type)
         {
             Callee = callee;
             Argument = argument;
+            Type = type;
         }
     }
 }

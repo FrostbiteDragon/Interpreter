@@ -15,7 +15,9 @@ namespace FrostScript
         {
             try
             {
-                var typedAst = ast.Select(x => Convert(x, nativeFunctions.ToDictionary(x => x.Key, x => x.Value.Type))).ToArray();
+                var identifiers = nativeFunctions.ToDictionary(x => x.Key, x => x.Value.Type);
+
+                var typedAst = ast.Select(x => Convert(x, identifiers)).ToArray();
 
                 return Result.Pass(typedAst);
             }
@@ -29,10 +31,23 @@ namespace FrostScript
             {
                 return node switch
                 {
+                    BindNode bindNode => new Func<IExpression>(() => 
+                    {
+                        var bind = new Bind(bindNode.Id, Convert(bindNode.Value, identifiers));
+                        identifiers[bindNode.Id] = bind.Value.Type;
+
+                        return bind;
+                    })(),
+
                     AndNode andNode => new And(Convert(andNode.Left, identifiers), Convert(andNode.Right, identifiers)),
 
                     BinaryNode binaryNode => new Func<IExpression>(() =>
                     {
+                        if (binaryNode.Token.Type is TokenType.PipeOp)
+                        {
+                            return Convert(new CallNode(binaryNode.Right, binaryNode.Left), identifiers);
+                        }
+
                         var left = Convert(binaryNode.Left, identifiers);
                         var right = Convert(binaryNode.Right, identifiers);
 
@@ -132,10 +147,10 @@ namespace FrostScript
 
                         if (callee.Type is FunctionType func)
                         {
-                            if (func.Parameter is not AnyType && !func.Parameter.Equals(argument.Type))
-                                throw new TypeException(0, 0, $"Function expected an argument of type {func.Parameter} but instead was given {argument.Type}");
+                            if (func.ParameterType is not AnyType && !func.ParameterType.Equals(argument.Type))
+                                throw new TypeException(0, 0, $"Function expected an argument of type {func.ParameterType} but instead was given {argument.Type}");
 
-                            return new Call(callee, argument);
+                            return new Call(callee, argument, func.Result);
                         }
                         else throw new TypeException(0,0, $"Type {callee.Type} is not callable");
 

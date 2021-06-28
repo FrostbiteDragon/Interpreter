@@ -49,5 +49,8 @@ namespace FrostScript.Nodes
 
         public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> factor = 
             binary((tokenType) => tokenType is TokenType.Star or TokenType.Slash);
+
+        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> pipe =
+            binary((tokenType) => tokenType is TokenType.PipeOp);
     }
 }

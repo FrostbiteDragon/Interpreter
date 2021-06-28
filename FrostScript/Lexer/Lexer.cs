@@ -26,7 +26,7 @@ namespace FrostScript
                     case ',': yield return new(TokenType.Comma, line, characterPos, character.ToString()); break;
                     case '.': yield return new(TokenType.Dot, line, characterPos, character.ToString()); break;
                     case '+': yield return new(TokenType.Plus, line, characterPos, character.ToString()); break;
-                    case ';': yield return new(TokenType.NewLine, line, characterPos, character.ToString()); break;
+                    case ';': yield return new(TokenType.SemiColon, line, characterPos, character.ToString()); break;
                     case '*': yield return new(TokenType.Star, line, characterPos, character.ToString()); break;
                     case ':': yield return new(TokenType.Colon, line, characterPos, character.ToString()); break;
                     case '|': yield return Match('>') ? 
@@ -129,8 +129,11 @@ namespace FrostScript
 
                             continue;
                         }
-                        else
-                            yield return new(TokenType.Slash, line, characterPos, character.ToString());
+                        else if (Match('>'))
+                        {
+                            yield return new(TokenType.PipeOp, line, characterPos, "/>");
+                        }
+                        else yield return new(TokenType.Slash, line, characterPos, character.ToString());
                         break;
 
                     //ignore white space

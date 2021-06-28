@@ -1,2 +1,7 @@
-﻿print : 2 + 4 * 2
-print : "world"
+﻿let add = fun x:int y:int -> x + y
+
+let x = 2
+/> add (3)
+/> add (3)
+
+print (x)

@@ -32,7 +32,7 @@ namespace FrostScript
 
         public override string ToString()
         {
-            var funString = $"fun ";
+            var funString = $"(fun ";
 
             void AddParameter(Function function)
             {
@@ -44,7 +44,7 @@ namespace FrostScript
 
             AddParameter(Function);
 
-            funString += $"{Type}";
+            funString += $"{Type})";
 
             return funString;
         }

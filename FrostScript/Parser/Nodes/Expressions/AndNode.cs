@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FrostScript.Nodes
 {
-    internal class AndNode : INode
+    internal class AndNode : IExpressionNode
     {
         public INode Left { get; }
         public INode Right { get; }

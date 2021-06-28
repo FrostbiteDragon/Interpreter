@@ -54,12 +54,12 @@ namespace FrostScript.DataTypes
     }
     public class FunctionType : IDataType
     {
-        public IDataType Parameter { get; }
+        public IDataType ParameterType { get; }
         public IDataType Result { get; }
 
         public FunctionType(IDataType parameter, IDataType result)
         {
-            Parameter = parameter;
+            ParameterType = parameter;
             Result = result;
         }
 
@@ -67,14 +67,24 @@ namespace FrostScript.DataTypes
         {
             if (obj is FunctionType function)
             {
-                return function.Parameter == Parameter && function.Result == Result;
+                return function.ParameterType == ParameterType && function.Result == Result;
             }
             else return false;
         }
 
+        public static bool operator ==(FunctionType obj1, object obj2)
+        {
+            return obj1.Equals(obj2);
+        }
+
+        public static bool operator !=(FunctionType obj1, object obj2)
+        {
+            return !obj1.Equals(obj2);
+        }
+
         public override string ToString()
         {
-            return $"fun {Parameter} -> {Result}";
+            return $"(fun {ParameterType} -> {Result})";
         }
     }
 

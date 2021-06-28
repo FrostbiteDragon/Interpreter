@@ -21,5 +21,13 @@ namespace FrostScript
             Message = message;
             PickupPoint = pickupPoint;
         }
+
+        public ParseException(Token token, string message, int pickupPoint)
+        {
+            Line = token.Line;
+            CharacterPos = token.Character;
+            Message = message;
+            PickupPoint = pickupPoint;
+        }
     }
 }

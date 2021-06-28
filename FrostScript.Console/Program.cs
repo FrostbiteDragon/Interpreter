@@ -20,8 +20,9 @@ Dictionary<string, IExpression> nativeFunctions = new()
 if (NodeParser.GenerateNodes(tokens) is Pass<INode[]> ast)
 {
     if (ast.Value.ToTypedNode(nativeFunctions) is Pass<IExpression[]> typedNode)
-        foreach(var expr in typedNode.Value)
+        foreach (var expr in typedNode.Value)
             Interpreter.ExecuteExpression(expr, nativeFunctions);
+    else Console.WriteLine("Parsing failed");
 }
 
 //Railroad.Rail<INode, string[]>(

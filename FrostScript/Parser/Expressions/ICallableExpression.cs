@@ -2,8 +2,9 @@
 
 namespace FrostScript.Expressions
 {
-    internal interface ICallableExpression
+    public interface ICallableExpression : IExpression
     {
-        Parameter Parameter { get; }
+        public Parameter Parameter { get; }
+        public IExpression Body { get; }
     }
 }

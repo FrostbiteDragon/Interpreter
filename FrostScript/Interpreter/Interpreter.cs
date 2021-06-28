@@ -93,24 +93,24 @@ namespace FrostScript
 
                 case For @for:
 
-                    ExecuteStatement(@for.Bind, variables);
+                    //ExecuteStatement(@for.Bind, variables);
 
-                    var bindValue = (double)ExecuteExpression(@for.Bind.Value, variables);
+                    //var bindValue = (double)ExecuteExpression(@for.Bind.Value, variables);
 
-                    while ((bool)ExecuteExpression(@for.EndExpression, variables))
-                    {
-                        foreach (var bodyStatement in @for.Body)
-                            ExecuteStatement(bodyStatement, variables);
+                    //while ((bool)ExecuteExpression(@for.EndExpression, variables))
+                    //{
+                    //    foreach (var bodyStatement in @for.Body)
+                    //        ExecuteStatement(bodyStatement, variables);
 
-                        bindValue += @for.Crement switch
-                        {
-                            Crement.Increment => 1,
-                            Crement.Decrement => -1,
-                            _ => throw new ArgumentOutOfRangeException(nameof(@for.Crement))
-                        };
+                    //    bindValue += @for.Crement switch
+                    //    {
+                    //        Crement.Increment => 1,
+                    //        Crement.Decrement => -1,
+                    //        _ => throw new ArgumentOutOfRangeException(nameof(@for.Crement))
+                    //    };
 
-                        ExecuteStatement(new Assign(@for.Bind.Id, new Literal(DataType.Int, bindValue)), variables);
-                    }
+                    //    ExecuteStatement(new Assign(@for.Bind.Id, new Literal(DataType.Int, bindValue)), variables);
+                    //}
 
                     break;
 
@@ -127,6 +127,10 @@ namespace FrostScript
         {
             switch (expression)
             {
+                case Bind bind:
+                    variables[bind.Id] = bind.Value;
+                    return null;
+
                 case Literal literal: return literal.Value;
                 case Identifier identifier: return ExecuteExpression(variables[identifier.Id], variables);
 
@@ -165,7 +169,7 @@ namespace FrostScript
                         TokenType.LessOrEqual => leftResult <= rightResult,
                         TokenType.Equal => leftResult == rightResult,
                         TokenType.NotEqual => leftResult != rightResult,
-                        TokenType.Or => leftResult || rightResult
+                        TokenType.Or => leftResult || rightResult,
                     };
 
                 case When whenExpr:
@@ -186,7 +190,7 @@ namespace FrostScript
                 case ExpressionBlock expressionBlock:
                     return (ExecuteProgram(expressionBlock.Statements, new(variables)) as Pass<object>).Value;
 
-                case Expressions.Function function:
+                case Function function:
                     return new FrostFunction(function, new(variables));
 
                 case ICallable icallable:
@@ -196,11 +200,9 @@ namespace FrostScript
 
                     var callee = ExecuteExpression(call.Callee, variables);
 
-                    if (callee is ICallable callable)
-                        return callable.Call(ExecuteExpression(call.Argument, variables));
-                    else
-                        throw new InterpretException($"Expression of type {callee?.GetType().ToString() ?? "void"} is not callable");
-                        //return callee;
+                    var callable = callee as ICallable;
+                    return callable.Call(ExecuteExpression(call.Argument, variables));
+                   
 
                 default: throw new NotImplementedException();
             };
