@@ -46,7 +46,7 @@ namespace FrostScript
                         var type = clauses.First().Item2.Type;
 
                         if (clauses.Any(x => x.Item2.Type != type))
-                            throw new TypeException(ifNode.Token, $"All branches in an \"when\" must return the same type");
+                            throw new TypeException(ifNode.Token, $"All branches in an \"if\" or a \"when\" must return the same type");
 
                         if (type is not VoidType && clauses.Last().Item1.Type is not VoidType)
                             throw new TypeException(ifNode.Token, $"None void \"if\" or \"when\" must have a default clause");

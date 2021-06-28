@@ -1,9 +1,5 @@
-﻿print : when { 
-	false -> "Succeeded",
-	true -> "failed and suceeded",
-	-> "failed"
-}
+﻿
 
 print : if false -> "Succeeded"
-	    else false -> "failed and suceeded"
+	    else false -> true
 	    else "failed"
