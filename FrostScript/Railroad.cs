@@ -7,31 +7,22 @@ using System.Threading.Tasks;
 
 namespace FrostScript
 {
-    public class Railroad
+    public static class Railroad
     {
-        public static void Rail<TSuccsess, TFailure>(Result result, Action<TSuccsess> success, Action<TFailure> failure)
+        public static Func<T, Result> Fish<T, T2>(this Func<T, Result> previous, Func<T2, Result> next)
         {
-            if (result is Pass<TSuccsess> pass) success(pass.Value);
-            else if (result is Fail<TFailure> fail) failure(fail.Value);    
-        }
-
-        public static Result Rail<TInput, TSuccess>(Result result, Func<TInput, Result> success)
-        {
-            return result switch
+            return (arg) =>
             {
-                Pass<TInput> pass => Result.Pass(success(pass.Value)),
-                Fail fail => fail,
-                _ => throw new Exception()
+                var result = previous(arg);
+
+                return result switch
+                {
+                    Pass<T2> pass => next(pass.Value),
+                    Pass pass => throw new ArgumentException($"expected {typeof(Pass<T2>)}, given {pass}"),
+                    Fail => result,
+                };
             };
         }
 
-        public static void Choose(Func<Result>[] funcs)
-        {
-            foreach (var func in funcs)
-            {
-                if (func() is Pass) continue;
-                else break;
-            }
-        }
     }
 }

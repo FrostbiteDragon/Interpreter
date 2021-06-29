@@ -27,7 +27,7 @@ namespace FrostScript.Nodes
             {
                 while (tokens[pos].Type is TokenType.Pipe)
                 {
-                    var (statement, newPos) = NodeParser.Expression(pos + 1, tokens);
+                    var (statement, newPos) = Parser.Expression(pos + 1, tokens);
                     pos = newPos;
 
                     yield return statement;
@@ -38,7 +38,7 @@ namespace FrostScript.Nodes
                 return (new BlockNode(statements.Append(new LiteralNode(new(TokenType.Void))).ToArray()), pos);
             else
             {
-                var (expression, newPos) = NodeParser.Expression(pos + 1, tokens);
+                var (expression, newPos) = Parser.Expression(pos + 1, tokens);
                 statements.Add(expression);
                 return (new BlockNode(statements.ToArray()), newPos);
             }

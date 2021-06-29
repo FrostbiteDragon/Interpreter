@@ -12,11 +12,11 @@ namespace FrostScript.Statements
     public class For : IStatement
     {
         public Bind Bind { get; }
-        public IExpression EndExpression { get; }
+        public IStatement EndExpression { get; }
         public Crement Crement { get; }
         public IStatement[] Body { get; }
 
-        public For(Bind bind, IExpression endExpression, Crement crement, IEnumerable<IStatement> body)
+        public For(Bind bind, IStatement endExpression, Crement crement, IEnumerable<IStatement> body)
         {
             Bind = bind;
             EndExpression = endExpression;

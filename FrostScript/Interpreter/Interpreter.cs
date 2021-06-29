@@ -13,115 +13,20 @@ namespace FrostScript
     {
         public static readonly Stopwatch Stopwatch = new Stopwatch();
 
-        public static Result ExecuteProgram(IEnumerable<IStatement> statements, Dictionary<string, IExpression> variables = null)
+        public static readonly Func<Dictionary<string, IExpression>, Func<IExpression[], Result>> interpret = nativeFunctions => expressions =>
         {
-            Stopwatch.Start();
-
-            if (variables is null)
-                variables = new Dictionary<string, IExpression>();
-
             try
             {
-                if (!statements.Any())
-                    return Result.Pass();
-
-                if (statements.Last() is ExpressionStatement result)
-                {
-                    foreach (var statement in statements.SkipLast(1))
-                        ExecuteStatement(statement, variables);
-
-                    return Result.Pass(ExecuteExpression(result.Expression, variables));
-                }
-                else
-                {
-                    foreach (var statement in statements)
-                        ExecuteStatement(statement, variables);
-
-                    return Result.Pass();
-                }
+                foreach (var expr in expressions)
+                    ExecuteExpression(expr, nativeFunctions);
+                return Result.Pass();
             }
-            catch (InterpretException exception)
+            catch (InterpretException ex)
             {
-                Reporter.Report(exception.Line, exception.CharacterPos, exception.Message);
+                Reporter.Report(ex.Line, ex.CharacterPos, ex.Message);
                 return Result.Fail();
             }
-        }
-
-        public static void ExecuteStatement(IStatement statement, Dictionary<string, IExpression> variables)
-        {
-            switch (statement)
-            {
-                case Bind(var id, var value):
-                    variables[id] = value;
-                    break;
-
-                case Assign(var id, var value):
-                    variables[id] = new Literal(value.Type, ExecuteExpression(value, variables));
-                    break;
-
-                case If ifStmt:
-                    ExecuteIf(ifStmt);
-
-                    void ExecuteIf(If ifStmt)
-                    {
-                        var ifExpression = ifStmt.IfExpresion != null ? ExecuteExpression(ifStmt.IfExpresion, variables) : null;
-
-                        //default clause
-                        if (ifExpression is null)
-                            ExecuteStatement(ifStmt.ResultStatement, variables);
-                        //if clause is true execute
-                        else if ((bool)ifExpression)
-                            ExecuteStatement(ifStmt.ResultStatement, variables);
-                        //else check next clause
-                        else
-                            ExecuteIf(ifStmt.ElseIf);
-                    }
-                    break;
-
-                case StatementBlock statementBlock:
-                    ExecuteProgram(statementBlock.Statements, variables);
-                    break;
-
-                case While @while:
-                    while ((bool)ExecuteExpression(@while.Condition, variables))
-                    {
-                        foreach (var bodyStatement in @while.Body)
-                            ExecuteStatement(bodyStatement, variables);
-                    }
-
-                    break;
-
-                case For @for:
-
-                    //ExecuteStatement(@for.Bind, variables);
-
-                    //var bindValue = (double)ExecuteExpression(@for.Bind.Value, variables);
-
-                    //while ((bool)ExecuteExpression(@for.EndExpression, variables))
-                    //{
-                    //    foreach (var bodyStatement in @for.Body)
-                    //        ExecuteStatement(bodyStatement, variables);
-
-                    //    bindValue += @for.Crement switch
-                    //    {
-                    //        Crement.Increment => 1,
-                    //        Crement.Decrement => -1,
-                    //        _ => throw new ArgumentOutOfRangeException(nameof(@for.Crement))
-                    //    };
-
-                    //    ExecuteStatement(new Assign(@for.Bind.Id, new Literal(DataType.Int, bindValue)), variables);
-                    //}
-
-                    break;
-
-                case ExpressionStatement exprStatement:
-                    ExecuteExpression(exprStatement.Expression, variables);
-                    break;
-
-
-                default: throw new NotImplementedException();
-            }
-        }
+        };
 
         public static object ExecuteExpression(IExpression expression, Dictionary<string, IExpression> variables)
         {
@@ -179,7 +84,7 @@ namespace FrostScript
                     return whenResult is not null ? ExecuteExpression(whenResult, variables) : null;
                    
                 case ExpressionBlock expressionBlock:
-                    return (ExecuteProgram(expressionBlock.Statements, new(variables)) as Pass<object>).Value;
+                    return (interpret(new(variables))(expressionBlock.Body) as Pass<object>).Value;
 
                 case Function function:
                     return new FrostFunction(function, new(variables));
@@ -189,11 +94,43 @@ namespace FrostScript
 
                 case Call call:
 
-                    var callee = ExecuteExpression(call.Callee, variables);
+                var callee = ExecuteExpression(call.Callee, variables);
 
-                    var callable = callee as ICallable;
-                    return callable.Call(ExecuteExpression(call.Argument, variables));
-                   
+                var callable = callee as ICallable;
+                return callable.Call(ExecuteExpression(call.Argument, variables));
+
+            //        case While @while:
+            //            while ((bool)ExecuteExpression(@while.Condition, variables))
+            //            {
+            //                foreach (var bodyStatement in @while.Body)
+            //                    ExecuteStatement(bodyStatement, variables);
+            //            }
+
+            //            break;
+
+            //        case For @for:
+
+            //            //ExecuteStatement(@for.Bind, variables);
+
+            //            //var bindValue = (double)ExecuteExpression(@for.Bind.Value, variables);
+
+            //            //while ((bool)ExecuteExpression(@for.EndExpression, variables))
+            //            //{
+            //            //    foreach (var bodyStatement in @for.Body)
+            //            //        ExecuteStatement(bodyStatement, variables);
+
+            //            //    bindValue += @for.Crement switch
+            //            //    {
+            //            //        Crement.Increment => 1,
+            //            //        Crement.Decrement => -1,
+            //            //        _ => throw new ArgumentOutOfRangeException(nameof(@for.Crement))
+            //            //    };
+
+            //            //    ExecuteStatement(new Assign(@for.Bind.Id, new Literal(DataType.Int, bindValue)), variables);
+            //            //}
+
+            //            break;
+
 
                 default: throw new NotImplementedException();
             };

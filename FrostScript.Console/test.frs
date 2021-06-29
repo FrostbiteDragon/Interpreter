@@ -1,5 +1,1 @@
-﻿
-
-print : if false -> "Succeeded"
-	    else false -> true
-	    else "failed"
+﻿print : 2
