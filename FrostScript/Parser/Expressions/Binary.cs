@@ -9,9 +9,9 @@ namespace FrostScript.Expressions
 {
     public class Binary : IExpression
     {
-        public IExpression Left { get; init; }
-        public Token Operator { get; init; }
-        public IExpression Right { get; init; }
+        public IExpression Left { get; }
+        public Token Operator { get; }
+        public IExpression Right { get; }
 
         public IDataType Type { get; }
 

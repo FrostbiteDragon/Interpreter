@@ -18,7 +18,6 @@ namespace FrostScript
         public static readonly IReadOnlyDictionary<string, IExpression> NativeFunctions = new Dictionary<string, IExpression>()
         {
             ["print"] = new PrintFunction(),
-            ["clock"] = new ClockFunction()
         };
 
         private static readonly Func<string, Result> execute = 

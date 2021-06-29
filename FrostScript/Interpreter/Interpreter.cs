@@ -11,8 +11,6 @@ namespace FrostScript
 {
     public static class Interpreter
     {
-        public static readonly Stopwatch Stopwatch = new Stopwatch();
-
         public static readonly Func<Dictionary<string, IExpression>, Func<IExpression[], Result>> interpret = nativeFunctions => expressions =>
         {
             try
