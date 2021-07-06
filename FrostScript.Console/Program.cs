@@ -1,4 +1,7 @@
 ﻿using System.IO;
+using Frostware.Pipe;
 using static FrostScript.FrostScript;
 
-ExecuteString(File.ReadAllText(args[0]));
+args[0]
+.Pipe(File.ReadAllText)
+.Pipe(ExecuteString);
