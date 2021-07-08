@@ -10,6 +10,8 @@ using static FrostScript.Nodes.BlockNode;
 using static FrostScript.Nodes.UnaryNode;
 using static FrostScript.Nodes.BindNode;
 using static FrostScript.Nodes.WhenNode;
+using static FrostScript.Nodes.WhileNode;
+using static FrostScript.Nodes.AssignNode;
 using FrostScript.DataTypes;
 using System.Collections.Generic;
 using System.Linq;
@@ -104,6 +106,8 @@ namespace FrostScript
                 .Pipe(and)
                 .Pipe(or)
                  //statements
+                .Pipe(@while)
+                .Pipe(assign)
                 .Pipe(bind)
                 (pos, tokens);
         }

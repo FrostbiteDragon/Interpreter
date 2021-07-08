@@ -1,4 +1,5 @@
-﻿using FrostScript.Expressions;
+﻿using FrostScript.DataTypes;
+using FrostScript.Expressions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,15 +8,17 @@ using System.Threading.Tasks;
 
 namespace FrostScript.Statements
 {
-    public class While : IStatement
+    public class While : IExpression
     {
-        public IStatement Condition { get; init; }
-        public IStatement[] Body { get; init; }
+        public IExpression Condition { get; init; }
+        public IExpression[] Body { get; init; }
 
-        public While(IStatement condition, IEnumerable<IStatement> body)
+        public IDataType Type => DataType.Void;
+
+        public While(IExpression condition, IExpression[] body)
         {
             Condition = condition;
-            Body = body.ToArray();
+            Body = body;
         }
     }
 }

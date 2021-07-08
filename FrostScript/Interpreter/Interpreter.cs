@@ -15,9 +15,11 @@ namespace FrostScript
         {
             try
             {
+                object result = null;
                 foreach (var expr in expressions)
-                    ExecuteExpression(expr, nativeFunctions);
-                return Result.Pass();
+                    result = ExecuteExpression(expr, nativeFunctions);
+
+                return Result.Pass(result);
             }
             catch (InterpretException ex)
             {
@@ -31,7 +33,11 @@ namespace FrostScript
             switch (expression)
             {
                 case Bind bind:
-                    variables[bind.Id] = bind.Value;
+                    variables[bind.Id] = new Literal(bind.Value.Type, ExecuteExpression(bind.Value, variables));
+                    return null;
+
+                case Assign assign:
+                    variables[assign.Id] = new Literal(assign.Value.Type, ExecuteExpression(assign.Value, variables));
                     return null;
 
                 case Literal literal: return literal.Value;
@@ -47,7 +53,6 @@ namespace FrostScript
                         TokenType.Plus => +result,
                         TokenType.Not => !result
                     };
-
 
                 case And and:
                     if ((bool)ExecuteExpression(and.Left, variables))
@@ -82,7 +87,10 @@ namespace FrostScript
                     return whenResult is not null ? ExecuteExpression(whenResult, variables) : null;
                    
                 case ExpressionBlock expressionBlock:
-                    return (interpret(new(variables))(expressionBlock.Body) as Pass<object>).Value;
+                    var blockResult = interpret(new(variables))(expressionBlock.Body);
+                    if (blockResult is Pass<object> pass)
+                        return pass.Value;
+                    else throw new Exception();
 
                 case Function function:
                     return new FrostFunction(function, new(variables));
@@ -97,37 +105,37 @@ namespace FrostScript
                 var callable = callee as ICallable;
                 return callable.Call(ExecuteExpression(call.Argument, variables));
 
-            //        case While @while:
-            //            while ((bool)ExecuteExpression(@while.Condition, variables))
-            //            {
-            //                foreach (var bodyStatement in @while.Body)
-            //                    ExecuteStatement(bodyStatement, variables);
-            //            }
+                case While @while:
+                    while ((bool)ExecuteExpression(@while.Condition, variables))
+                    {
+                        foreach (var bodyStatement in @while.Body)
+                            ExecuteExpression(bodyStatement, variables);
+                    }
 
-            //            break;
+                    return null;
 
-            //        case For @for:
+                //        case For @for:
 
-            //            //ExecuteStatement(@for.Bind, variables);
+                //            //ExecuteStatement(@for.Bind, variables);
 
-            //            //var bindValue = (double)ExecuteExpression(@for.Bind.Value, variables);
+                //            //var bindValue = (double)ExecuteExpression(@for.Bind.Value, variables);
 
-            //            //while ((bool)ExecuteExpression(@for.EndExpression, variables))
-            //            //{
-            //            //    foreach (var bodyStatement in @for.Body)
-            //            //        ExecuteStatement(bodyStatement, variables);
+                //            //while ((bool)ExecuteExpression(@for.EndExpression, variables))
+                //            //{
+                //            //    foreach (var bodyStatement in @for.Body)
+                //            //        ExecuteStatement(bodyStatement, variables);
 
-            //            //    bindValue += @for.Crement switch
-            //            //    {
-            //            //        Crement.Increment => 1,
-            //            //        Crement.Decrement => -1,
-            //            //        _ => throw new ArgumentOutOfRangeException(nameof(@for.Crement))
-            //            //    };
+                //            //    bindValue += @for.Crement switch
+                //            //    {
+                //            //        Crement.Increment => 1,
+                //            //        Crement.Decrement => -1,
+                //            //        _ => throw new ArgumentOutOfRangeException(nameof(@for.Crement))
+                //            //    };
 
-            //            //    ExecuteStatement(new Assign(@for.Bind.Id, new Literal(DataType.Int, bindValue)), variables);
-            //            //}
+                //            //    ExecuteStatement(new Assign(@for.Bind.Id, new Literal(DataType.Int, bindValue)), variables);
+                //            //}
 
-            //            break;
+                //            break;
 
 
                 default: throw new NotImplementedException();

@@ -15,7 +15,7 @@ namespace FrostScript
         {
             try
             {
-                var identifiers = nativeFunctions.ToDictionary(x => x.Key, x => x.Value.Type);
+                var identifiers = nativeFunctions.ToDictionary(x => x.Key, x => (x.Value.Type, false));
 
                 var typedAst = ast.Select(x => Convert(x, identifiers)).ToArray();
 
@@ -28,16 +28,42 @@ namespace FrostScript
             }
         };
 
-        private static IExpression Convert(INode node, Dictionary<string, IDataType> identifiers)
+        private static IExpression Convert(INode node, Dictionary<string, (IDataType Type, bool Mutable)> identifiers)
         {
             return node switch
             {
                 BindNode bindNode => new Func<IExpression>(() =>
                 {
                     var bind = new Bind(bindNode.Id, Convert(bindNode.Value, identifiers));
-                    identifiers[bindNode.Id] = bind.Value.Type;
+                    identifiers[bindNode.Id] = (bind.Value.Type, bindNode.Mutable);
 
                     return bind;
+                })(),
+
+                AssignNode assignNode => new Func<IExpression>(() =>
+                {
+                    var assign = new Assign(assignNode.Id, Convert(assignNode.Value, identifiers));
+
+                    if (!identifiers.ContainsKey(assign.Id))
+                        throw new TypeException(assignNode.Token, $"Identifier \"{assign.Id}\" does not exist in current scope");
+
+                    if (identifiers[assign.Id].Mutable == false)
+                        throw new TypeException(assignNode.Token, $"Identifier \"{assign.Id}\" is not mutable");
+
+                    if (identifiers[assign.Id].Type != assign.Value.Type)
+                        throw new TypeException(assignNode.Token, $"Cannot assign value of type {assign.Value.Type} to identifier \"{assign.Id}\", which is of type {identifiers[assign.Id].Type}");
+
+                    return assign;
+                })(),
+
+                WhileNode whileNode => new Func<IExpression>(() =>
+                {
+                    var condition = Convert(whileNode.Condition, identifiers);
+
+                    var bodyIdentifiers = new Dictionary<string, (IDataType Type, bool Mutable)>(identifiers);
+                    var body = whileNode.Body.Select(x => Convert(x, bodyIdentifiers)).ToArray();
+
+                    return new While(condition, body);
                 })(),
 
                 WhenNode ifNode => new Func<IExpression>(() =>
@@ -98,7 +124,7 @@ namespace FrostScript
 
                 BlockNode blockNode => new Func<IExpression>(() =>
                 {
-                    Dictionary<string, IDataType> blockIdentifiers = new(identifiers);
+                    Dictionary<string, (IDataType Type, bool Mutable)> blockIdentifiers = new(identifiers);
 
                     var expressions = blockNode.Body.Select(x => Convert(x, blockIdentifiers));
 
@@ -107,9 +133,9 @@ namespace FrostScript
 
                 FunctionNode functionNode => new Func<IExpression>(() =>
                 {
-                    Dictionary<string, IDataType> blockIdentifiers = new(identifiers)
+                    Dictionary<string, (IDataType Type, bool Mutable)> blockIdentifiers = new(identifiers)
                     {
-                        { functionNode.Parameter.Id, functionNode.Parameter.Type }
+                        { functionNode.Parameter.Id, (functionNode.Parameter.Type, false) }
                     };
 
                     var body = Convert(functionNode.Body, blockIdentifiers);
@@ -155,7 +181,7 @@ namespace FrostScript
                     TokenType.Void => new Literal(DataType.Void, null),
                     TokenType.String => new Literal(DataType.String, literalNode.Token.Literal),
                     TokenType.Id => identifiers.ContainsKey(literalNode.Token.Lexeme) ?
-                        new Identifier(identifiers[literalNode.Token.Lexeme], literalNode.Token.Lexeme) :
+                        new Identifier(identifiers[literalNode.Token.Lexeme].Type, literalNode.Token.Lexeme) :
                         throw new TypeException(literalNode.Token, $"Identifier {literalNode.Token.Lexeme} is out of scope or does not exist")
                 },
 
