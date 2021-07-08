@@ -1,13 +1,8 @@
 ﻿
-var i = 0
 
+var i = 0
 while
-| let x = true
 | i = i + 1
-|> i < 10 {
-	i = i + 1
-	let x = 2
+|> true {
 	print : i
 }
-
-print : x

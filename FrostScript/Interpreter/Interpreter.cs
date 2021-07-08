@@ -28,7 +28,8 @@ namespace FrostScript
             }
         };
 
-        public static object ExecuteExpression(IExpression expression, Dictionary<string, IExpression> variables)
+
+        public static dynamic ExecuteExpression(IExpression expression, Dictionary<string, IExpression> variables)
         {
             switch (expression)
             {
@@ -87,10 +88,11 @@ namespace FrostScript
                     return whenResult is not null ? ExecuteExpression(whenResult, variables) : null;
                    
                 case ExpressionBlock expressionBlock:
-                    var blockResult = interpret(new(variables))(expressionBlock.Body);
-                    if (blockResult is Pass<object> pass)
-                        return pass.Value;
-                    else throw new Exception();
+                    foreach (var bodyExpression in expressionBlock.Body.SkipLast(1))
+                        ExecuteExpression(bodyExpression, variables);
+
+                    var x = ExecuteExpression(expressionBlock.Body.Last(), variables);
+                    return x;
 
                 case Function function:
                     return new FrostFunction(function, new(variables));
@@ -106,7 +108,7 @@ namespace FrostScript
                 return callable.Call(ExecuteExpression(call.Argument, variables));
 
                 case While @while:
-                    while ((bool)ExecuteExpression(@while.Condition, variables))
+                    while (ExecuteExpression(@while.Condition, variables))
                     {
                         foreach (var bodyStatement in @while.Body)
                             ExecuteExpression(bodyStatement, variables);

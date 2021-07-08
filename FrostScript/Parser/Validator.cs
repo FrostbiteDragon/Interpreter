@@ -15,7 +15,7 @@ namespace FrostScript
         {
             try
             {
-                var identifiers = nativeFunctions.ToDictionary(x => x.Key, x => (x.Value.Type, false));
+                var identifiers = new SoftCopyDictionary<string, (IDataType Type, bool Mutable)>(nativeFunctions.ToDictionary(x => x.Key, x => (x.Value.Type, false)));
 
                 var typedAst = ast.Select(x => Convert(x, identifiers)).ToArray();
 
@@ -28,7 +28,7 @@ namespace FrostScript
             }
         };
 
-        private static IExpression Convert(INode node, Dictionary<string, (IDataType Type, bool Mutable)> identifiers)
+        private static IExpression Convert(INode node, SoftCopyDictionary<string, (IDataType Type, bool Mutable)> identifiers)
         {
             return node switch
             {
@@ -60,7 +60,8 @@ namespace FrostScript
                 {
                     var condition = Convert(whileNode.Condition, identifiers);
 
-                    var bodyIdentifiers = new Dictionary<string, (IDataType Type, bool Mutable)>(identifiers);
+                    var bodyIdentifiers = new SoftCopyDictionary<string, (IDataType Type, bool Mutable)>(identifiers);
+
                     var body = whileNode.Body.Select(x => Convert(x, bodyIdentifiers)).ToArray();
 
                     return new While(condition, body);
@@ -124,7 +125,7 @@ namespace FrostScript
 
                 BlockNode blockNode => new Func<IExpression>(() =>
                 {
-                    Dictionary<string, (IDataType Type, bool Mutable)> blockIdentifiers = new(identifiers);
+                    SoftCopyDictionary<string, (IDataType Type, bool Mutable)> blockIdentifiers = new(identifiers);
 
                     var expressions = blockNode.Body.Select(x => Convert(x, blockIdentifiers));
 
@@ -133,7 +134,7 @@ namespace FrostScript
 
                 FunctionNode functionNode => new Func<IExpression>(() =>
                 {
-                    Dictionary<string, (IDataType Type, bool Mutable)> blockIdentifiers = new(identifiers)
+                    SoftCopyDictionary<string, (IDataType Type, bool Mutable)> blockIdentifiers = new(identifiers)
                     {
                         { functionNode.Parameter.Id, (functionNode.Parameter.Type, false) }
                     };

@@ -16,7 +16,7 @@ namespace FrostScript
         public IDataType Type => Function.Type;
         private readonly Dictionary<string, IExpression> closure;
 
-        public FrostFunction(Expressions.Function function, Dictionary<string, IExpression> closure)
+        public FrostFunction(Function function, Dictionary<string, IExpression> closure)
         {
             Function = function;
             this.closure = closure;
