@@ -31,7 +31,7 @@ namespace FrostScript.Nodes
                         currentPos + 2
                     );
 
-                var (argument, argumentPos) = Parser.Expression(currentPos + 1, tokens);
+                var (argument, argumentPos) = Parser.expression(currentPos + 1, tokens);
 
                 if (tokens[argumentPos].Type is not TokenType.ParentheseClose)
                     throw new ParseException(tokens[argumentPos].Line, tokens[argumentPos].Character, $"Expected ')' but got {tokens[pos].Lexeme}", argumentPos + 1);
@@ -59,7 +59,7 @@ namespace FrostScript.Nodes
                         currentPos + 1
                     );
 
-                var (argument, argumentPos) = Parser.Expression(currentPos + 1, tokens);
+                var (argument, argumentPos) = Parser.expression(currentPos + 1, tokens);
                 callee = new CallNode(callee, argument);
                 currentPos = argumentPos;
             }

@@ -42,7 +42,7 @@ namespace FrostScript
                 var currentpos = pos;
                 while (tokens[currentpos].Type is not TokenType.Eof)
                 {
-                    var (ast, newPos) = Expression(currentpos, tokens);
+                    var (ast, newPos) = expression(currentpos, tokens);
                     currentpos = newPos;
                     yield return ast;
                 }
@@ -68,19 +68,18 @@ namespace FrostScript
                 var currentpos = pos;
                 while (tokens[currentpos].Type is not TokenType.Eof)
                 {
-                    var (ast, newPos) = Expression(currentpos, tokens);
+                    var (ast, newPos) = expression(currentpos, tokens);
                     currentpos = newPos;
                     yield return ast;
                 }
             }
         };
 
-
-        public static (INode node, int pos) Expression(int pos, Token[] tokens)
+        public static readonly Func<int, Token[], (INode node, int pos)> expression = (pos, tokens) =>
         {
             Func<int, Token[], (INode node, int pos)> grouping = (pos, tokens) =>
             {
-                var (node, newPos) = Expression(pos, tokens);
+                var (node, newPos) = expression(pos, tokens);
                 if (newPos >= tokens.Length || tokens[newPos].Type != TokenType.ParentheseClose)
                 {
                     Reporter.Report(tokens[pos].Line, tokens[pos].Character, $"Parenthese not closed");
@@ -89,7 +88,7 @@ namespace FrostScript
                 else return (node, newPos + 1);
             };
 
-            return 
+            return
                 grouping
                 .Pipe(primary)
                 .Pipe(call)
@@ -106,13 +105,13 @@ namespace FrostScript
                 .Pipe(equality)
                 .Pipe(and)
                 .Pipe(or)
-                 //statements
+                //statements
                 .Pipe(@while)
                 //.Pipe(@for)
                 .Pipe(assign)
                 .Pipe(bind)
                 (pos, tokens);
-        }
+        };
 
         public static readonly Func<string, Token, int, Func<int, Token[], (INode, int)>> error = (message, token, pickupPoint) =>
         {

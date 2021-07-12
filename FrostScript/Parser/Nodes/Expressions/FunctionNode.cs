@@ -37,7 +37,7 @@ namespace FrostScript.Nodes
             if (tokens[currentPos].Type is not TokenType.Arrow)
                 throw new ParseException(tokens[currentPos].Line, tokens[currentPos].Character, $"expected \"->\" but got {tokens[currentPos].Lexeme}", currentPos + 1);
 
-            var (body, bodyPos) = Parser.Expression(currentPos + 1, tokens);
+            var (body, bodyPos) = Parser.expression(currentPos + 1, tokens);
 
             FunctionNode function = null;
 
