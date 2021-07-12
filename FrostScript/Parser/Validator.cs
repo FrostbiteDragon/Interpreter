@@ -67,6 +67,19 @@ namespace FrostScript
                     return new While(condition, body);
                 })(),
 
+                //ForNode forNode => new Func<IExpression>(() =>
+                //{
+                //    var bind = Convert(forNode.Bind, identifiers);
+
+                //    var condition = Convert(forNode.Condition, identifiers);
+
+                //    var bodyIdentifiers = new SoftCopyDictionary<string, (IDataType Type, bool Mutable)>(identifiers);
+
+                //    var body = forNode.Body.Select(x => Convert(x, bodyIdentifiers)).ToArray();
+
+                //    return new For(condition, body);
+                //})(),
+
                 WhenNode ifNode => new Func<IExpression>(() =>
                 {
                     var clauses = ifNode.Clauses.Select(x => (Convert(x.boolExpression, identifiers), Convert(x.resultExpression, identifiers)));

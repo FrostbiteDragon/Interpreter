@@ -11,6 +11,7 @@ using static FrostScript.Nodes.UnaryNode;
 using static FrostScript.Nodes.BindNode;
 using static FrostScript.Nodes.WhenNode;
 using static FrostScript.Nodes.WhileNode;
+using static FrostScript.Nodes.ForNode;
 using static FrostScript.Nodes.AssignNode;
 using FrostScript.DataTypes;
 using System.Collections.Generic;
@@ -107,10 +108,16 @@ namespace FrostScript
                 .Pipe(or)
                  //statements
                 .Pipe(@while)
+                //.Pipe(@for)
                 .Pipe(assign)
                 .Pipe(bind)
                 (pos, tokens);
         }
+
+        public static readonly Func<string, Token, int, Func<int, Token[], (INode, int)>> error = (message, token, pickupPoint) =>
+        {
+            return (_, _) => throw new ParseException(token, message, pickupPoint);
+        };
 
         public static (Parameter parameter, int newPos) Parameter(int pos, Token[] tokens)
         {

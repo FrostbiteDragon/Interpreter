@@ -117,6 +117,9 @@ namespace FrostScript
                                 "string" => new Token(TokenType.StringType, line, characterPos, word),
                                 "bool" => new Token(TokenType.BoolType, line, characterPos, word),
 
+                                "increment" => new Token(TokenType.Increment, line, characterPos, word),
+                                "decrement" => new Token(TokenType.Decrement, line, characterPos, word),
+
                                 //new id
                                 _ => new Token(TokenType.Id, line, i + 1, word)
                             };
