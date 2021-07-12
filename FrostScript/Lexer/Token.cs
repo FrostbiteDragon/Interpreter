@@ -9,7 +9,7 @@ namespace FrostScript
     public enum TokenType 
     { 
         Operator,
-        NewLine,
+        SemiColon,
         ParentheseOpen,
         ParentheseClose,
         BraceOpen,
@@ -32,8 +32,11 @@ namespace FrostScript
         Equal, NotEqual, GreaterThen, GreaterOrEqual, LessOrEqual, LessThen, Not,
         And, Or,
 
+        //functional oporators
+        PipeOp,
+
         //Literals
-        Numeral, String, Bool, Id, Null,
+        Numeral, Int, Double, String, Bool, Id, Void,
 
         //Keywords
         If, Else, When, 
@@ -42,9 +45,11 @@ namespace FrostScript
         For, To, DownTo, While,
         Var, Let,
         Fun,
+        Increment, Decrement,
 
         //types
-        IntType, 
+        IntType,
+        DoubleType,
         BoolType,
         StringType
     }
@@ -58,6 +63,11 @@ namespace FrostScript
         public object Literal { get; init; }
         public int Line { get; init; }
         public int Character { get; init; }
+
+        public Token(TokenType type)
+        {
+            Type = type;
+        }
 
         public Token(TokenType type, int line, int character)
         {

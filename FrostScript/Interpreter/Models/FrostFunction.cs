@@ -1,4 +1,5 @@
-﻿using FrostScript.Expressions;
+﻿using FrostScript.DataTypes;
+using FrostScript.Expressions;
 using FrostScript.Statements;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,8 @@ namespace FrostScript
     public class FrostFunction : ICallable
     {
         public Function Function { get; }
-        public DataType Type => Function.Type;
+        public Parameter Parameter => Function.Parameter;
+        public IDataType Type => Function.Type;
         private readonly Dictionary<string, IExpression> closure;
 
         public FrostFunction(Function function, Dictionary<string, IExpression> closure)
@@ -26,6 +28,25 @@ namespace FrostScript
                 closure[Function.Parameter.Id] = new Literal(Function.Parameter.Type, argument);
 
             return Interpreter.ExecuteExpression(Function.Body, closure);
+        }
+
+        public override string ToString()
+        {
+            var funString = $"(fun ";
+
+            void AddParameter(Function function)
+            {
+                funString += $"{function.Parameter.Id}:{function.Parameter.Type} -> ";
+
+                if (function.Body is Function body)
+                    AddParameter(body);
+            }
+
+            AddParameter(Function);
+
+            funString += $"{Type})";
+
+            return funString;
         }
     }
 }

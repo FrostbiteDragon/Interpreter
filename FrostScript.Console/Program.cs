@@ -1,23 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using FrostScript;
-using FrostScript.Expressions;
-using FrostScript.NativeFunctions;
-using FrostScript.Statements;
-using Frostware.Result;
+﻿using System.IO;
+using Frostware.Pipe;
+using static FrostScript.FrostScript;
 
-var tokens = Lexer.GetTokens(File.ReadAllText(args[0])).ToArray();
-
-Dictionary<string, IExpression> nativeFunctions = new()
-{
-    ["print"] = new PrintFunction(),
-    ["clock"] = new ClockFunction()
-};
-
-if (Parser.GetAST(tokens, nativeFunctions) is Pass<IStatement[]> program)
-    Interpreter.ExecuteProgram(program.Value, nativeFunctions);
-else
-    Console.WriteLine("Parsing failed");
-
+args[0]
+.Pipe(File.ReadAllText)
+.Pipe(ExecuteString);

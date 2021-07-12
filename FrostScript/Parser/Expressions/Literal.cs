@@ -1,13 +1,15 @@
 ﻿
+using FrostScript.DataTypes;
+
 namespace FrostScript.Expressions
 {
     public class Literal : IExpression
     {
         public object Value { get; init; }
 
-        public DataType Type { get; }
+        public IDataType Type { get; }
 
-        public Literal(DataType type, object value)
+        public Literal(IDataType type, object value)
         {
             Type = type;
             Value = value;

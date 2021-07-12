@@ -1,4 +1,5 @@
-﻿using FrostScript.Statements;
+﻿using FrostScript.DataTypes;
+using FrostScript.Expressions;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -6,13 +7,12 @@ namespace FrostScript.Expressions
 {
     public class ExpressionBlock : IExpression
     {
-        public IStatement[] Statements { get; init; }
-        public IExpression Value { get; set; }
-        public DataType Type => (Statements.Last() as ExpressionStatement).Type;
+        public IExpression[] Body { get; init; }
+        public IDataType Type => Body.Last().Type;
 
-        public ExpressionBlock(IEnumerable<IStatement> statements)
+        public ExpressionBlock(IEnumerable<IExpression> body)
         {
-            Statements = statements.ToArray();
+            Body = body.ToArray();
         }
     }
 }

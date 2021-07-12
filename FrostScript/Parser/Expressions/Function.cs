@@ -1,4 +1,5 @@
-﻿using FrostScript.Statements;
+﻿using FrostScript.DataTypes;
+using FrostScript.Statements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,16 +8,17 @@ using System.Threading.Tasks;
 
 namespace FrostScript.Expressions
 {
-    public class Function : IExpression
+    public class Function : IExpression, ICallableExpression
     {
         public Parameter Parameter { get; }
         public IExpression Body { get; }
-        public DataType Type => Body.Type;
+        public IDataType Type { get; }
 
-        public Function(Parameter parameter, IExpression body)
+        public Function(Parameter parameter, IExpression body, FunctionType functionType)
         {
             Parameter = parameter;
             Body = body;
+            Type = functionType;
         }
     }
 }

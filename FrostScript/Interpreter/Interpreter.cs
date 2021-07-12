@@ -1,4 +1,5 @@
-﻿using FrostScript.Expressions;
+﻿using FrostScript.DataTypes;
+using FrostScript.Expressions;
 using FrostScript.Statements;
 using Frostware.Result;
 using System;
@@ -10,142 +11,48 @@ namespace FrostScript
 {
     public static class Interpreter
     {
-        public static readonly Stopwatch Stopwatch = new Stopwatch();
-
-        public static Result ExecuteProgram(IEnumerable<IStatement> statements, Dictionary<string, IExpression> variables = null)
+        public static readonly Func<Dictionary<string, IExpression>, Func<IExpression[], Result>> interpret = nativeFunctions => expressions =>
         {
-            Stopwatch.Start();
-
-            if (variables is null)
-                variables = new Dictionary<string, IExpression>();
-
             try
             {
-                if (!statements.Any())
-                    return Result.Pass();
+                object result = null;
+                foreach (var expr in expressions)
+                    result = ExecuteExpression(expr, nativeFunctions);
 
-                if (statements.Last() is ExpressionStatement result)
-                {
-                    foreach (var statement in statements.SkipLast(1))
-                        ExecuteStatement(statement, variables);
-
-                    return Result.Pass(ExecuteExpression(result.Expression, variables));
-                }
-                else
-                {
-                    foreach (var statement in statements)
-                        ExecuteStatement(statement, variables);
-
-                    return Result.Pass();
-                }
+                return Result.Pass(result);
             }
-            catch (InterpretException exception)
+            catch (InterpretException ex)
             {
-                Reporter.Report(exception.Line, exception.CharacterPos, exception.Message);
+                Reporter.Report(ex.Line, ex.CharacterPos, ex.Message);
                 return Result.Fail();
             }
-        }
-
-        public static void ExecuteStatement(IStatement statement, Dictionary<string, IExpression> variables)
-        {
-            switch (statement)
-            {
-                case Bind(var id, var value):
-                    variables[id] = value;
-                    break;
-
-                case Assign(var id, var value):
-                    variables[id] = new Literal(value.Type, ExecuteExpression(value, variables));
-                    break;
-
-                case If ifStmt:
-                    ExecuteIf(ifStmt);
-
-                    void ExecuteIf(If ifStmt)
-                    {
-                        var ifExpression = ifStmt.IfExpresion != null ? ExecuteExpression(ifStmt.IfExpresion, variables) : null;
-
-                        //default clause
-                        if (ifExpression is null)
-                            ExecuteStatement(ifStmt.ResultStatement, variables);
-                        //if clause is true execute
-                        else if ((bool)ifExpression)
-                            ExecuteStatement(ifStmt.ResultStatement, variables);
-                        //else check next clause
-                        else
-                            ExecuteIf(ifStmt.ElseIf);
-                    }
-                    break;
-
-                case StatementBlock statementBlock:
-                    ExecuteProgram(statementBlock.Statements, variables);
-                    break;
-
-                case While @while:
-                    while ((bool)ExecuteExpression(@while.Condition, variables))
-                    {
-                        foreach (var bodyStatement in @while.Body)
-                            ExecuteStatement(bodyStatement, variables);
-                    }
-
-                    break;
-
-                case For @for:
-
-                    ExecuteStatement(@for.Bind, variables);
-
-                    var bindValue = (double)ExecuteExpression(@for.Bind.Value, variables);
-
-                    while ((bool)ExecuteExpression(@for.EndExpression, variables))
-                    {
-                        foreach (var bodyStatement in @for.Body)
-                            ExecuteStatement(bodyStatement, variables);
-
-                        bindValue += @for.Crement switch
-                        {
-                            Crement.Increment => 1,
-                            Crement.Decrement => -1,
-                            _ => throw new ArgumentOutOfRangeException(nameof(@for.Crement))
-                        };
-
-                        ExecuteStatement(new Assign(@for.Bind.Id, new Literal(DataType.Numeral, bindValue)), variables);
-                    }
-
-                    break;
-
-                case ExpressionStatement exprStatement:
-                    ExecuteExpression(exprStatement.Expression, variables);
-                    break;
+        };
 
 
-                default: throw new NotImplementedException();
-            }
-        }
-
-        public static object ExecuteExpression(IExpression expression, Dictionary<string, IExpression> variables)
+        public static dynamic ExecuteExpression(IExpression expression, Dictionary<string, IExpression> variables)
         {
             switch (expression)
             {
+                case Bind bind:
+                    variables[bind.Id] = new Literal(bind.Value.Type, ExecuteExpression(bind.Value, variables));
+                    return null;
+
+                case Assign assign:
+                    variables[assign.Id] = new Literal(assign.Value.Type, ExecuteExpression(assign.Value, variables));
+                    return null;
+
                 case Literal literal: return literal.Value;
                 case Identifier identifier: return ExecuteExpression(variables[identifier.Id], variables);
 
                 case Unary unary:
 
-                    return unary.Expression.Type switch
-                    {
-                        DataType.Numeral => unary.Operator.Type switch
-                        {
-                            TokenType.Minus => -(double)ExecuteExpression(unary.Expression, variables),
-                            TokenType.Plus => ExecuteExpression(unary.Expression, variables),
-                            _ => throw new InterpretException($"Oporator {unary.Operator.Lexeme} not supported for type Numeric")
-                        },
-                        DataType.Bool => unary.Operator.Type switch
-                        {
-                            TokenType.Not => !(bool)ExecuteExpression(unary.Expression, variables),
-                            _ => throw new InterpretException($"Oporator {unary.Operator.Lexeme} not supported for type Bool")
-                        },
-                        _ => throw new InterpretException($"Oporator {unary.Operator.Lexeme} not supported for type {unary.Expression.Type}")
+                    dynamic result = ExecuteExpression(unary.Expression, variables);
 
+                    return unary.Operator.Type switch
+                    {
+                        TokenType.Minus => -result,
+                        TokenType.Plus => +result,
+                        TokenType.Not => !result
                     };
 
                 case And and:
@@ -156,89 +63,36 @@ namespace FrostScript
 
                 case Binary binary:
 
-                    var leftResult = ExecuteExpression(binary.Left, variables);
-                    var rightResult = ExecuteExpression(binary.Right, variables);
+                    dynamic leftResult = ExecuteExpression(binary.Left, variables);
+                    dynamic rightResult = ExecuteExpression(binary.Right, variables);
 
                     return binary.Operator.Type switch
                     {
-                        //strings
-                        _ when leftResult is string leftString && rightResult is string rightString =>
-                             binary.Operator.Type switch
-                             {
-                                 TokenType.Plus => leftString + rightString,
-
-                                 TokenType.Equal => leftString == rightString,
-                                 TokenType.NotEqual => leftString != rightString,
-
-                                 _ => throw new InterpretException(
-                                     binary.Operator.Line,
-                                     binary.Operator.Character,
-                                     $"Oporator \"{binary.Operator.Lexeme}\" is not valid between strings")
-                             },
-
-                        //numerals
-                        _ when leftResult is double leftDouble && rightResult is double rightDouble =>
-                             binary.Operator.Type switch
-                             {
-                                 TokenType.Plus => leftDouble + rightDouble,
-                                 TokenType.Minus => leftDouble - rightDouble,
-                                 TokenType.Star => leftDouble * rightDouble,
-                                 TokenType.Slash => leftDouble / rightDouble,
-                                 TokenType.GreaterThen => leftDouble > rightDouble,
-                                 TokenType.GreaterOrEqual => leftDouble >= rightDouble,
-                                 TokenType.LessThen => leftDouble < rightDouble,
-                                 TokenType.LessOrEqual => leftDouble <= rightDouble,
-
-                                 TokenType.Equal => leftDouble == rightDouble,
-                                 TokenType.NotEqual => leftDouble != rightDouble,
-
-                                 _ => throw new InterpretException(
-                                    binary.Operator.Line,
-                                    binary.Operator.Character,
-                                    $"Oporator {binary.Operator.Type} is not valid between numerals")
-                             },
-
-                        // bools
-                        _ when leftResult is bool leftBool && rightResult is bool rightBool =>
-                        binary.Operator.Type switch
-                        {
-                            TokenType.Equal => leftBool == rightBool,
-                            TokenType.NotEqual => leftBool != rightBool,
-
-                            TokenType.Or => leftBool || rightBool,
-
-                            _ => throw new InterpretException(
-                                    binary.Operator.Line,
-                                    binary.Operator.Character,
-                                    $"Oporator {binary.Operator.Type} is not valid between bools")
-                        },
-
-                        TokenType.Equal => ExecuteExpression(binary.Left, variables) == ExecuteExpression(binary.Right, variables),
-                        TokenType.NotEqual => ExecuteExpression(binary.Left, variables) != ExecuteExpression(binary.Right, variables),
-
-                        _ => throw new InterpretException(
-                                    binary.Operator.Line,
-                                    binary.Operator.Character,
-                                    $"Oporator {binary.Operator.Type} is not valid between types {leftResult.GetType()} and {rightResult.GetType()}")
+                        TokenType.Plus => leftResult + rightResult,
+                        TokenType.Minus => leftResult - rightResult,
+                        TokenType.Star => leftResult * rightResult,
+                        TokenType.Slash => leftResult / rightResult,
+                        TokenType.GreaterThen => leftResult > rightResult,
+                        TokenType.GreaterOrEqual => leftResult >= rightResult,
+                        TokenType.LessThen => leftResult < rightResult,
+                        TokenType.LessOrEqual => leftResult <= rightResult,
+                        TokenType.Equal => leftResult == rightResult,
+                        TokenType.NotEqual => leftResult != rightResult,
+                        TokenType.Or => leftResult || rightResult,
                     };
 
                 case When whenExpr:
 
-                    return ExecuteWhen(whenExpr);
+                    var whenResult = whenExpr.Clauses.FirstOrDefault(x => ExecuteExpression(x.BoolExpression, variables) is null or true).ResultExpression;
 
-                    object ExecuteWhen(When when)
-                    {
-                        var ifExpression = when.IfExpresion != null ? ExecuteExpression(when.IfExpresion, variables) : null;
-
-                        return ifExpression switch
-                        {
-                            null => ExecuteExpression(when.ResultExpression, variables),
-                            bool boolResult => boolResult ? ExecuteExpression(when.ResultExpression, variables) : ExecuteWhen(when.ElseWhen),
-                        };
-                    }
-
+                    return whenResult is not null ? ExecuteExpression(whenResult, variables) : null;
+                   
                 case ExpressionBlock expressionBlock:
-                    return (ExecuteProgram(expressionBlock.Statements, new(variables)) as Pass<object>).Value;
+                    foreach (var bodyExpression in expressionBlock.Body.SkipLast(1))
+                        ExecuteExpression(bodyExpression, variables);
+
+                    var x = ExecuteExpression(expressionBlock.Body.Last(), variables);
+                    return x;
 
                 case Function function:
                     return new FrostFunction(function, new(variables));
@@ -248,14 +102,43 @@ namespace FrostScript
 
                 case Call call:
 
-                    var callee = ExecuteExpression(call.Callee, variables);
-                    if (callee is ICallable callable)
-                        return call.Argument is not null ? 
-                            callable.Call(ExecuteExpression(call.Argument, variables)) :
-                            callable.Call(null);
-                    else
-                        throw new InterpretException($"Expression of type {callee?.GetType().ToString() ?? "void"} is not callable");
-                        //return callee;
+                var callee = ExecuteExpression(call.Callee, variables);
+
+                var callable = callee as ICallable;
+                return callable.Call(ExecuteExpression(call.Argument, variables));
+
+                case While @while:
+                    while (ExecuteExpression(@while.Condition, variables))
+                    {
+                        foreach (var bodyStatement in @while.Body)
+                            ExecuteExpression(bodyStatement, variables);
+                    }
+
+                    return null;
+
+                //        case For @for:
+
+                //            //ExecuteStatement(@for.Bind, variables);
+
+                //            //var bindValue = (double)ExecuteExpression(@for.Bind.Value, variables);
+
+                //            //while ((bool)ExecuteExpression(@for.EndExpression, variables))
+                //            //{
+                //            //    foreach (var bodyStatement in @for.Body)
+                //            //        ExecuteStatement(bodyStatement, variables);
+
+                //            //    bindValue += @for.Crement switch
+                //            //    {
+                //            //        Crement.Increment => 1,
+                //            //        Crement.Decrement => -1,
+                //            //        _ => throw new ArgumentOutOfRangeException(nameof(@for.Crement))
+                //            //    };
+
+                //            //    ExecuteStatement(new Assign(@for.Bind.Id, new Literal(DataType.Int, bindValue)), variables);
+                //            //}
+
+                //            break;
+
 
                 default: throw new NotImplementedException();
             };

@@ -1,11 +1,14 @@
-﻿using FrostScript.Expressions;
+﻿using FrostScript.DataTypes;
+using FrostScript.Expressions;
 
 namespace FrostScript.Statements
 {
-    public class Assign : IStatement
+    public class Assign : IExpression
     {
         public string Id { get; init; }
         public IExpression Value { get; init; }
+
+        public IDataType Type => DataType.Void;
 
         public Assign(string id, IExpression value)
         {
