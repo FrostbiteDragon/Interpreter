@@ -1,7 +1,7 @@
 ﻿using FrostScript.DataTypes;
 using FrostScript.Expressions;
 
-namespace FrostScript.Statements
+namespace FrostScript.Expressions
 {
     public class Assign : IExpression
     {

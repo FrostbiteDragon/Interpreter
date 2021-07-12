@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FrostScript.Statements
+namespace FrostScript.Expressions
 {
     public class While : IExpression
     {

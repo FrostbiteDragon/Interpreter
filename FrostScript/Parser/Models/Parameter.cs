@@ -1,14 +1,13 @@
 ﻿using FrostScript.DataTypes;
-using FrostScript.Expressions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FrostScript.Statements
+namespace FrostScript.Expressions
 {
-    public struct Parameter : IStatement
+    public struct Parameter
     {
         public string Id { get; }
         public IDataType Type { get; }

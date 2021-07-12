@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using FrostScript.Expressions;
 using FrostScript.NativeFunctions;
-using FrostScript.Statements;
+using FrostScript.Expressions;
 using Frostware.Result;
 using static FrostScript.Lexer;
 using static FrostScript.Parser;

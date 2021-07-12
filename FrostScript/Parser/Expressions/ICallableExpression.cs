@@ -1,4 +1,4 @@
-﻿using FrostScript.Statements;
+﻿using FrostScript.Expressions;
 
 namespace FrostScript.Expressions
 {
