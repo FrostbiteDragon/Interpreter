@@ -21,7 +21,7 @@ namespace FrostScript
 
                 return Result.Pass(typedAst);
             }
-            catch (TypeException e)
+            catch (ValidationException e)
             {
                 Reporter.Report(e.Line, e.CharacterPos, e.Message);
                 return Result.Fail();
@@ -45,13 +45,13 @@ namespace FrostScript
                     var assign = new Assign(assignNode.Id, Convert(assignNode.Value, identifiers));
 
                     if (!identifiers.ContainsKey(assign.Id))
-                        throw new TypeException(assignNode.Token, $"Identifier \"{assign.Id}\" does not exist in current scope");
+                        throw new ValidationException(assignNode.Token, $"Identifier \"{assign.Id}\" does not exist in current scope");
 
                     if (identifiers[assign.Id].Mutable == false)
-                        throw new TypeException(assignNode.Token, $"Identifier \"{assign.Id}\" is not mutable");
+                        throw new ValidationException(assignNode.Token, $"Identifier \"{assign.Id}\" is not mutable");
 
                     if (identifiers[assign.Id].Type != assign.Value.Type)
-                        throw new TypeException(assignNode.Token, $"Cannot assign value of type {assign.Value.Type} to identifier \"{assign.Id}\", which is of type {identifiers[assign.Id].Type}");
+                        throw new ValidationException(assignNode.Token, $"Cannot assign value of type {assign.Value.Type} to identifier \"{assign.Id}\", which is of type {identifiers[assign.Id].Type}");
 
                     return assign;
                 })(),
@@ -87,10 +87,10 @@ namespace FrostScript
                     var type = clauses.First().Item2.Type;
 
                     if (clauses.Any(x => x.Item2.Type != type))
-                        throw new TypeException(ifNode.Token, $"All branches in an \"if\" or a \"when\" must return the same type");
+                        throw new ValidationException(ifNode.Token, $"All branches in an \"if\" or a \"when\" must return the same type");
 
                     if (type is not VoidType && clauses.Last().Item1.Type is not VoidType)
-                        throw new TypeException(ifNode.Token, $"None void \"if\" or \"when\" must have a default clause");
+                        throw new ValidationException(ifNode.Token, $"None void \"if\" or \"when\" must have a default clause");
 
                     return new When(clauses.ToArray());
                 })(),
@@ -121,13 +121,13 @@ namespace FrostScript
                         {
                             IntType => right.Type is IntType or DoubleType ?
                                 right.Type :
-                                throw new TypeException(binaryNode.Token, $"Oporator '{binaryNode.Token.Lexeme}' cannot be used with types int and {right.Type}"),
+                                throw new ValidationException(binaryNode.Token, $"Oporator '{binaryNode.Token.Lexeme}' cannot be used with types int and {right.Type}"),
 
                             DoubleType => right.Type is IntType or DoubleType ?
                                 DataType.Double :
-                                throw new TypeException(binaryNode.Token, $"Oporator '{binaryNode.Token.Lexeme}' cannot be used with types double and {right.Type}"),
+                                throw new ValidationException(binaryNode.Token, $"Oporator '{binaryNode.Token.Lexeme}' cannot be used with types double and {right.Type}"),
 
-                            _ => throw new TypeException(binaryNode.Token, $"Oporator '{binaryNode.Token.Lexeme}' cannot be used with types {left.Type} and {right.Type}")
+                            _ => throw new ValidationException(binaryNode.Token, $"Oporator '{binaryNode.Token.Lexeme}' cannot be used with types {left.Type} and {right.Type}")
                         },
 
                         _ => throw new NotImplementedException()
@@ -163,9 +163,9 @@ namespace FrostScript
                     var expression = Convert(unaryNode.Expression, identifiers);
 
                     if (tokenType is TokenType.Minus or TokenType.Plus && expression.Type is not (DoubleType or IntType))
-                        throw new TypeException(unaryNode.Token, $"Oporator '{unaryNode.Token.Lexeme}' cannot be used with type {expression.Type}");
+                        throw new ValidationException(unaryNode.Token, $"Oporator '{unaryNode.Token.Lexeme}' cannot be used with type {expression.Type}");
                     else if (tokenType is TokenType.Not && expression.Type is not BoolType)
-                        throw new TypeException(unaryNode.Token, $"Oporator '{unaryNode.Token.Lexeme}' cannot be used with type {expression.Type}");
+                        throw new ValidationException(unaryNode.Token, $"Oporator '{unaryNode.Token.Lexeme}' cannot be used with type {expression.Type}");
 
                     return new Unary(unaryNode.Token, Convert(unaryNode.Expression, identifiers));
                 })(),
@@ -178,11 +178,11 @@ namespace FrostScript
                     if (callee.Type is FunctionType func)
                     {
                         if (func.ParameterType is not AnyType && func.ParameterType != argument.Type)
-                            throw new TypeException(0, 0, $"Function expected an argument of type {func.ParameterType} but instead was given {argument.Type}");
+                            throw new ValidationException(0, 0, $"Function expected an argument of type {func.ParameterType} but instead was given {argument.Type}");
 
                         return new Call(callee, argument, func.Result);
                     }
-                    else throw new TypeException(0, 0, $"Type {callee.Type} is not callable");
+                    else throw new ValidationException(0, 0, $"Type {callee.Type} is not callable");
 
                 })(),
 
@@ -196,7 +196,7 @@ namespace FrostScript
                     TokenType.String => new Literal(DataType.String, literalNode.Token.Literal),
                     TokenType.Id => identifiers.ContainsKey(literalNode.Token.Lexeme) ?
                         new Identifier(identifiers[literalNode.Token.Lexeme].Type, literalNode.Token.Lexeme) :
-                        throw new TypeException(literalNode.Token, $"Identifier {literalNode.Token.Lexeme} is out of scope or does not exist")
+                        throw new ValidationException(literalNode.Token, $"Identifier {literalNode.Token.Lexeme} is out of scope or does not exist")
                 },
 
                 _ => throw new NotImplementedException()

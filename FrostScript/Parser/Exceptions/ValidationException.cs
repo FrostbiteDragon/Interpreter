@@ -6,20 +6,20 @@ using System.Threading.Tasks;
 
 namespace FrostScript
 {
-    public class TypeException : Exception
+    public class ValidationException : Exception
     {
         public int Line { get; }
         public int CharacterPos { get; }
         public override string Message { get; }
 
-        public TypeException(int line, int characterPos, string message)
+        public ValidationException(int line, int characterPos, string message)
         {
             Line = line;
             CharacterPos = characterPos;
             Message = message;
         }
 
-        public TypeException(Token token, string message)
+        public ValidationException(Token token, string message)
         {
             Line = token.Line;
             CharacterPos = token.Character;
