@@ -37,17 +37,17 @@ namespace FrostScript.Nodes
 
                     if (tokens[currentPos].Type is TokenType.Arrow)
                     {
-                        var (defaultNode, defaultPos) = Parser.expression(currentPos + 1, tokens);
+                        var (defaultNode, defaultPos) = Expression.expression(currentPos + 1, tokens);
                         yield return (new LiteralNode(new(TokenType.Void)), defaultNode);
                         currentPos = defaultPos;
                         break;
                     }
 
-                    var (boolNode, boolPos) = Parser.expression(currentPos, tokens);
+                    var (boolNode, boolPos) = Expression.expression(currentPos, tokens);
                     if (tokens[boolPos].Type is not TokenType.Arrow)
                         throw new ParseException(tokens[boolPos].Line, tokens[currentPos].Character, $"expected \"->\"", currentPos);
 
-                    var (resultNode, resultPos) = Parser.expression(boolPos + 1, tokens);
+                    var (resultNode, resultPos) = Expression.expression(boolPos + 1, tokens);
 
                     currentPos = resultPos;
                     yield return (boolNode, resultNode);
@@ -71,12 +71,12 @@ namespace FrostScript.Nodes
             var currentPos = pos + 1;
             IEnumerable<(INode, INode)> GetClauses(Token[] tokens)
             {
-                var (boolNode, boolPos) = Parser.expression(currentPos, tokens);
+                var (boolNode, boolPos) = Expression.expression(currentPos, tokens);
 
                 if (tokens[boolPos].Type is not TokenType.Arrow)
                     throw new ParseException(tokens[boolPos].Line, tokens[currentPos].Character, $"expected \"->\"", currentPos);
 
-                var (resultNode, resultPos) = Parser.expression(boolPos + 1, tokens);
+                var (resultNode, resultPos) = Expression.expression(boolPos + 1, tokens);
 
                 yield return (boolNode, resultNode);
 
@@ -84,7 +84,7 @@ namespace FrostScript.Nodes
 
                 while (tokens[currentPos].Type is TokenType.Else)
                 {
-                    var (elseBoolNode, elseBoolPos) = Parser.expression(currentPos + 1, tokens);
+                    var (elseBoolNode, elseBoolPos) = Expression.expression(currentPos + 1, tokens);
 
                     if (tokens[elseBoolPos].Type is not TokenType.Arrow)
                     {
@@ -94,7 +94,7 @@ namespace FrostScript.Nodes
                     }
                         //throw new ParseException(tokens[elseBoolPos].Line, tokens[elseBoolPos].Character, $"expected \"->\"", elseBoolPos);
 
-                    var (elseResultNode, elseResultPos) = Parser.expression(elseBoolPos + 1, tokens);
+                    var (elseResultNode, elseResultPos) = Expression.expression(elseBoolPos + 1, tokens);
 
                     currentPos = elseResultPos;
                     yield return (elseBoolNode, elseResultNode);

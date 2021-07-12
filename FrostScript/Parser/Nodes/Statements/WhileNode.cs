@@ -22,7 +22,7 @@ namespace FrostScript.Nodes
             if (tokens[pos].Type is not TokenType.While)
                 return next(pos, tokens);
 
-            var condition = Parser.expression(pos + 1, tokens);
+            var condition = Expression.expression(pos + 1, tokens);
 
             if (tokens[condition.pos].Type is not TokenType.BraceOpen)
                 throw new ParseException(tokens[condition.pos], $"Expected '{{' but got {tokens[condition.pos]}", condition.pos + 1);
@@ -32,7 +32,7 @@ namespace FrostScript.Nodes
             {
                 for (; tokens[currentPos].Type is not (TokenType.BraceClose or TokenType.Eof);)
                 {
-                    var result = Parser.expression(currentPos, tokens);
+                    var result = Expression.expression(currentPos, tokens);
                     currentPos = result.pos;
                     yield return result.node;
                 }

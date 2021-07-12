@@ -31,7 +31,7 @@ namespace FrostScript.Nodes
             if (tokens[pos + 2].Type is not TokenType.Assign)
                 throw new ParseException(tokens[pos + 2], $"expected '=' but recieved \"{tokens[pos + 2].Lexeme}\"", pos + 2);
 
-            var (value, newPos) = Parser.expression(pos + 3, tokens);
+            var (value, newPos) = Expression.expression(pos + 3, tokens);
 
             return (new BindNode(id, value, mutability), newPos);
         };

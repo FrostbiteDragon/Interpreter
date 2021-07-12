@@ -33,9 +33,9 @@ namespace FrostScript.Nodes
             var currentPos = pos + 1;
             if (tokens[currentPos].Type is not (TokenType.Increment or TokenType.Decrement or TokenType.While))
             {
-                var result = Parser.error("Expected bind expression", tokens[currentPos], currentPos + 1)
-                    .Pipe(BindNode.bind)
-                    (currentPos, tokens);
+                var result = 
+                    Parser.error("Expected bind expression", tokens[currentPos], currentPos + 1)
+                    .Pipe(BindNode.bind)(currentPos, tokens);
 
                 bind = result.node as BindNode;
                 currentPos = result.pos;
@@ -44,7 +44,7 @@ namespace FrostScript.Nodes
             (INode value, bool crement)? crement = null;
             if (tokens[currentPos].Type is TokenType.Increment or TokenType.Decrement)
             {
-                var result = Parser.expression(currentPos + 1, tokens);
+                var result = Expression.expression(currentPos + 1, tokens);
                 crement = (result.node, tokens[currentPos].Type is TokenType.Increment);
                 currentPos = result.pos;
             }
@@ -52,7 +52,7 @@ namespace FrostScript.Nodes
             INode condition = null;
             if (tokens[currentPos].Type is TokenType.While)
             {
-                var result = Parser.expression(currentPos + 1, tokens);
+                var result = Expression.expression(currentPos + 1, tokens);
                 condition = result.node;
                 currentPos = result.pos;
             }
@@ -65,7 +65,7 @@ namespace FrostScript.Nodes
             {
                 for (; tokens[currentPos].Type is not (TokenType.BraceClose or TokenType.Eof);)
                 {
-                    var result = Parser.expression(currentPos, tokens);
+                    var result = Expression.expression(currentPos, tokens);
                     currentPos = result.pos;
                     yield return result.node;
                 }
