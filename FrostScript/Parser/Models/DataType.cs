@@ -84,7 +84,7 @@ namespace FrostScript.DataTypes
 
         public override string ToString()
         {
-            return $"(fun {ParameterType} -> {Result})";
+            return $"{ParameterType} -> {Result}";
         }
     }
 

@@ -32,21 +32,7 @@ namespace FrostScript
 
         public override string ToString()
         {
-            var funString = $"(fun ";
-
-            void AddParameter(Function function)
-            {
-                funString += $"{function.Parameter.Id}:{function.Parameter.Type} -> ";
-
-                if (function.Body is Function body)
-                    AddParameter(body);
-            }
-
-            AddParameter(Function);
-
-            funString += $"{Type})";
-
-            return funString;
+            return Type.ToString();
         }
     }
 }

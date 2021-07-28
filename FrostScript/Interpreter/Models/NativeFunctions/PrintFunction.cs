@@ -20,7 +20,7 @@ namespace FrostScript.NativeFunctions
 
         public override string ToString()
         {
-            return "fun any -> void";
+            return "any -> void";
         }
     }
 }
