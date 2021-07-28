@@ -17,7 +17,7 @@ namespace FrostScript.Nodes
             Body = body;
         }
 
-        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> @while = next => (pos, tokens) =>
+        public static readonly Func<ParseFunc, ParseFunc> @while = next => (pos, tokens) =>
         {
             if (tokens[pos].Type is not TokenType.While)
                 return next(pos, tokens);

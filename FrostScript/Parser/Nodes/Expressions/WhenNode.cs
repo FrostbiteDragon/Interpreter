@@ -17,7 +17,7 @@ namespace FrostScript.Nodes
             Clauses = clauses;
         }
 
-        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> when = (next) => (pos, tokens) =>
+        public static readonly Func<ParseFunc, ParseFunc> when = (next) => (pos, tokens) =>
         {
             if (tokens[pos].Type is not TokenType.When)
                 return next(pos, tokens);
@@ -63,7 +63,7 @@ namespace FrostScript.Nodes
             return (new WhenNode(tokens[pos], clauses), currentPos + 1);
         };
 
-        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> @if = (next) => (pos, tokens) =>
+        public static readonly Func<ParseFunc, ParseFunc> @if = (next) => (pos, tokens) =>
         {
             if (tokens[pos].Type is not TokenType.If)
                 return next(pos, tokens);

@@ -15,7 +15,7 @@ namespace FrostScript.Nodes
             Token = token;
         }
 
-        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> primary = next => (pos, tokens) =>
+        public static readonly Func<ParseFunc, ParseFunc> primary = next => (pos, tokens) =>
         {
             return tokens[pos].Type switch
             {

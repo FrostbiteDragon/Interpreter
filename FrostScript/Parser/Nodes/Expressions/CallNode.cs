@@ -17,7 +17,7 @@ namespace FrostScript.Nodes
             Argument = argument;
         }
 
-        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> call = (next) => (pos, tokens) =>
+        public static readonly Func<ParseFunc, ParseFunc> call = (next) => (pos, tokens) =>
         {
             var (node, newPos) = next(pos, tokens);
 
@@ -43,13 +43,12 @@ namespace FrostScript.Nodes
             return (callee, currentPos);
         };
 
-        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> colonCall = (next) => (pos, tokens) =>
+        public static readonly Func<ParseFunc, ParseFunc> colonCall = (next) => (pos, tokens) =>
         {
             var (node, newPos) = next(pos, tokens);
 
             var currentPos = newPos;
             var callee = node;
-
 
             if (currentPos < tokens.Length && tokens[currentPos].Type is TokenType.Colon)
             {

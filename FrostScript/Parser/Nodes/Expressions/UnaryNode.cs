@@ -17,7 +17,7 @@ namespace FrostScript.Nodes
             Expression = expression;
         }
 
-        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> unary = (next) => (pos, tokens) =>
+        public static readonly Func<ParseFunc, ParseFunc> unary = (next) => (pos, tokens) =>
         {
             if (tokens[pos].Type is TokenType.Minus or TokenType.Plus or TokenType.Not)
             {

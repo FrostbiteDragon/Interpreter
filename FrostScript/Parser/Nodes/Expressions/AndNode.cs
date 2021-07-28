@@ -1,4 +1,6 @@
-﻿using System;
+﻿using FrostScript.DataTypes;
+using FrostScript.Expressions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,7 +22,7 @@ namespace FrostScript.Nodes
             Token = token;
         }
 
-        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> and = (next) => (pos, tokens) =>
+        public static readonly Func<ParseFunc, ParseFunc> and = (next) => (pos, tokens) =>
         {
             var (node, newPos) = next(pos, tokens);
 

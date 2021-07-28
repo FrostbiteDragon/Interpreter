@@ -20,7 +20,7 @@ namespace FrostScript.Nodes
             Value = value;
         }
 
-        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> assign = next => (pos, tokens) =>
+        public static readonly Func<ParseFunc, ParseFunc> assign = next => (pos, tokens) =>
         {
             if (tokens[pos].Type is not TokenType.Id || tokens[pos + 1].Type is not TokenType.Assign)
                 return next(pos, tokens);

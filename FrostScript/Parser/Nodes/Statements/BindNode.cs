@@ -19,7 +19,7 @@ namespace FrostScript.Nodes
             Mutable = mutable;
         }
 
-        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> bind = (next) => (pos, tokens) =>
+        public static readonly Func<ParseFunc, ParseFunc> bind = (next) => (pos, tokens) =>
         {
             if (tokens[pos].Type is not (TokenType.Let or TokenType.Var))
                 return next(pos, tokens);

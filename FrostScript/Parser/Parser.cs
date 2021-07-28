@@ -35,7 +35,7 @@ namespace FrostScript
             }
         };
 
-        public static readonly Func<string, Token, int, Func<int, Token[], (INode, int)>> error = (message, token, pickupPoint) =>
+        public static readonly Func<string, Token, int, ParseFunc> error = (message, token, pickupPoint) =>
         {
             return (_, _) => throw new ParseException(token, message, pickupPoint);
         };

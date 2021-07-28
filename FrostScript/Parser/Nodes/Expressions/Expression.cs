@@ -17,7 +17,23 @@ namespace FrostScript.Nodes
 {
     public static class Expression
     {
-        public static readonly Func<int, Token[], (INode node, int pos)> expression = 
+        private static readonly ParseFunc grouping = (pos, tokens) =>
+        {
+            if (tokens[pos].Type is not TokenType.ParentheseOpen)
+                throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expected an expression. instead got \"{tokens[pos].Lexeme}\"", pos + 1);
+
+            var (node, newPos) = expression(pos + 1, tokens);
+            if (newPos >= tokens.Length || tokens[newPos].Type != TokenType.ParentheseClose)
+                throw new ParseException(
+                    tokens[newPos].Line,
+                    tokens[newPos].Character,
+                    $"Expected an expression. instead got \"{tokens[pos].Lexeme}\". Parenthese at {tokens[pos].Line},{tokens[pos].Character} not closed",
+                    newPos);
+
+            else return (node, newPos + 1);
+        };
+
+        public static readonly ParseFunc expression = 
             grouping
             .Pipe(primary)
             .Pipe(call)
@@ -40,20 +56,5 @@ namespace FrostScript.Nodes
             .Pipe(assign)
             .Pipe(bind);
 
-        private static readonly Func<int, Token[], (INode node, int pos)> grouping = (pos, tokens) =>
-        {
-            if (tokens[pos].Type is not TokenType.ParentheseOpen)
-                throw new ParseException(tokens[pos].Line, tokens[pos].Character, $"Expected an expression. instead got \"{tokens[pos].Lexeme}\"", pos + 1);
-
-            var (node, newPos) = expression(pos + 1, tokens);
-            if (newPos >= tokens.Length || tokens[newPos].Type != TokenType.ParentheseClose)
-                throw new ParseException(
-                    tokens[newPos].Line,
-                    tokens[newPos].Character,
-                    $"Expected an expression. instead got \"{tokens[pos].Lexeme}\". Parenthese at {tokens[pos].Line},{tokens[pos].Character} not closed",
-                    newPos);
-
-            else return (node, newPos + 1);
-        };
     }
 }

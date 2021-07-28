@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FrostScript.Nodes
 {
@@ -20,7 +16,7 @@ namespace FrostScript.Nodes
             Token = token;
         }
 
-        public static readonly Func<Func<TokenType, bool>, Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>>> binary = (checkTokens) => (next) => (pos, tokens) =>
+        public static readonly Func<Func<TokenType, bool>, Func<ParseFunc, ParseFunc>> binary = (checkTokens) => (next) => (pos, tokens) =>
         {
             var (node, newPos) = next(pos, tokens);
 
@@ -35,22 +31,22 @@ namespace FrostScript.Nodes
             return (node, newPos);
         };
 
-        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> equality =
+        public static readonly Func<ParseFunc, ParseFunc> equality =
             binary((tokenType) => tokenType is TokenType.Equal);
 
-        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> or =
+        public static readonly Func<ParseFunc, ParseFunc> or =
            binary((tokenType) => tokenType is TokenType.Or);
 
-        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> comparison = 
+        public static readonly Func<ParseFunc, ParseFunc> comparison = 
             binary((tokenType) => tokenType is TokenType.GreaterThen or TokenType.GreaterOrEqual or TokenType.LessThen or TokenType.LessOrEqual);
 
-        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> term =
+        public static readonly Func<ParseFunc, ParseFunc> term =
             binary((tokenType) => tokenType is TokenType.Plus or TokenType.Minus);
 
-        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> factor = 
+        public static readonly Func<ParseFunc, ParseFunc> factor = 
             binary((tokenType) => tokenType is TokenType.Star or TokenType.Slash);
 
-        public static readonly Func<Func<int, Token[], (INode node, int pos)>, Func<int, Token[], (INode node, int pos)>> pipe =
+        public static readonly Func<ParseFunc, ParseFunc> pipe =
             binary((tokenType) => tokenType is TokenType.PipeOp);
     }
 }
