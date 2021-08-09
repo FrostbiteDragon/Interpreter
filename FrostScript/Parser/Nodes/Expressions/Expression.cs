@@ -52,9 +52,10 @@ namespace FrostScript.Nodes
             .Pipe(or)
             //statements
             .Pipe(@while)
-            //.Pipe(@for)
+            .Pipe(@for)
             .Pipe(assign)
             .Pipe(bind);
 
+        public static readonly ParseFunc none = (pos, _) => (null, pos);
     }
 }

@@ -9,38 +9,40 @@ namespace FrostScript.Nodes
 {
     public class BlockNode : INode
     {
+        public Token Token { get; }
         public INode[] Body { get; }
 
-        public BlockNode(INode[] body)
+        public BlockNode(Token token, INode[] body)
         {
+            Token = token;
             Body = body;
         }
 
-        public static readonly Func<ParseFunc, ParseFunc> block = (next) => (initialPos, tokens) =>
+        public static readonly Func<ParseFunc, ParseFunc> block = (next) => (pos, tokens) =>
         {
-            if (tokens[initialPos].Type is not (TokenType.Pipe or TokenType.ReturnPipe))
-                return next(initialPos, tokens);
+            if (tokens[pos].Type is not (TokenType.Pipe or TokenType.ReturnPipe))
+                return next(pos, tokens);
 
-            var pos = initialPos;
-            var statements = GetBlockStatements(initialPos).ToList();
+            var currentPos = pos;
+            var statements = GetBlockStatements(pos).ToList();
             IEnumerable<INode> GetBlockStatements(int initialPos)
             {
-                while (tokens[pos].Type is TokenType.Pipe)
+                while (tokens[currentPos].Type is TokenType.Pipe)
                 {
-                    var (statement, newPos) = Expression.expression(pos + 1, tokens);
-                    pos = newPos;
+                    var (statement, newPos) = Expression.expression(currentPos + 1, tokens);
+                    currentPos = newPos;
 
                     yield return statement;
                 }
             }
 
-            if (tokens[pos].Type is not TokenType.ReturnPipe)
-                return (new BlockNode(statements.Append(new LiteralNode(new(TokenType.Void))).ToArray()), pos);
+            if (tokens[currentPos].Type is not TokenType.ReturnPipe)
+                return (new BlockNode(tokens[pos], statements.Append(new LiteralNode(new(TokenType.Void))).ToArray()), currentPos);
             else
             {
-                var (expression, newPos) = Expression.expression(pos + 1, tokens);
+                var (expression, newPos) = Expression.expression(currentPos + 1, tokens);
                 statements.Add(expression);
-                return (new BlockNode(statements.ToArray()), newPos);
+                return (new BlockNode(tokens[pos], statements.ToArray()), newPos);
             }
 
         };

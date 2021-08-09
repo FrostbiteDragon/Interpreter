@@ -8,11 +8,13 @@ namespace FrostScript.Nodes
 {
     public class CallNode : INode
     {
+        public Token Token { get; }
         public INode Callee { get; init; }
         public INode Argument { get; init; }
 
-        public CallNode(INode callee, INode argument)
+        public CallNode(Token token, INode callee, INode argument)
         {
+            Token = token;
             Callee = callee;
             Argument = argument;
         }
@@ -27,7 +29,7 @@ namespace FrostScript.Nodes
             {
                 if (tokens[currentPos + 1].Type is TokenType.ParentheseClose)
                     return (
-                        new CallNode(callee, new LiteralNode(new(TokenType.Void))),
+                        new CallNode(tokens[newPos], callee, new LiteralNode(new(TokenType.Void))),
                         currentPos + 2
                     );
 
@@ -36,7 +38,7 @@ namespace FrostScript.Nodes
                 if (tokens[argumentPos].Type is not TokenType.ParentheseClose)
                     throw new ParseException(tokens[argumentPos].Line, tokens[argumentPos].Character, $"Expected ')' but got {tokens[pos].Lexeme}", argumentPos + 1);
 
-                callee = new CallNode(callee, argument);
+                callee = new CallNode(tokens[newPos], callee, argument);
                 currentPos = argumentPos + 1;
             }
 
@@ -54,12 +56,12 @@ namespace FrostScript.Nodes
             {
                 if (tokens[currentPos + 1].Type is TokenType.Colon)
                     return (
-                        new CallNode(callee, new LiteralNode(new(TokenType.Void))),
+                        new CallNode(tokens[newPos], callee, new LiteralNode(new(TokenType.Void))),
                         currentPos + 1
                     );
 
                 var (argument, argumentPos) = Expression.expression(currentPos + 1, tokens);
-                callee = new CallNode(callee, argument);
+                callee = new CallNode(tokens[newPos], callee, argument);
                 currentPos = argumentPos;
             }
 

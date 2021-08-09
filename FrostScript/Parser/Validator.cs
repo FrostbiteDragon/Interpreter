@@ -66,18 +66,24 @@ namespace FrostScript
                     return new While(condition, body);
                 })(),
 
-                //ForNode forNode => new Func<IExpression>(() =>
-                //{
-                //    var bind = Convert(forNode.Bind, identifiers);
+                ForNode forNode => new Func<IExpression>(() =>
+                {
+                    if (forNode.Bind is not (BindNode or null))
+                        throw new ValidationException(forNode.Bind.Token, $"The first expression of a for loop must be a bind expression");
 
-                //    var condition = Convert(forNode.Condition, identifiers);
+                    if (forNode.Assign is not (AssignNode or null))
+                        throw new ValidationException(forNode.Bind.Token, $"The third expression of a for loop must be an assignment expression");
 
-                //    var bodyIdentifiers = new SoftCopyDictionary<string, (IDataType Type, bool Mutable)>(identifiers);
+                    var bind = (Bind)Convert(forNode.Bind, identifiers);
+                    var condition = Convert(forNode.Condition, identifiers);
+                    var assign = (Assign)Convert(forNode.Assign, identifiers);
 
-                //    var body = forNode.Body.Select(x => Convert(x, bodyIdentifiers)).ToArray();
+                    var bodyIdentifiers = new SoftCopyDictionary<string, (IDataType Type, bool Mutable)>(identifiers);
 
-                //    return new For(condition, body);
-                //})(),
+                    var body = forNode.Body.Select(x => Convert(x, bodyIdentifiers)).ToArray();
+
+                    return new For(bind, condition, assign, body);
+                })(),
 
                 WhenNode ifNode => new Func<IExpression>(() =>
                 {
@@ -99,7 +105,7 @@ namespace FrostScript
                 BinaryNode binaryNode => new Func<IExpression>(() =>
                 {
                     if (binaryNode.Token.Type is TokenType.PipeOp)
-                        return Convert(new CallNode(binaryNode.Right, binaryNode.Left), identifiers);
+                        return Convert(new CallNode(binaryNode.Token, binaryNode.Right, binaryNode.Left), identifiers);
 
                     var left = Convert(binaryNode.Left, identifiers);
                     var right = Convert(binaryNode.Right, identifiers);
@@ -197,6 +203,8 @@ namespace FrostScript
                         new Identifier(identifiers[literalNode.Token.Lexeme].Type, literalNode.Token.Lexeme) :
                         throw new ValidationException(literalNode.Token, $"Identifier {literalNode.Token.Lexeme} is out of scope or does not exist")
                 },
+
+                null => null,
 
                 _ => throw new NotImplementedException()
             };

@@ -10,17 +10,17 @@ namespace FrostScript.Nodes
     public class ForNode : INode
     {
         public Token Token { get; }
-        public BindNode Bind { get; }
-        public (INode value, bool direction)? Crement { get; }
+        public INode Bind { get; }
         public INode Condition { get; }
+        public INode Assign { get; }
         public INode[] Body { get; }
 
-        public ForNode(Token token, BindNode bind, (INode value, bool direction)? increment, INode condition, INode[] body)
+        public ForNode(Token token, INode bind, INode condition, INode assign, INode[] body)
         {
             Token = token;
             Bind = bind;
-            Crement = increment;
             Condition = condition;
+            Assign = assign;
             Body = body;
         }
 
@@ -28,39 +28,44 @@ namespace FrostScript.Nodes
         {
             if (tokens[pos].Type is not TokenType.For)
                 return next(pos, tokens);
-
-            BindNode bind = null;
+           
             var currentPos = pos + 1;
-            if (tokens[currentPos].Type is not (TokenType.Increment or TokenType.Decrement or TokenType.While))
+            var nodes = GetForExpressions().ToArray();
+            IEnumerable<INode> GetForExpressions()
             {
-                var result = 
-                    Parser.error("Expected bind expression", tokens[currentPos], currentPos + 1)
-                    .Pipe(BindNode.bind)(currentPos, tokens);
+                for (int i = 0; tokens[currentPos].Type is not TokenType.BraceOpen || i < 3; i++)
+                {
+                    if (i == 2 && tokens[currentPos].Type is TokenType.BraceOpen)
+                    {
+                        yield return null;
+                        break;
+                    }
 
-                bind = result.node as BindNode;
-                currentPos = result.pos;
-            }
+                    if (tokens[currentPos].Type is TokenType.Comma)
+                    {
+                        yield return null;
+                        currentPos++;
+                        continue;
+                    }
 
-            (INode value, bool crement)? crement = null;
-            if (tokens[currentPos].Type is TokenType.Increment or TokenType.Decrement)
-            {
-                var result = Expression.expression(currentPos + 1, tokens);
-                crement = (result.node, tokens[currentPos].Type is TokenType.Increment);
-                currentPos = result.pos;
-            }
+                    var (node, newPos) = Expression.expression(currentPos, tokens);
+                    yield return node;
+                    currentPos = newPos;
 
-            INode condition = null;
-            if (tokens[currentPos].Type is TokenType.While)
-            {
-                var result = Expression.expression(currentPos + 1, tokens);
-                condition = result.node;
-                currentPos = result.pos;
+                    if (i < 2)
+                    {
+                        if (tokens[currentPos].Type is not TokenType.Comma)
+                            throw new ParseException(tokens[currentPos], $"Expected ','", currentPos + 1);
+                        currentPos++;
+                    }
+                }
             }
 
             if (tokens[currentPos].Type is not TokenType.BraceOpen)
-                throw new ParseException(tokens[currentPos], $"Expected '{{' but got {tokens[currentPos]}", currentPos + 1);
+                throw new ParseException(tokens[currentPos], $"Expected '{{'", currentPos + 1);
 
-            currentPos += 1;
+            currentPos++;
+            var body = GetBody().ToArray();
             IEnumerable<INode> GetBody()
             {
                 for (; tokens[currentPos].Type is not (TokenType.BraceClose or TokenType.Eof);)
@@ -71,10 +76,12 @@ namespace FrostScript.Nodes
                 }
 
                 if (tokens[currentPos].Type is not TokenType.BraceClose)
-                    throw new ParseException(tokens.Last(), $"Expected '}}'. When was not closed", currentPos + 1);
+                    throw new ParseException(tokens.Last(), $"Expected '}}'. for was not closed", currentPos + 1);
+                currentPos++;
             }
 
-            return (new ForNode(tokens[pos], bind, crement, condition, GetBody().ToArray()), currentPos + 1);
+
+            return (new ForNode(tokens[pos], nodes[0], nodes[1], nodes[2], body), currentPos);
         };
     }
 }

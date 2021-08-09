@@ -8,12 +8,14 @@ namespace FrostScript.Nodes
 {
     public class BindNode : INode
     {
+        public Token Token { get; }
         public string Id { get; }
         public INode Value { get; }
         public bool Mutable { get; }
 
-        public BindNode(string id, INode value, bool mutable)
+        public BindNode(Token token, string id, INode value, bool mutable)
         {
+            Token = token;
             Id = id;
             Value = value;
             Mutable = mutable;
@@ -33,7 +35,7 @@ namespace FrostScript.Nodes
 
             var (value, newPos) = Expression.expression(pos + 3, tokens);
 
-            return (new BindNode(id, value, mutability), newPos);
+            return (new BindNode(tokens[pos], id, value, mutability), newPos);
         };
     }
 }

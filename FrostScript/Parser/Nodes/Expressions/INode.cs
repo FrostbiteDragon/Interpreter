@@ -8,5 +8,6 @@ namespace FrostScript.Nodes
 {
     public interface INode
     {
+        Token Token { get; }
     }
 }

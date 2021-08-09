@@ -1,6 +1,5 @@
 ﻿using FrostScript.DataTypes;
 using FrostScript.Expressions;
-using FrostScript.Expressions;
 using Frostware.Result;
 using System;
 using System.Collections.Generic;
@@ -116,28 +115,21 @@ namespace FrostScript
 
                     return null;
 
-                //        case For @for:
+                case For @for:
 
-                //            //ExecuteStatement(@for.Bind, variables);
+                    if (@for.Bind is not null)
+                        ExecuteExpression(@for.Bind, variables);
 
-                //            //var bindValue = (double)ExecuteExpression(@for.Bind.Value, variables);
+                    while (@for.Condition is null || (bool)ExecuteExpression(@for.Condition, variables))
+                    {
+                        foreach (var bodyExpression in @for.Body)
+                            ExecuteExpression(bodyExpression, variables);
 
-                //            //while ((bool)ExecuteExpression(@for.EndExpression, variables))
-                //            //{
-                //            //    foreach (var bodyStatement in @for.Body)
-                //            //        ExecuteStatement(bodyStatement, variables);
+                        if (@for.Assign is not null)
+                        ExecuteExpression(@for.Assign, variables);
+                    }
 
-                //            //    bindValue += @for.Crement switch
-                //            //    {
-                //            //        Crement.Increment => 1,
-                //            //        Crement.Decrement => -1,
-                //            //        _ => throw new ArgumentOutOfRangeException(nameof(@for.Crement))
-                //            //    };
-
-                //            //    ExecuteStatement(new Assign(@for.Bind.Id, new Literal(DataType.Int, bindValue)), variables);
-                //            //}
-
-                //            break;
+                    return null;
 
 
                 default: throw new NotImplementedException();

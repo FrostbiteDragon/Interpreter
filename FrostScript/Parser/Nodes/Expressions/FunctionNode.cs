@@ -1,6 +1,5 @@
 ﻿using FrostScript.DataTypes;
 using FrostScript.Expressions;
-using FrostScript.Expressions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,11 +10,13 @@ namespace FrostScript.Nodes
 {
     public class FunctionNode : INode
     {
+        public Token Token { get; }
         public Parameter Parameter { get; }
         public INode Body { get; }
 
-        public FunctionNode(Parameter parameter, INode body)
+        public FunctionNode(Token token, Parameter parameter, INode body)
         {
+            Token = token;
             Parameter = parameter;
             Body = body;
         }
@@ -43,17 +44,17 @@ namespace FrostScript.Nodes
 
             if (parameters.Count == 0)
             {
-                function = new FunctionNode(new Parameter("", DataType.Void), body);
+                function = new FunctionNode(tokens[pos], new Parameter("", DataType.Void), body);
             }
             else
             {
                 foreach (var parameter in parameters.Reverse<Parameter>())
                 {
                     if (function is null)
-                        function = new FunctionNode(parameter, body);
+                        function = new FunctionNode(tokens[pos], parameter, body);
                     else
                     {
-                        function = new FunctionNode(parameter, function);
+                        function = new FunctionNode(tokens[pos], parameter, function);
                     }
                 }
             }
