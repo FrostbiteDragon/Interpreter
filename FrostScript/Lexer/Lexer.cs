@@ -99,11 +99,6 @@ namespace FrostScript
                                 "false" => new Token(TokenType.False, line, characterPos, word, false),
                                 "void" => new Token(TokenType.Void, line, characterPos, word),
 
-                                "for" => new Token(TokenType.For, line, characterPos, word),
-                                "to" => new Token(TokenType.To, line, characterPos, word),
-                                "downto" => new Token(TokenType.DownTo, line, characterPos, word),
-                                "while" => new Token(TokenType.While, line, characterPos, word),
-
                                 "fun" => new Token(TokenType.Fun, line, characterPos, word),
 
                                 "and" => new Token(TokenType.And, line, characterPos, word),
@@ -117,11 +112,16 @@ namespace FrostScript
                                 "string" => new Token(TokenType.StringType, line, characterPos, word),
                                 "bool" => new Token(TokenType.BoolType, line, characterPos, word),
 
+                                "for" => new Token(TokenType.For, line, characterPos, word),
+                                "while" => new Token(TokenType.While, line, characterPos, word),
+
                                 "increment" => new Token(TokenType.Increment, line, characterPos, word),
                                 "incr" => new Token(TokenType.Increment, line, characterPos, word),
                                 "decrement" => new Token(TokenType.Decrement, line, characterPos, word),
                                 "decr" => new Token(TokenType.Decrement, line, characterPos, word),
                                 "by" => new Token(TokenType.By, line, characterPos, word),
+                                "yield" => new Token(TokenType.Yield, line, characterPos, word),
+
 
                                 //new id
                                 _ => new Token(TokenType.Id, line, i + 1, word)

@@ -89,7 +89,10 @@ namespace FrostScript.Nodes
             {
                 for (; tokens[currentPos].Type is not (TokenType.BraceClose or TokenType.Eof);)
                 {
-                    var result = Expression.expression(currentPos, tokens);
+                    var result = Expression.expression
+                        .Pipe(YieldNode.yield)
+                        (currentPos, tokens);
+
                     currentPos = result.pos;
                     yield return result.node;
                 }
@@ -101,5 +104,6 @@ namespace FrostScript.Nodes
 
             return (new LoopNode(tokens[pos], bind, condition, assignment, body), currentPos);
         };
+
     }
 }

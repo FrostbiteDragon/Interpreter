@@ -111,19 +111,29 @@ namespace FrostScript
                     if (loop.Bind is not null)
                         ExecuteExpression(loop.Bind, variables);
 
-                    while (loop.Condition is null || (bool)ExecuteExpression(loop.Condition, variables))
+                    var values = GetValue();
+                    IEnumerable<dynamic> GetValue()
                     {
-                        foreach (var bodyExpression in loop.Body)
-                            ExecuteExpression(bodyExpression, variables);
 
-                        if (loop.Assign is not null)
-                        ExecuteExpression(loop.Assign, variables);
+                        while (loop.Condition is null || (bool)ExecuteExpression(loop.Condition, variables))
+                        {
+                            foreach (var bodyExpression in loop.Body)
+                            {
+                                if (bodyExpression is Yield yield)
+                                    yield return ExecuteExpression(yield.Value, variables);
+                                else
+                                    ExecuteExpression(bodyExpression, variables);
+                            }
+
+                            if (loop.Assign is not null)
+                                ExecuteExpression(loop.Assign, variables);
+                        }
                     }
 
-                    return null;
+                    return values.Any() ? values.ToArray() : null;
 
 
-                default: throw new NotImplementedException();
+                default: throw new NotImplementedException($"{expression}");
             };
         }
     }

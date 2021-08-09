@@ -13,7 +13,7 @@ namespace FrostScript.Expressions
         public IExpression Condition { get; }
         public Assign Assign { get; }
         public IExpression[] Body { get; }
-        public IDataType Type => DataType.Void;
+        public IDataType Type => Body.Any(x => x is Yield) ? Body.First(x => x is Yield).Type : DataType.Void;
 
         public Loop(Bind bind, IExpression condition, Assign assign, IExpression[] body)
         {

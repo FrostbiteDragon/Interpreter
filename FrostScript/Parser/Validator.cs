@@ -55,6 +55,15 @@ namespace FrostScript
                     return assign;
                 })(),
 
+                YieldNode yieldNode => new Func<IExpression>(() =>
+                {
+                    var value = Convert(yieldNode.Value, identifiers);
+                    if (value.Type == DataType.Void)
+                        throw new ValidationException(yieldNode.Token, $"Cannot yield void");
+
+                    return new Yield(value);
+                })(),
+
                 LoopNode loopNode => new Func<IExpression>(() =>
                 {
                     if (loopNode.Bind is not (BindNode or null))
@@ -69,9 +78,14 @@ namespace FrostScript
 
                     var bodyIdentifiers = new SoftCopyDictionary<string, (IDataType Type, bool Mutable)>(identifiers);
 
-                    var body = loopNode.Body.Select(x => Convert(x, bodyIdentifiers)).ToArray();
+                    var body = loopNode.Body.Select(x => Convert(x, bodyIdentifiers));
 
-                    return new Loop(bind, condition, assign, body);
+                    var yields = body.Where(x => x is Yield);
+                    var firstYield = yields.FirstOrDefault();
+                    if (firstYield is not null && yields.Any(x => x.Type != firstYield.Type))
+                        throw new ValidationException(loopNode.Token, $"All yields in a iterator loop must return the same type");
+
+                    return new Loop(bind, condition, assign, body.ToArray());
                 })(),
 
                 WhenNode ifNode => new Func<IExpression>(() =>

@@ -42,10 +42,11 @@ namespace FrostScript
         If, Else, When, 
         Print,
         True, False,
-        For, To, DownTo, While,
         Var, Let,
         Fun,
+        For, While,
         Increment, Decrement, By,
+        Yield,
 
         //types
         IntType,
