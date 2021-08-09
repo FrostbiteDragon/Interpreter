@@ -14,7 +14,17 @@ namespace FrostScript.NativeFunctions
 
         public object Call(object argument)
         {
-            Console.WriteLine(argument);
+
+            if (argument is ICollection<dynamic> collection)
+            {
+                Console.WriteLine("List: ");
+                foreach (var item in collection)
+                    Console.WriteLine($"    {item}");
+
+            }
+            else
+                Console.WriteLine(argument);
+
             return null;
         }
 
