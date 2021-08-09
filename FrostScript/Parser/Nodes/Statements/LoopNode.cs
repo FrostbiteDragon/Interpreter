@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Frostware.Pipe;
 
 namespace FrostScript.Nodes
@@ -34,6 +32,7 @@ namespace FrostScript.Nodes
             INode assignment = null;
 
             var currentPos = pos;
+
             //bind
             if (tokens[currentPos].Type is TokenType.For)
             {
@@ -104,6 +103,5 @@ namespace FrostScript.Nodes
 
             return (new LoopNode(tokens[pos], bind, condition, assignment, body), currentPos);
         };
-
     }
 }
