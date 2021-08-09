@@ -75,10 +75,5 @@ namespace FrostScript
         public bool TryGetValue(TKey key, out TValue value) => original.TryGetValue(key, out value) || current.TryGetValue(key, out value);
 
         IEnumerator IEnumerable.GetEnumerator() => original.AsEnumerable().Union(current.AsEnumerable()).GetEnumerator();
-
-        //public static implicit operator SoftCopyDictionary<TKey, TValue>(Dictionary<TKey, TValue> dictionary)
-        //{
-        //    return new SoftCopyDictionary<TKey, TValue>(dictionary);
-        //}
     }
 }
