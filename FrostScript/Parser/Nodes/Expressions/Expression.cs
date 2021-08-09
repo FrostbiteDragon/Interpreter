@@ -9,8 +9,7 @@ using static FrostScript.Nodes.BlockNode;
 using static FrostScript.Nodes.UnaryNode;
 using static FrostScript.Nodes.BindNode;
 using static FrostScript.Nodes.WhenNode;
-using static FrostScript.Nodes.WhileNode;
-using static FrostScript.Nodes.ForNode;
+using static FrostScript.Nodes.LoopNode;
 using static FrostScript.Nodes.AssignNode;
 
 namespace FrostScript.Nodes
@@ -51,8 +50,8 @@ namespace FrostScript.Nodes
             .Pipe(and)
             .Pipe(or)
             //statements
-            .Pipe(@while)
-            .Pipe(@for)
+            //.Pipe(@while)
+            .Pipe(loop)
             .Pipe(assign)
             .Pipe(bind);
 

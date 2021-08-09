@@ -45,7 +45,7 @@ namespace FrostScript
         For, To, DownTo, While,
         Var, Let,
         Fun,
-        Increment, Decrement,
+        Increment, Decrement, By,
 
         //types
         IntType,

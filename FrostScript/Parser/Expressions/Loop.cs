@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FrostScript.Expressions
 {
-    public class For : IExpression
+    public class Loop : IExpression
     {
         public Bind Bind { get; }
         public IExpression Condition { get; }
@@ -15,7 +15,7 @@ namespace FrostScript.Expressions
         public IExpression[] Body { get; }
         public IDataType Type => DataType.Void;
 
-        public For(Bind bind, IExpression condition, Assign assign, IExpression[] body)
+        public Loop(Bind bind, IExpression condition, Assign assign, IExpression[] body)
         {
             Bind = bind;
             Condition = condition;

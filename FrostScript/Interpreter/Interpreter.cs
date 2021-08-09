@@ -106,27 +106,18 @@ namespace FrostScript
                 var callable = callee as ICallable;
                 return callable.Call(ExecuteExpression(call.Argument, variables));
 
-                case While @while:
-                    while (ExecuteExpression(@while.Condition, variables))
+                case Loop loop:
+
+                    if (loop.Bind is not null)
+                        ExecuteExpression(loop.Bind, variables);
+
+                    while (loop.Condition is null || (bool)ExecuteExpression(loop.Condition, variables))
                     {
-                        foreach (var bodyStatement in @while.Body)
-                            ExecuteExpression(bodyStatement, variables);
-                    }
-
-                    return null;
-
-                case For @for:
-
-                    if (@for.Bind is not null)
-                        ExecuteExpression(@for.Bind, variables);
-
-                    while (@for.Condition is null || (bool)ExecuteExpression(@for.Condition, variables))
-                    {
-                        foreach (var bodyExpression in @for.Body)
+                        foreach (var bodyExpression in loop.Body)
                             ExecuteExpression(bodyExpression, variables);
 
-                        if (@for.Assign is not null)
-                        ExecuteExpression(@for.Assign, variables);
+                        if (loop.Assign is not null)
+                        ExecuteExpression(loop.Assign, variables);
                     }
 
                     return null;

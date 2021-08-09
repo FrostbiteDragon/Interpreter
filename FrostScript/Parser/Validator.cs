@@ -55,34 +55,23 @@ namespace FrostScript
                     return assign;
                 })(),
 
-                WhileNode whileNode => new Func<IExpression>(() =>
+                LoopNode loopNode => new Func<IExpression>(() =>
                 {
-                    var condition = Convert(whileNode.Condition, identifiers);
+                    if (loopNode.Bind is not (BindNode or null))
+                        throw new ValidationException(loopNode.Bind.Token, $"The first expression of a for loop must be a bind expression");
+
+                    if (loopNode.Assign is not (AssignNode or null))
+                        throw new ValidationException(loopNode.Bind.Token, $"The third expression of a for loop must be an assignment expression");
+
+                    var bind = (Bind)Convert(loopNode.Bind, identifiers);
+                    var condition = Convert(loopNode.Condition, identifiers);
+                    var assign = (Assign)Convert(loopNode.Assign, identifiers);
 
                     var bodyIdentifiers = new SoftCopyDictionary<string, (IDataType Type, bool Mutable)>(identifiers);
 
-                    var body = whileNode.Body.Select(x => Convert(x, bodyIdentifiers)).ToArray();
+                    var body = loopNode.Body.Select(x => Convert(x, bodyIdentifiers)).ToArray();
 
-                    return new While(condition, body);
-                })(),
-
-                ForNode forNode => new Func<IExpression>(() =>
-                {
-                    if (forNode.Bind is not (BindNode or null))
-                        throw new ValidationException(forNode.Bind.Token, $"The first expression of a for loop must be a bind expression");
-
-                    if (forNode.Assign is not (AssignNode or null))
-                        throw new ValidationException(forNode.Bind.Token, $"The third expression of a for loop must be an assignment expression");
-
-                    var bind = (Bind)Convert(forNode.Bind, identifiers);
-                    var condition = Convert(forNode.Condition, identifiers);
-                    var assign = (Assign)Convert(forNode.Assign, identifiers);
-
-                    var bodyIdentifiers = new SoftCopyDictionary<string, (IDataType Type, bool Mutable)>(identifiers);
-
-                    var body = forNode.Body.Select(x => Convert(x, bodyIdentifiers)).ToArray();
-
-                    return new For(bind, condition, assign, body);
+                    return new Loop(bind, condition, assign, body);
                 })(),
 
                 WhenNode ifNode => new Func<IExpression>(() =>
