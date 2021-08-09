@@ -2,9 +2,6 @@
 using FrostScript.Expressions;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FrostScript.NativeFunctions
 {
@@ -20,7 +17,6 @@ namespace FrostScript.NativeFunctions
                 Console.WriteLine("List: ");
                 foreach (var item in collection)
                     Console.WriteLine($"    {item}");
-
             }
             else
                 Console.WriteLine(argument);
