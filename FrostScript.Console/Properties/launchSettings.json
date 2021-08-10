@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "FrostScript.Console": {
+      "commandName": "Project",
+      "commandLineArgs": "\"test.frs\""
+    }
+  }
+}
