@@ -15,7 +15,7 @@ It's primary purpose is for learning the lower-level code, techniques, and proce
 # Getting Started
 1. Clone the repo
 2. Open solution in Visual Studio
-3. Write FrostScript in FrostScrip.Console/test.frs
+3. Write FrostScript in FrostScript.Console/test.frs
 4. Run solution
 
 # Technologies
