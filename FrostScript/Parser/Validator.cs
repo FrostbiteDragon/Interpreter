@@ -72,13 +72,15 @@ namespace FrostScript
                     if (loopNode.Assign is not (AssignNode or null))
                         throw new ValidationException(loopNode.Bind.Token, $"The third expression of a for loop must be an assignment expression");
 
-                    var bind = (Bind)Convert(loopNode.Bind, identifiers);
-                    var condition = Convert(loopNode.Condition, identifiers);
-                    var assign = (Assign)Convert(loopNode.Assign, identifiers);
+                    SoftCopyDictionary<string, (IDataType Type, bool Mutable)> loopIdentifiers = new (identifiers);
 
-                    var bodyIdentifiers = new SoftCopyDictionary<string, (IDataType Type, bool Mutable)>(identifiers);
+                    var bind = (Bind)Convert(loopNode.Bind, loopIdentifiers);
+                    if (bind is not null)
+                        loopIdentifiers[bind.Id] = (bind.Value.Type, true);
 
-                    var body = loopNode.Body.Select(x => Convert(x, bodyIdentifiers));
+                    var condition = Convert(loopNode.Condition, loopIdentifiers);
+                    var assign = (Assign)Convert(loopNode.Assign, loopIdentifiers);
+                    var body = loopNode.Body.Select(x => Convert(x, loopIdentifiers));
 
                     var yields = body.Where(x => x is Yield);
                     var firstYield = yields.FirstOrDefault();
