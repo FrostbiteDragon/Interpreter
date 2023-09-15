@@ -12,8 +12,10 @@ module Interpreter =
                     let right = execute right :?> double
 
                     match token.Type with
-                    | Plus -> box (left + right) 
+                    | Plus  -> box (left + right) 
                     | Minus -> box (left - right)
+                    | Slash -> box (left / right)
+                    | Star  -> box (left * right)
                     | _ -> ()
 
             | Expression.PrimaryExpression (token, _) -> 

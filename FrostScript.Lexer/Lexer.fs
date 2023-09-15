@@ -20,6 +20,7 @@ module Lexer =
                 | '.' -> yield {Type = Period; Lexeme = "."; Literal = None; Line = line; Character = character}
                 | '+' -> yield {Type = Plus; Lexeme = "+"; Literal = None; Line = line; Character = character}
                 | '*' -> yield {Type = Star; Lexeme = "*"; Literal = None; Line = line; Character = character}
+                | '/' -> yield {Type = Slash; Lexeme = "/"; Literal = None; Line = line; Character = character}
                 | ';' -> yield {Type = SemiColon; Lexeme = ";"; Literal = None; Line = line; Character = character}
                 | ':' -> yield {Type = Colon; Lexeme = ":"; Literal = None; Line = line; Character = character}
                 | '-' -> 

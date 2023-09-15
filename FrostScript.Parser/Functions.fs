@@ -7,20 +7,18 @@ module Functions =
         if list |> List.isEmpty then []
         else list |> List.skip count
 
-    let matchType validTypes tokenType =
-        validTypes |> List.contains tokenType
 
     let primary (next : ParserFunction) : ParserFunction = fun tokens -> 
         match (List.head tokens).Type with
         | Number | String -> (PrimaryNode (List.head tokens), tokens |> skipOrEmpty 1)
         | _ -> next tokens
 
-    let binary (next : ParserFunction) : ParserFunction = fun tokens -> 
+    let binary validTypes (next : ParserFunction) : ParserFunction = fun tokens -> 
         let (node, tokens) = next tokens
         let mutable node = node
         let mutable tokens = tokens
 
-        while List.isEmpty tokens |> not && (List.head tokens).Type |> matchType [Plus; Minus] do
+        while List.isEmpty tokens |> not && validTypes |> List.contains (List.head tokens).Type do
             let (rightNode, newTokens) = next (tokens |> skipOrEmpty 1)
 
             let binaryNode = BinaryNode (List.head tokens, node, rightNode)
@@ -29,6 +27,8 @@ module Functions =
 
         (node, tokens)
 
+    let term = binary [Plus; Minus]
+    let factor = binary [Star; Slash]
     
     let expression : ParserFunction =
         let stop : ParserFunction = fun tokens ->
@@ -36,6 +36,5 @@ module Functions =
 
         stop
         |> primary
-        |> binary
-
-        
+        |> factor
+        |> term

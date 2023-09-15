@@ -8,4 +8,3 @@ module FrostScript =
         |> Parser.parse 
         |> Validator.validate 
         |> Interpreter.interpret
-        
