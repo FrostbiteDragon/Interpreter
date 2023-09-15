@@ -32,6 +32,7 @@ module Lexer =
                         | _ -> 
                             {Type = Minus; Lexeme = "-"; Literal = None; Line = line; Character = character}
 
+                //strings
                 | '"' ->
                     if chars
                         |> List.skip (i + 1)
@@ -52,6 +53,7 @@ module Lexer =
                         i <- i + word.Length + 1
                         character <- character + word.Length + 1
 
+                //labels
                 | _ when System.Char.IsLetter chars.[i] ->
                     let word = 
                         new string (chars
@@ -66,14 +68,31 @@ module Lexer =
                     i <- i + word.Length - 1
                     character <- character + word.Length
 
+                //numbers
                 | _ when System.Char.IsDigit chars.[i] ->
-                    let number = 
-                        new string (chars
-                        |> List.skip i
+                    let getNumber chars = 
+                        chars
                         |> List.takeWhile (fun x -> System.Char.IsDigit x)
-                        |> List.toArray)
+                        |> List.toArray
 
-                    yield {Type = Int; Lexeme = number; Literal = Some (int number); Line = line; Character = character}
+                    let wholeNumber = getNumber (chars |> List.skip i)
+
+                    let number = 
+                        if chars.Length > i + wholeNumber.Length && chars.[i + wholeNumber.Length] = '.' then
+                            let decimals = getNumber (chars |> List.skip (i + wholeNumber.Length + 1))
+                            new string(
+                                wholeNumber
+                                |> Array.append [|'.'|]
+                                |> Array.append decimals
+                                |> Array.rev
+                            )
+                        else
+                            new string(wholeNumber)
+
+                    i <- i + number.Length - 1
+                    character <- character + number.Length - 1
+
+                    yield {Type = Number; Lexeme = number; Literal = Some (double number); Line = line; Character = character}
 
                 //ignore whitespace
                 | ' ' | '\t' -> ()

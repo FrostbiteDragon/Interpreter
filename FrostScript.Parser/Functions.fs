@@ -12,7 +12,7 @@ module Functions =
 
     let primary (next : ParserFunction) : ParserFunction = fun tokens -> 
         match (List.head tokens).Type with
-        | Int | String -> (Primary (List.head tokens), tokens |> skipOrEmpty 1)
+        | Number | String -> (PrimaryNode (List.head tokens), tokens |> skipOrEmpty 1)
         | _ -> next tokens
 
     let binary (next : ParserFunction) : ParserFunction = fun tokens -> 
@@ -23,7 +23,7 @@ module Functions =
         while List.isEmpty tokens |> not && (List.head tokens).Type |> matchType [Plus; Minus] do
             let (rightNode, newTokens) = next (tokens |> skipOrEmpty 1)
 
-            let binaryNode = Binary (List.head tokens, node, rightNode)
+            let binaryNode = BinaryNode (List.head tokens, node, rightNode)
             tokens <- newTokens
             node <- binaryNode
 

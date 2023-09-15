@@ -2,5 +2,5 @@
 
 type Node = 
 | Stop
-| Primary of Token
-| Binary of Token * Left : Node * Right : Node
+| PrimaryNode of Token
+| BinaryNode of Token * Left : Node * Right : Node

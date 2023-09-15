@@ -1,8 +1,8 @@
 ﻿namespace FrostScript.Core
 
 type DataType =
-| Int
+| NumberType
 
 type Expression =
-| Binary of Token * DataType * Left : Expression * Right : Expression
-| Primary of Token * DataType
+| BinaryExpression of Token * DataType * Left : Expression * Right : Expression
+| PrimaryExpression of Token * DataType

@@ -5,16 +5,18 @@ module Interpreter =
     let interpret : Interpreter = fun expressions ->
         let rec execute (expression : Expression) : obj =
             match expression with
-            | Expression.Binary (token, dataType, left, right) -> 
-                let left = execute left :?> int
-                let right = execute right :?> int
+            | Expression.BinaryExpression (token, dataType, left, right) ->
+                match dataType with
+                | NumberType -> 
+                    let left = execute left :?> double
+                    let right = execute right :?> double
 
-                match token.Type with
-                | Plus -> box (left + right) 
-                | Minus -> box (left - right)
-                | _ -> ()
+                    match token.Type with
+                    | Plus -> box (left + right) 
+                    | Minus -> box (left - right)
+                    | _ -> ()
 
-            | Expression.Primary (token, _) -> 
+            | Expression.PrimaryExpression (token, _) -> 
                 match token.Literal with
                 | Some value -> value
                 | _ -> ()

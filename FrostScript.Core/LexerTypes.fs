@@ -24,7 +24,7 @@ type TokenType =
 //functional oparators
 | PipeOp
 //literals
-| Int | Double | String | True | False | Id | Void 
+| Number | String | True | False | Id | Void 
 //Keywords
 | If | Else | When 
 | Print 
