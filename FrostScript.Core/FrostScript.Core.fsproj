@@ -6,7 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Types.fs" />
+    <Compile Include="LexerTypes.fs" />
+    <Compile Include="ParserTypes.fs" />
+    <Compile Include="InterpreterTypes.fs" />
+    <Compile Include="FunctionTypes.fs" />
   </ItemGroup>
 
 </Project>

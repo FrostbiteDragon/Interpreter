@@ -11,8 +11,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FrostScript.Core\FrostScript.Core.fsproj" />
+    <ProjectReference Include="..\FrostScript.Interpreter\FrostScript.Interpreter.fsproj" />
     <ProjectReference Include="..\FrostScript.Lexer\FrostScript.Lexer.fsproj" />
     <ProjectReference Include="..\FrostScript.Parser\FrostScript.Parser.fsproj" />
+    <ProjectReference Include="..\FrostScript.Validator\FrostScript.Validator.fsproj" />
   </ItemGroup>
 
 </Project>

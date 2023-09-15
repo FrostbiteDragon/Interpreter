@@ -1,5 +1,7 @@
 ﻿open FrostScript
 
-match FrostScript.execute "test" with
-| Some value -> printfn "%O" value
-| None -> ()
+let frostScript = 
+    "3 - 4"
+
+printfn "%O" (FrostScript.execute frostScript)
+System.Console.ReadLine() |> ignore
