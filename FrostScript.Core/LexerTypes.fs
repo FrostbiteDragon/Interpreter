@@ -33,7 +33,7 @@ type TokenType =
 | For | While | Increment | Decrement | By
 | Yeild
 //Types
-| IntType | DoubleType | StringType | BoolType
+//| IntType | DoubleType | StringType | BoolType
 
 
 type Token = {

@@ -2,5 +2,7 @@
 
 type Node = 
 | Stop
-| PrimaryNode of Token
+| LiteralNode of Token
 | BinaryNode of Token * Left : Node * Right : Node
+| BindNode of Token * Mutable : bool * Value : Node
+| ParserError of Token * Error : string

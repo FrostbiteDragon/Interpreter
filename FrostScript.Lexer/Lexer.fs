@@ -23,6 +23,7 @@ module Lexer =
                 | '/' -> yield {Type = Slash; Lexeme = "/"; Literal = None; Line = line; Character = character}
                 | ';' -> yield {Type = SemiColon; Lexeme = ";"; Literal = None; Line = line; Character = character}
                 | ':' -> yield {Type = Colon; Lexeme = ":"; Literal = None; Line = line; Character = character}
+                | '=' -> yield {Type = Equal; Lexeme = "="; Literal = None; Line = line; Character = character}
                 | '-' -> 
                     yield 
                         match chars.[i + 1] with
@@ -63,6 +64,8 @@ module Lexer =
                         |> List.toArray)
 
                     match word with
+                    | "let" -> yield {Type = Let; Lexeme = word; Literal = None; Line = line; Character = character}
+                    | "var" -> yield {Type = Var; Lexeme = word; Literal = None; Line = line; Character = character}
                     | "print" -> yield {Type = Print; Lexeme = word; Literal = None; Line = line; Character = character}
                     | _ ->  yield {Type = Id; Lexeme = word; Literal = None; Line = line; Character = character}
 

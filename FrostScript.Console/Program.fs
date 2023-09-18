@@ -1,7 +1,8 @@
 ﻿open FrostScript
 
 let frostScript = 
-    "6 / 3 + 10"
+    "let x = 6
+     x"
 
 printfn "%O" (FrostScript.execute frostScript)
 System.Console.ReadLine() |> ignore

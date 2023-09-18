@@ -2,26 +2,31 @@
 open FrostScript.Core
 
 module Interpreter =
-    let interpret : Interpreter = fun expressions ->
+    let interpret : Interpreter = fun nativeFunctions expressions ->
+        let mutable identifiers = Map nativeFunctions
+
         let rec execute (expression : Expression) : obj =
-            match expression with
-            | Expression.BinaryExpression (token, dataType, left, right) ->
-                match dataType with
+            match expression.Type with
+            | BinaryExpression (left, right) ->
+                match expression.DataType with
                 | NumberType -> 
                     let left = execute left :?> double
                     let right = execute right :?> double
 
-                    match token.Type with
+                    match expression.Token.Type with
                     | Plus  -> box (left + right) 
                     | Minus -> box (left - right)
                     | Slash -> box (left / right)
                     | Star  -> box (left * right)
                     | _ -> ()
 
-            | Expression.PrimaryExpression (token, _) -> 
-                match token.Literal with
-                | Some value -> value
-                | _ -> ()
+            | LiteralExpression (value) -> value
+            | IdentifierExpression ->
+               identifiers.[expression.Token.Lexeme] |> execute
+
+            | BindExpression (value) ->
+                identifiers <- identifiers.Change(expression.Token.Lexeme, fun _ -> Some value)
+                ()
 
         expressions
         |> List.map(fun x -> execute x)
