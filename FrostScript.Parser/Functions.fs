@@ -9,7 +9,7 @@ module Functions =
 
     let primary (next : ParserFunction) : ParserFunction = fun tokens -> 
         match (List.head tokens).Type with
-        | Number | String | Id -> (PrimaryNode (List.head tokens), tokens |> skipOrEmpty 1)
+        | Number | String | Id -> (LiteralNode (List.head tokens), tokens |> skipOrEmpty 1)
         | _ -> next tokens
 
     let binary validTypes (next : ParserFunction) : ParserFunction = fun tokens -> 
@@ -28,6 +28,44 @@ module Functions =
 
     let term = binary [Plus; Minus]
     let factor = binary [Star; Slash]
+
+    let binding (next : ParserFunction) : ParserFunction = fun tokens ->
+        let bindToken = List.head tokens
+
+        let getBind isMutable = 
+            let idToken = tokens |> skipOrEmpty 1 |> List.tryHead
+
+            match (tokens |> skipOrEmpty 2 |> List.tryHead) with
+            | Some token -> 
+                if token.Type <> Equal then
+                    (ParserError (token, "Expected '='"), tokens)
+                else
+                    let (value, tokens) = next (tokens |> skipOrEmpty 3)
+
+                    match idToken with
+                    | Some token -> (BindNode(token, token.Lexeme, isMutable, value), tokens)
+                    | None -> (ParserError (bindToken, "Expected identifier name"), tokens)
+            | None -> (ParserError (bindToken, "Expected '='"), tokens)
+
+        match bindToken.Type with
+        | Var -> getBind true
+        | Let -> getBind false
+        | _ -> next tokens
+
+    let assign (next : ParserFunction) : ParserFunction = fun tokens ->
+        let idToken = tokens |> List.head
+        match idToken.Type with
+        | Id ->
+            let token = tokens |> skipOrEmpty 1 |> List.tryHead
+            match token with
+            | None -> next tokens
+            | Some token ->
+                match token.Type with
+                | Equal -> 
+                    let (value, tokens) = next (tokens |> skipOrEmpty 2) 
+                    (AssignNode (token, idToken.Lexeme, value), tokens)
+                | _ -> next tokens
+        | _ -> next tokens
     
     let expression : ParserFunction =
         let stop : ParserFunction = fun tokens ->
@@ -37,3 +75,5 @@ module Functions =
         |> primary
         |> factor
         |> term
+        |> binding
+        |> assign

@@ -2,10 +2,20 @@
 
 type DataType =
 | NumberType
+| BoolType
+| StringType
 | FunctionType
 | VoidType
 
 type Expression =
-| BinaryExpression of Token * DataType * Left : Expression * Right : Expression
-| PrimaryExpression of Token * DataType
-| ValidationError of Token * Error : string
+    { Token : Token
+      DataType : DataType
+      Type : ExpressionType }
+
+and ExpressionType =
+| BinaryExpression of Left : Expression * Right : Expression
+| LiteralExpression of Value : obj
+| IdentifierExpression of Id : string
+| ValidationError of Error : string
+| BindExpression of Id : string * Value : Expression
+| AssignExpression of Id : string * Value : Expression
