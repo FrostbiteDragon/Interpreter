@@ -5,7 +5,7 @@ module Validator =
     let validate : Validator = fun nativeFunctions nodes ->
         let mutable identifiers = 
             nativeFunctions 
-            |> Seq.map (fun (key, expression) -> (key, expression.DataType))
+            |> Seq.map (fun (key, expression) -> (key, (expression.DataType, false)))
             |> Map
 
         let rec validateNode node =
@@ -29,7 +29,7 @@ module Validator =
                 | Id ->
                     let identifier = identifiers.TryFind token.Lexeme
                     match identifier with 
-                    | Some dataType ->  
+                    | Some (dataType, _) ->  
                         { Token = token 
                           DataType = dataType
                           Type = IdentifierExpression }
@@ -41,7 +41,7 @@ module Validator =
                 | _ -> failwith "unhandled literal type"
             | BindNode (token, isMutable, value) -> 
                 let expression = validateNode value
-                identifiers <- identifiers.Change(token.Lexeme, fun _ -> Some expression.DataType)
+                identifiers <- identifiers.Change(token.Lexeme, fun _ -> Some (expression.DataType, isMutable) )
                 { Token = token
                   DataType = expression.DataType
                   Type = BindExpression expression }

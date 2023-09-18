@@ -1,7 +1,7 @@
 ﻿open FrostScript
 
 let frostScript = 
-    "let x = 6
+    "var x = 6
      x"
 
 printfn "%O" (FrostScript.execute frostScript)
