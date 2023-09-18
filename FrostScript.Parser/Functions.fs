@@ -7,10 +7,9 @@ module Functions =
         if list |> List.isEmpty then []
         else list |> List.skip count
 
-
     let primary (next : ParserFunction) : ParserFunction = fun tokens -> 
         match (List.head tokens).Type with
-        | Number | String -> (PrimaryNode (List.head tokens), tokens |> skipOrEmpty 1)
+        | Number | String | Id -> (PrimaryNode (List.head tokens), tokens |> skipOrEmpty 1)
         | _ -> next tokens
 
     let binary validTypes (next : ParserFunction) : ParserFunction = fun tokens -> 

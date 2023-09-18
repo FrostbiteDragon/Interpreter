@@ -9,6 +9,7 @@
     <Compile Include="LexerTypes.fs" />
     <Compile Include="ParserTypes.fs" />
     <Compile Include="InterpreterTypes.fs" />
+    <Compile Include="ValidatorTypes.fs" />
     <Compile Include="FunctionTypes.fs" />
   </ItemGroup>
 
