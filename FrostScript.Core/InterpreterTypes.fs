@@ -15,6 +15,7 @@ type Expression =
 and ExpressionType =
 | BinaryExpression of Left : Expression * Right : Expression
 | LiteralExpression of Value : obj
-| IdentifierExpression
-| BindExpression of Value : Expression
+| IdentifierExpression of Id : string
 | ValidationError of Error : string
+| BindExpression of Id : string * Value : Expression
+| AssignExpression of Id : string * Value : Expression

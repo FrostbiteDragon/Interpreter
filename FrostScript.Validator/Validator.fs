@@ -8,48 +8,51 @@ module Validator =
             |> Seq.map (fun (key, expression) -> (key, (expression.DataType, false)))
             |> Map
 
-        let rec validateNode node =
+        let error token message =
+             { Token = token
+               DataType = VoidType
+               Type = ValidationError message }
 
+        let expression token dataType expression =
+              { Token = token
+                DataType = dataType
+                Type = expression }
+
+        let rec validateNode node =
             let valueOrUnit (option : obj option) =
                 match option with
                 | Some value -> value
                 | None -> ()
 
             match node with
-            | BinaryNode (token, left, right) -> 
-                { Token = token 
-                  DataType = NumberType 
-                  Type = BinaryExpression (validateNode left, validateNode right) }
+            | BinaryNode (token, left, right) -> expression token NumberType (BinaryExpression (validateNode left, validateNode right))
             | LiteralNode token -> 
                 match token.Type with
-                | True -> { Token = token; DataType = BoolType; Type = LiteralExpression true }
-                | False -> { Token = token; DataType = BoolType; Type = LiteralExpression false }
-                | Number -> { Token = token; DataType = NumberType; Type = LiteralExpression (valueOrUnit token.Literal) }
-                | String -> { Token = token; DataType = StringType; Type = LiteralExpression (valueOrUnit token.Literal) }
+                | True -> expression token BoolType (LiteralExpression true)
+                | False -> expression token BoolType (LiteralExpression false)
+                | Number -> expression token NumberType (LiteralExpression (valueOrUnit token.Literal))
+                | String -> expression token StringType (LiteralExpression (valueOrUnit token.Literal))
                 | Id ->
                     let identifier = identifiers.TryFind token.Lexeme
                     match identifier with 
-                    | Some (dataType, _) ->  
-                        { Token = token 
-                          DataType = dataType
-                          Type = IdentifierExpression }
-                    | None -> 
-                        { Token = token
-                          DataType = VoidType
-                          Type = ValidationError "Identifier doesn't exists or is out of scope" }
+                    | Some (dataType, _) -> expression token dataType (IdentifierExpression token.Lexeme)
+                    | None -> error token "Identifier doesn't exist or is out of scope"
 
                 | _ -> failwith "unhandled literal type"
-            | BindNode (token, isMutable, value) -> 
-                let expression = validateNode value
-                identifiers <- identifiers.Change(token.Lexeme, fun _ -> Some (expression.DataType, isMutable) )
-                { Token = token
-                  DataType = expression.DataType
-                  Type = BindExpression expression }
-            | ParserError (token, error) -> 
-                { Token = token
-                  DataType = VoidType
-                  Type = ValidationError error }
 
+            | BindNode (token, id, isMutable, value) -> 
+                let value = validateNode value
+                identifiers <- identifiers.Change(token.Lexeme, fun _ -> Some (value.DataType, isMutable) )
+                expression token value.DataType (BindExpression(id, value))
 
+            | ParserError (token, message) -> error token message
+            | AssignNode (token, id, value) ->
+                let identifier = identifiers.TryFind id
+                match identifier with
+                | Some (dataType, isMutable) -> 
+                    if isMutable then expression token dataType (AssignExpression (id, validateNode value))
+                    else error token "Varriable is not mutable"
+                | None -> error token "Identifier doesn't exist or is out of scope"
+                        
         nodes
         |> List.map (fun x -> validateNode x)

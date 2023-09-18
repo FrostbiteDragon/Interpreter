@@ -20,12 +20,20 @@ module Interpreter =
                     | Star  -> box (left * right)
                     | _ -> ()
 
-            | LiteralExpression (value) -> value
-            | IdentifierExpression ->
-               identifiers.[expression.Token.Lexeme] |> execute
+            | LiteralExpression value -> value
+            | IdentifierExpression id ->
+               identifiers.[id] |> execute
 
-            | BindExpression (value) ->
-                identifiers <- identifiers.Change(expression.Token.Lexeme, fun _ -> Some value)
+            | AssignExpression (id, value) ->
+                identifiers <- identifiers.Change(id, fun _ -> Some value)
+                ()
+
+            | BindExpression (id, value) ->
+                identifiers <- identifiers.Change(id, fun _ -> Some value)
+                ()
+
+            | ValidationError (message) -> 
+                printfn "(Line:%i Character:%i) %s" expression.Token.Line expression.Token.Character message
                 ()
 
         expressions
