@@ -14,12 +14,6 @@ module FrostScript =
               Type = NativeFunction (fun argument -> printf "%A" argument; box ()) })]
 
     let execute rawScript = 
-
-        let x = 
-             rawScript 
-            |> Lexer.lex
-            |> Parser.parse 
-
         rawScript 
         |> Lexer.lex
         |> Parser.parse 
