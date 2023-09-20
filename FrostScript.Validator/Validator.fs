@@ -53,6 +53,16 @@ module Validator =
                     if isMutable then expression token dataType (AssignExpression (id, validateNode value))
                     else error token "Varriable is not mutable"
                 | None -> error token "Identifier doesn't exist or is out of scope"
+            | CallNode (token, callee, argument) ->
+                let callee = validateNode callee
+                let argument = validateNode argument
+                match callee.DataType with
+                | FunctionType (inputType, outputType) ->
+                    if inputType = argument.DataType || inputType = AnyType then
+                        expression token outputType (CallExpression (callee, argument))
+                    else
+                        error token $"Function expected argument of type {inputType} but was given an argument of type {argument.DataType} instead"
+                | _ -> error token $"{callee.Token.Lexeme} is not callable"
                         
         nodes
         |> List.map (fun x -> validateNode x)

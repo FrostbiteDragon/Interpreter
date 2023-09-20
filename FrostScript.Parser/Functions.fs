@@ -66,7 +66,19 @@ module Functions =
                     (AssignNode (token, idToken.Lexeme, value), tokens)
                 | _ -> next tokens
         | _ -> next tokens
-    
+
+    let call (next : ParserFunction) : ParserFunction = fun tokens ->
+        let (callee, tokens) = next tokens
+        if tokens.IsEmpty then
+            (callee, tokens)
+        else
+            let calleeToken = tokens |> List.head
+
+            if (tokens |> List.isEmpty |> not) then
+                let (argument, tokens) = next tokens
+                (CallNode (calleeToken, callee, argument), tokens)
+            else (callee, tokens)
+        
     let expression : ParserFunction =
         let stop : ParserFunction = fun tokens ->
             (Stop, tokens)
@@ -75,5 +87,6 @@ module Functions =
         |> primary
         |> factor
         |> term
+        |> call
         |> binding
         |> assign
