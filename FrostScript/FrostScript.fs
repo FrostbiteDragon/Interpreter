@@ -2,12 +2,21 @@
 open FrostScript.Core
 
 module FrostScript =
+    let createExpression inputType outputType body =
+         { DataType = FunctionType(inputType, outputType)
+           Type = NativeFunction body }
+
     let nativeFunctions =
-        [ ("print", 
-            { DataType = FunctionType(AnyType, VoidType)
-              Type = NativeFunction (fun argument -> 
-                printf "%A" argument; box ()) 
-        })]
+        [ 
+            ("print", createExpression AnyType VoidType <|
+                fun argument ->
+                    System.Console.WriteLine argument 
+            )
+
+            ("read", createExpression VoidType AnyType <|
+                fun _ -> System.Console.ReadLine ()
+            )
+        ]
 
     let execute rawScript = 
         rawScript 

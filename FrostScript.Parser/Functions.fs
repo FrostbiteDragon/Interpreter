@@ -9,7 +9,7 @@ module Functions =
 
     let primary (next : ParserFunction) : ParserFunction = fun tokens -> 
         match (List.head tokens).Type with
-        | Number | String | Id -> (LiteralNode (List.head tokens), tokens |> skipOrEmpty 1)
+        | Number | String | Id | Void -> (LiteralNode (List.head tokens), tokens |> skipOrEmpty 1)
         | _ -> next tokens
 
     let binary validTypes (next : ParserFunction) : ParserFunction = fun tokens -> 

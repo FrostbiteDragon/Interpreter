@@ -36,7 +36,7 @@ module Validator =
                     match identifier with 
                     | Some (dataType, _) -> expression token dataType (IdentifierExpression token.Lexeme)
                     | None -> error token "Identifier doesn't exist or is out of scope"
-
+                | Void -> expression token VoidType (LiteralExpression ())
                 | _ -> failwith "unhandled literal type"
 
             | BindNode (token, id, isMutable, value) -> 

@@ -12,7 +12,6 @@ module Lexer =
                 character <- character + 1
                 i <- i + 1
                 match chars.[i] with
-                | '(' -> yield {Type = ParentheseOpen; Lexeme = "("; Literal = None; Line = line; Character = character}
                 | ')' -> yield {Type = ParentheseClose; Lexeme = ")"; Literal = None; Line = line; Character = character}
                 | '{' -> yield {Type = BraceOpen; Lexeme = "{"; Literal = None; Line = line; Character = character}
                 | '}' -> yield {Type = BraceClose; Lexeme = "}"; Literal = None; Line = line; Character = character}
@@ -24,6 +23,16 @@ module Lexer =
                 | ';' -> yield {Type = SemiColon; Lexeme = ";"; Literal = None; Line = line; Character = character}
                 | ':' -> yield {Type = Colon; Lexeme = ":"; Literal = None; Line = line; Character = character}
                 | '=' -> yield {Type = Equal; Lexeme = "="; Literal = None; Line = line; Character = character}
+                | '(' -> 
+                    yield 
+                        match chars.[i + 1] with
+                        | ')' ->
+                            i <- i + 1
+                            character <- character + 1
+                            {Type = Void; Lexeme = "()"; Literal = None; Line = line; Character = character}
+                        | _ -> 
+                            {Type = ParentheseOpen; Lexeme = "("; Literal = None; Line = line; Character = character}
+
                 | '-' -> 
                     yield 
                         match chars.[i + 1] with
