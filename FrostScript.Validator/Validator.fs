@@ -9,14 +9,12 @@ module Validator =
             |> Map
 
         let error token message =
-             { Token = token
-               DataType = VoidType
-               Type = ValidationError message }
+             { DataType = VoidType
+               Type = ValidationError (token, message) }
 
         let expression token dataType expression =
-              { Token = token
-                DataType = dataType
-                Type = expression }
+            { DataType = dataType
+              Type = expression }
 
         let rec validateNode node =
             let valueOrUnit (option : obj option) =
@@ -25,7 +23,7 @@ module Validator =
                 | None -> ()
 
             match node with
-            | BinaryNode (token, left, right) -> expression token NumberType (BinaryExpression (validateNode left, validateNode right))
+            | BinaryNode (token, left, right) -> expression token NumberType (BinaryExpression (token.Type, validateNode left, validateNode right))
 
             | LiteralNode token -> 
                 match token.Type with
@@ -65,7 +63,7 @@ module Validator =
                         expression token outputType (CallExpression (callee, argument))
                     else
                         error token $"Function expected argument of type {inputType} but was given an argument of type {argument.DataType} instead"
-                | _ -> error token $"{callee.Token.Lexeme} is not callable"
+                | _ -> error token $"{token.Lexeme} is not callable"
                         
         nodes
         |> List.map (fun x -> validateNode x)

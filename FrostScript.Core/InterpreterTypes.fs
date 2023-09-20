@@ -9,8 +9,7 @@ type DataType =
 | VoidType
 
 type Expression =
-    { Token : Token
-      DataType : DataType
+    { DataType : DataType
       Type : ExpressionType }
 
 and Paramater =
@@ -18,10 +17,10 @@ and Paramater =
       Value : DataType }
 
 and ExpressionType =
-| BinaryExpression of Left : Expression * Right : Expression
+| BinaryExpression of opporator : TokenType * Left : Expression * Right : Expression
 | LiteralExpression of Value : obj
 | IdentifierExpression of Id : string
-| ValidationError of Error : string
+| ValidationError of Token * Error : string
 | BindExpression of Id : string * Value : Expression
 | AssignExpression of Id : string * Value : Expression
 | FunctionExpression of Paramater : Paramater * Body : Expression

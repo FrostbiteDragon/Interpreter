@@ -7,13 +7,13 @@ module Interpreter =
 
         let rec execute (expression : Expression) : obj =
             match expression.Type with
-            | BinaryExpression (left, right) ->
+            | BinaryExpression (opporator, left, right) ->
                 match expression.DataType with
                 | NumberType -> 
                     let left = execute left :?> double
                     let right = execute right :?> double
 
-                    match expression.Token.Type with
+                    match opporator with
                     | Plus  -> box (left + right) 
                     | Minus -> box (left - right)
                     | Slash -> box (left / right)
@@ -32,8 +32,8 @@ module Interpreter =
                 identifiers <- identifiers.Change(id, fun _ -> Some value)
                 ()
 
-            | ValidationError (message) -> 
-                printfn "(Line:%i Character:%i) %s" expression.Token.Line expression.Token.Character message
+            | ValidationError (token, message) ->
+                printfn "(Line:%i Character:%i) %s" token.Line token.Character message
                 ()
 
             | CallExpression (callee, argument) ->
@@ -51,8 +51,7 @@ module Interpreter =
             | FunctionExpression (paramater, body) ->
                 FrostFunction (identifiers, fun argument ->
                     let argumentExpression = 
-                        { Token = body.Token
-                          DataType = body.DataType
+                        { DataType = body.DataType
                           Type = (LiteralExpression (argument)) }
                     identifiers <- identifiers.Change(paramater.Id, fun _ -> Some argumentExpression)
                     execute(body))
