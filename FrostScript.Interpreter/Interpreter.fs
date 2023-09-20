@@ -37,9 +37,9 @@ module Interpreter =
                 ()
 
             | CallExpression (callee, argument) ->
-                let callee = execute callee :?> ExpressionType
+                let callee = execute callee :?> Expression
                 let argument = execute argument
-                match callee with
+                match callee.Type with
                 | FrostFunction (closure, call) -> 
                     let currentIdentifiers = identifiers
                     identifiers <- closure
@@ -49,14 +49,16 @@ module Interpreter =
                 | _ -> failwith "expression was not callable"
                 
             | FunctionExpression (paramater, body) ->
-                FrostFunction (identifiers, fun argument ->
-                    let argumentExpression = 
-                        { DataType = body.DataType
-                          Type = (LiteralExpression (argument)) }
-                    identifiers <- identifiers.Change(paramater.Id, fun _ -> Some argumentExpression)
-                    execute(body))
+                { DataType = body.DataType
+                  Type =
+                    FrostFunction (identifiers, fun argument ->
+                        let argumentExpression = 
+                            { DataType = body.DataType
+                              Type = (LiteralExpression (argument)) }
+                        identifiers <- identifiers.Change(paramater.Id, fun _ -> Some argumentExpression)
+                        execute(body)) }
 
-            | NativeFunction call -> FrostFunction (identifiers, call)
+            | NativeFunction call -> { DataType = expression.DataType; Type = FrostFunction (identifiers, call) }
             | FrostFunction _ -> failwith "Do not use FrostFunction, use NativeFunction Instead"
 
         expressions

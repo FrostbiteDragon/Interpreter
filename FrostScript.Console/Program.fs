@@ -1,7 +1,6 @@
 ﻿open FrostScript
 
 let frostScript = 
-    "let x = 7;
-     print;"
+    "print 2 + 2;"
 
 System.Console.WriteLine (FrostScript.execute frostScript) |> ignore

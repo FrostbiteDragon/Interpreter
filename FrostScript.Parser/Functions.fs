@@ -68,15 +68,27 @@ module Functions =
         | _ -> next tokens
 
     let call (next : ParserFunction) : ParserFunction = fun tokens ->
-        let calleeToken = tokens |> List.head
-        let (callee, tokens) = next tokens
-        if tokens.IsEmpty then
-            (callee, tokens)
-        else
-            if (tokens |> List.isEmpty |> not) then
-                let (argument, tokens) = next tokens
-                (CallNode (calleeToken, callee, argument), tokens)
-            else (callee, tokens)
+        //let calleeToken = tokens |> List.head
+        //let (callee, tokens) = next tokens
+        //if tokens.IsEmpty then
+        //    (callee, tokens)
+        //else
+        //    if (tokens |> List.isEmpty |> not) then
+        //        let (argument, tokens) = next tokens
+        //        (CallNode (calleeToken, callee, argument), tokens)
+        //    else (callee, tokens)
+        let (node, tokens) = next tokens
+        let mutable node = node
+        let mutable tokens = tokens
+
+        while List.isEmpty tokens |> not do
+            let (ArgumentNode, newTokens) = next tokens
+
+            let CallNode = CallNode (List.head tokens, node, ArgumentNode)
+            tokens <- newTokens
+            node <- CallNode
+
+        (node, tokens)
         
     let expression : ParserFunction =
         let stop : ParserFunction = fun tokens ->
