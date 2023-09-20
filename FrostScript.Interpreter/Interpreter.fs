@@ -58,6 +58,8 @@ module Interpreter =
                     execute(body))
 
             | NativeFunction call -> FrostFunction (identifiers, call)
+            | FrostFunction _ -> failwith "Do not use FrostFunction, use NativeFunction Instead"
+
         expressions
         |> List.map(fun x -> execute x)
         |> List.last

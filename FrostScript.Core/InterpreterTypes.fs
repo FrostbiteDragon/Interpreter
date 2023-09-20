@@ -8,7 +8,6 @@ type DataType =
 | FunctionType of Input : DataType * Output : DataType
 | VoidType
 
-
 type Expression =
     { Token : Token
       DataType : DataType
@@ -17,12 +16,6 @@ type Expression =
 and Paramater =
     { Id : string
       Value : DataType }
-
-and FrostFunction =
-    { Paramater : Paramater 
-      Body : Expression 
-      Closure : Map<string, Expression> 
-      Call : obj -> obj }
 
 and ExpressionType =
 | BinaryExpression of Left : Expression * Right : Expression

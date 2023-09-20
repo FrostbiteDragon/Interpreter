@@ -26,6 +26,7 @@ module Validator =
 
             match node with
             | BinaryNode (token, left, right) -> expression token NumberType (BinaryExpression (validateNode left, validateNode right))
+
             | LiteralNode token -> 
                 match token.Type with
                 | True -> expression token BoolType (LiteralExpression true)
@@ -46,6 +47,7 @@ module Validator =
                 expression token value.DataType (BindExpression(id, value))
 
             | ParserError (token, message) -> error token message
+
             | AssignNode (token, id, value) ->
                 let identifier = identifiers.TryFind id
                 match identifier with
@@ -53,6 +55,7 @@ module Validator =
                     if isMutable then expression token dataType (AssignExpression (id, validateNode value))
                     else error token "Varriable is not mutable"
                 | None -> error token "Identifier doesn't exist or is out of scope"
+
             | CallNode (token, callee, argument) ->
                 let callee = validateNode callee
                 let argument = validateNode argument

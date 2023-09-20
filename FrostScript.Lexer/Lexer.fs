@@ -66,7 +66,6 @@ module Lexer =
                     match word with
                     | "let" -> yield {Type = Let; Lexeme = word; Literal = None; Line = line; Character = character}
                     | "var" -> yield {Type = Var; Lexeme = word; Literal = None; Line = line; Character = character}
-                    //| "print" -> yield {Type = Print; Lexeme = word; Literal = None; Line = line; Character = character}
                     | _ ->  yield {Type = Id; Lexeme = word; Literal = None; Line = line; Character = character}
 
                     i <- i + word.Length - 1
