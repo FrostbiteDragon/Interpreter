@@ -80,15 +80,36 @@ module Functions =
             node <- CallNode
 
         (node, tokens)
+
         
     let expression : ParserFunction =
         let stop : ParserFunction = fun tokens ->
             (Stop, tokens)
 
+        let expression next =
+            next
+            |> primary
+            |> factor
+            |> term
+            |> call
+            |> binding
+            |> assign
+
+        let grouping (next : ParserFunction) : ParserFunction = fun tokens ->
+            let (body, _) =
+                match (tokens |> List.head).Type with
+                | ParentheseOpen -> 
+                    expression stop (tokens |> skipOrEmpty 1 |> List.takeWhile (fun x -> x.Type <> ParentheseClose))
+                | _ -> next tokens
+            
+            let tokens = tokens |> List.skipWhile (fun x -> x.Type <> ParentheseClose)
+            let nextToken = tokens |> List.head
+            match nextToken.Type with
+            | ParentheseClose -> (body, tokens |> skipOrEmpty 1)
+            | _ -> (ParserError (nextToken, "Expected ')'"), tokens |> skipOrEmpty 1)
+
         stop
-        |> primary
-        |> factor
-        |> term
-        |> call
-        |> binding
-        |> assign
+        |> grouping
+        |> expression
+
+
