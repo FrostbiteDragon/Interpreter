@@ -3,18 +3,16 @@ open FrostScript.Core
 
 module Parser =
     let parse : Parser = fun tokens ->
-        let split tokens =
-            seq {
-                let mutable tokenChunk = []
-                for token in tokens do
-                    if token.Type <> SemiColon then
-                        tokenChunk <- List.append tokenChunk [token]
-                    else
-                        yield tokenChunk
-                        tokenChunk <- []
-            } |> Seq.toList
+        let updateLast update source = 
+            let current = source |> List.last
+            source |> List.updateAt (source.Length - 1) (update current)
 
-        split tokens
+        tokens
+        |> List.fold (fun tokens token -> 
+            match token.Type with
+            | SemiColon -> tokens |> List.append []
+            | _ -> tokens |> updateLast (fun lastTokenList -> List.append lastTokenList [token])
+        ) [[]]
         |> List.map (fun tokens ->  
             let (node, _) = Functions.expression tokens
             node
