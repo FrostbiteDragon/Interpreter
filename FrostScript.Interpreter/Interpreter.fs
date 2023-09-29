@@ -38,7 +38,7 @@ module Interpreter =
 
             | CallExpression (callee, argument) ->
                 let (callee, ids) = execute ids callee
-                let argument = execute ids argument |> fst
+                let (argument, ids) = execute ids argument
                 match (callee :?> Expression).Type with
                 | FrostFunction (closure, call) -> 
                     let result = call argument

@@ -5,11 +5,12 @@ let frostScript =
         var y = 0;
 
         let x =
-        | var y = \"hello\"
+        | y = 2
+        | let y = \"hello\"
         |> y;
 
         print x;
-        print y
+        print y;
     "
 
 frostScript
