@@ -11,6 +11,10 @@ let nativeFunctions =
             fun argument ->
                 System.Console.WriteLine argument 
         )
+        ("spit", createExpression AnyType VoidType <|
+            fun argument ->
+                System.Console.Write argument 
+        )
 
         ("read", createExpression VoidType AnyType <|
             fun _ -> System.Console.ReadLine ()

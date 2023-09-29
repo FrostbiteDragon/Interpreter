@@ -127,7 +127,7 @@ module Functions =
                 |> List.takeWhile (fun x -> x.Type <> ReturnPipe)
                 |> List.fold (fun tokens token -> 
                     match token.Type with
-                    | Pipe -> List.append tokens [[]]
+                    | SemiColon -> List.append tokens [[]]
                     | _ -> tokens |> updateLast (fun lastTokenList -> List.append lastTokenList [token])
                 ) [[]]
                 |> List.where(fun x -> not x.IsEmpty)
