@@ -81,35 +81,63 @@ module Functions =
 
         (node, tokens)
 
-        
-    let expression : ParserFunction =
+    let rec expression : ParserFunction = fun tokens ->
         let stop : ParserFunction = fun tokens ->
             (Stop, tokens)
 
-        let expression next =
-            next
-            |> primary
-            |> factor
-            |> term
-            |> call
-            |> binding
-            |> assign
-
-        let grouping (next : ParserFunction) : ParserFunction = fun tokens ->
-            let (body, _) =
-                match (tokens |> List.head).Type with
-                | ParentheseOpen -> 
-                    expression stop (tokens |> skipOrEmpty 1 |> List.takeWhile (fun x -> x.Type <> ParentheseClose))
-                | _ -> next tokens
-            
-            let tokens = tokens |> List.skipWhile (fun x -> x.Type <> ParentheseClose)
-            let nextToken = tokens |> List.head
-            match nextToken.Type with
-            | ParentheseClose -> (body, tokens |> skipOrEmpty 1)
-            | _ -> (ParserError (nextToken, "Expected ')'"), tokens |> skipOrEmpty 1)
-
         stop
         |> grouping
-        |> expression
+        |> primary
+        |> factor
+        |> term
+        |> block
+        |> call
+        |> binding
+        |> assign
+        <| tokens
 
+    and grouping (next : ParserFunction) : ParserFunction = fun tokens ->
+        let (body, _) =
+            match (tokens |> List.head).Type with
+            | ParentheseOpen -> 
+                expression (tokens |> skipOrEmpty 1 |> List.takeWhile (fun x -> x.Type <> ParentheseClose))
+            | _ -> next tokens
+            
+        let tokens = tokens |> List.skipWhile (fun x -> x.Type <> ParentheseClose)
 
+        if tokens |> List.isEmpty then failwith "token chunk failed to match"
+
+        let nextToken = tokens |> List.head
+        match nextToken.Type with
+        | ParentheseClose -> (body, tokens |> skipOrEmpty 1)
+        | _ -> (ParserError (nextToken, "Expected ')'"), tokens |> skipOrEmpty 1)
+
+    and block (next : ParserFunction) : ParserFunction = fun tokens ->
+        let headToken = tokens |> List.head
+        match headToken.Type with
+        | Pipe ->
+            let updateLast update source = 
+                let current = source |> List.last
+                source |> List.updateAt (source.Length - 1) (update current)
+
+            let bodyTokens = tokens |> List.takeWhile (fun x -> x.Type <> ReturnPipe)
+            let body = 
+                bodyTokens
+                |> List.skip 1
+                |> List.takeWhile (fun x -> x.Type <> ReturnPipe)
+                |> List.fold (fun tokens token -> 
+                    match token.Type with
+                    | Pipe -> List.append tokens [[]]
+                    | _ -> tokens |> updateLast (fun lastTokenList -> List.append lastTokenList [token])
+                ) [[]]
+                |> List.where(fun x -> not x.IsEmpty)
+                |> List.map (fun tokens ->  
+                    let (node, _) = expression tokens
+                    node
+                )
+
+            let (value, tokens) = expression (tokens |> List.skip (bodyTokens.Length + 1))
+
+            (BlockNode(headToken, List.append body [value]), tokens)
+
+        | _ -> next tokens

@@ -16,7 +16,7 @@ type TokenType =
 | ClosePipe
 | ReturnPipe
 | Colon
-| Error of string
+| LexerError of string
 //math operators
 | Minus | Plus | Slash | Star
 //logical operators

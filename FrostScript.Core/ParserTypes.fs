@@ -2,6 +2,7 @@
 
 type Node = 
 | Stop
+| BlockNode of Token * Body : Node list
 | LiteralNode of Token
 | BinaryNode of Token * Left : Node * Right : Node
 | BindNode of Token * Id : string * Mutable : bool * Value : Node

@@ -18,12 +18,13 @@ and Paramater =
 
 and ExpressionType =
 | BinaryExpression of opporator : TokenType * Left : Expression * Right : Expression
+| BlockExpression of body : Expression list
 | LiteralExpression of Value : obj
 | IdentifierExpression of Id : string
 | ValidationError of Token * Error : string
 | BindExpression of Id : string * Value : Expression
 | AssignExpression of Id : string * Value : Expression
 | FunctionExpression of Paramater : Paramater * Body : Expression
-| FrostFunction of Closure : Map<string, Expression> * Call : (obj -> obj)
+| FrostFunction of Closure : IdentifierMap<Expression> * Call : (obj -> obj)
 | CallExpression of Callee : Expression * Argument : Expression
 | NativeFunction of Call : (obj -> obj)

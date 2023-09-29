@@ -1,6 +1,18 @@
 ﻿open FrostScript
 
 let frostScript = 
-    "print (2 + 2) / 2"
+    "
+        var y = 0;
 
-System.Console.WriteLine (FrostScript.execute frostScript) |> ignore
+        let x =
+        | var y = \"hello\"
+        |> y;
+
+        print x;
+        print y
+    "
+
+frostScript
+|> FrostScript.execute
+|> System.Console.WriteLine
+|> ignore

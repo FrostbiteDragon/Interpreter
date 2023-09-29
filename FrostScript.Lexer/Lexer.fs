@@ -23,6 +23,15 @@ module Lexer =
                 | ';' -> yield {Type = SemiColon; Lexeme = ";"; Literal = None; Line = line; Character = character}
                 | ':' -> yield {Type = Colon; Lexeme = ":"; Literal = None; Line = line; Character = character}
                 | '=' -> yield {Type = Equal; Lexeme = "="; Literal = None; Line = line; Character = character}
+                | '|' -> 
+                    yield 
+                        match chars.[i + 1] with
+                        | '>' ->
+                            i <- i + 1
+                            character <- character + 1
+                            {Type = ReturnPipe; Lexeme = "|>"; Literal = None; Line = line; Character = character}
+                        | _ -> 
+                            {Type = Pipe; Lexeme = "|"; Literal = None; Line = line; Character = character}
                 | '(' -> 
                     yield 
                         match chars.[i + 1] with
@@ -50,7 +59,7 @@ module Lexer =
                         |> List.contains '"'
                         |> not
                     then
-                        yield {Type = Error "String never closed"; Lexeme = string chars.[i]; Literal = None; Line = line; Character = character} 
+                        yield {Type = LexerError "String never closed"; Lexeme = string chars.[i]; Literal = None; Line = line; Character = character} 
                         i <- chars.Length - 1
                     else
                         let word = 
@@ -123,6 +132,6 @@ module Lexer =
                     line <- line + 1
                     character <- 0
 
-                | _ -> yield {Type = Error "Unexpected character"; Lexeme = string chars.[i]; Literal = None; Line = line; Character = character} 
+                | _ -> yield {Type = LexerError "Unexpected character"; Lexeme = string chars.[i]; Literal = None; Line = line; Character = character} 
 
         } |> Seq.toList
