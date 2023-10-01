@@ -2,14 +2,7 @@
 
 let frostScript = 
     """
-        let reduce = fun x:num y:num -> 
-        | spit x;
-          spit " - ";
-          spit y;
-          spit " = ";
-        |> x - y;
-
-        print (reduce 1 2);
+      webGET "https://api.publicapis.org/entries"
 
     """
 
