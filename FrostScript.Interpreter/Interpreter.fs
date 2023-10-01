@@ -3,39 +3,67 @@ open FrostScript.Core
 
 module Interpreter =
     let interpret : Interpreter = fun nativeFunctions expressions ->
-        let mutable identifiers = Map nativeFunctions
 
-        let rec execute (expression : Expression) : obj =
+        let rec execute (ids : IdentifierMap<Expression>) (expression : Expression) : obj * IdentifierMap<Expression> =
             match expression.Type with
-            | BinaryExpression (left, right) ->
+            | BinaryExpression (opporator, left, right) ->
                 match expression.DataType with
                 | NumberType -> 
-                    let left = execute left :?> double
-                    let right = execute right :?> double
+                    let left = execute ids left |> fst
+                    let right = execute ids right |> fst
 
-                    match expression.Token.Type with
-                    | Plus  -> box (left + right) 
-                    | Minus -> box (left - right)
-                    | Slash -> box (left / right)
-                    | Star  -> box (left * right)
-                    | _ -> ()
+                    let result = 
+                        match opporator with
+                        | Plus  -> box ((left :?> double) + (right :?> double)) 
+                        | Minus -> box ((left :?> double) - (right :?> double))
+                        | Slash -> box ((left :?> double) / (right :?> double))
+                        | Star  -> box ((left :?> double) * (right :?> double))
+                        | _ -> ()
 
-            | LiteralExpression value -> value
+                    (result, ids)
+
+            | LiteralExpression value -> (value, ids)
             | IdentifierExpression id ->
-               identifiers.[id] |> execute
+               execute ids ids.[id]
 
             | AssignExpression (id, value) ->
-                identifiers <- identifiers.Change(id, fun _ -> Some value)
-                ()
+                ((), ids.Change id value)
 
             | BindExpression (id, value) ->
-                identifiers <- identifiers.Change(id, fun _ -> Some value)
-                ()
+                ((), ids.ChangeLocal id value)
+                
+            | ValidationError (token, message) ->
+                printfn "(Line:%i Character:%i) %s" token.Line token.Character message
+                ((), ids)
 
-            | ValidationError (message) -> 
-                printfn "(Line:%i Character:%i) %s" expression.Token.Line expression.Token.Character message
-                ()
+            | CallExpression (callee, argument) ->
+                let (callee, ids) = execute ids callee
+                let (argument, ids) = execute ids argument
+                match (callee :?> Expression).Type with
+                | FrostFunction (call) -> 
+                    call ids argument
+                | _ -> failwith "expression was not callable"
+
+            | BlockExpression body ->
+                let (results, ids) =
+                    body
+                    |> List.mapFold(fun ids expression -> execute ids expression) {globalIds = ids.Ids; localIds = Map.empty}
+                (results |> List.last, {globalIds = Map.empty; localIds = ids.globalIds} )
+                
+            | FunctionExpression (paramater, body) ->
+                ({ DataType = body.DataType
+                   Type =
+                       FrostFunction (fun ids argument ->
+                            let argumentExpression = 
+                                { DataType = paramater.Value
+                                  Type = (LiteralExpression (argument)) }
+                            execute (ids.Change paramater.Id argumentExpression) body) }
+                , ids)
+
+            | NativeFunction call -> ({ DataType = expression.DataType; Type = FrostFunction (fun ids argument -> (call argument, ids)) }, ids)
+            | FrostFunction _ -> failwith "Do not use FrostFunction, use NativeFunction Instead"
 
         expressions
-        |> List.map(fun x -> execute x)
+        |> List.mapFold(fun ids expression -> execute ids expression) { globalIds = Map.empty; localIds = Map nativeFunctions }
+        |> fst
         |> List.last

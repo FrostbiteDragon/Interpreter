@@ -9,7 +9,7 @@ module Functions =
 
     let primary (next : ParserFunction) : ParserFunction = fun tokens -> 
         match (List.head tokens).Type with
-        | Number | String | Id -> (LiteralNode (List.head tokens), tokens |> skipOrEmpty 1)
+        | Number | String | Id | Void -> (LiteralNode (List.head tokens), tokens |> skipOrEmpty 1)
         | _ -> next tokens
 
     let binary validTypes (next : ParserFunction) : ParserFunction = fun tokens -> 
@@ -66,14 +66,129 @@ module Functions =
                     (AssignNode (token, idToken.Lexeme, value), tokens)
                 | _ -> next tokens
         | _ -> next tokens
-    
-    let expression : ParserFunction =
+
+    let call (next : ParserFunction) : ParserFunction = fun tokens ->
+        let (node, tokens) = next tokens
+        let mutable node = node
+        let mutable tokens = tokens
+
+        while List.isEmpty tokens |> not do
+            let (ArgumentNode, newTokens) = next tokens
+
+            let CallNode = CallNode (List.head tokens, node, ArgumentNode)
+            tokens <- newTokens
+            node <- CallNode
+
+        (node, tokens)
+
+        
+    let rec expression : ParserFunction = fun tokens ->
         let stop : ParserFunction = fun tokens ->
             (Stop, tokens)
 
         stop
+        |> grouping
         |> primary
         |> factor
         |> term
+        |> block
+        |> func
+        |> call
         |> binding
-        |> assign
+        |> assign <| tokens
+
+    and grouping (next : ParserFunction) : ParserFunction = fun tokens ->
+        let (body, _) =
+            match (tokens |> List.head).Type with
+            | ParentheseOpen -> 
+                expression (tokens |> skipOrEmpty 1 |> List.takeWhile (fun x -> x.Type <> ParentheseClose))
+            | _ -> next tokens
+            
+        let tokens = tokens |> List.skipWhile (fun x -> x.Type <> ParentheseClose)
+
+        if tokens |> List.isEmpty then failwith "token chunk failed to match"
+
+        let nextToken = tokens |> List.head
+        match nextToken.Type with
+        | ParentheseClose -> (body, tokens |> skipOrEmpty 1)
+        | _ -> (ParserError (nextToken, "Expected ')'"), tokens |> skipOrEmpty 1)
+
+    and block (next : ParserFunction) : ParserFunction = fun tokens ->
+        let headToken = tokens |> List.head
+        match headToken.Type with
+        | Pipe ->
+            let updateLast update source = 
+                let current = source |> List.last
+                source |> List.updateAt (source.Length - 1) (update current)
+
+            let bodyTokens = tokens |> List.takeWhile (fun x -> x.Type <> ReturnPipe)
+            let body = 
+                bodyTokens
+                |> List.skip 1
+                |> List.takeWhile (fun x -> x.Type <> ReturnPipe)
+                |> List.fold (fun tokens token -> 
+                    match token.Type with
+                    | SemiColon -> List.append tokens [[]]
+                    | _ -> tokens |> updateLast (fun lastTokenList -> List.append lastTokenList [token])
+                ) [[]]
+                |> List.where(fun x -> not x.IsEmpty)
+                |> List.map (fun tokens ->  
+                    let (node, _) = expression tokens
+                    node
+                )
+
+            let (value, tokens) = expression (tokens |> List.skip (bodyTokens.Length + 1))
+
+            (BlockNode(headToken, List.append body [value]), tokens)
+
+        | _ -> next tokens
+
+    and func (next : ParserFunction) : ParserFunction = fun tokens ->
+        let parameter tokens =
+            if (tokens |> skipOrEmpty 3).IsEmpty then Error $"Unexpected end of file"
+            else
+                let idToken = tokens.Head
+                let colonToken = (tokens |> skipOrEmpty 1).Head
+                let typeToken = (tokens |> skipOrEmpty 2).Head
+
+                if idToken.Type <> Id then Error $"Expected a paramater name but was instead given {idToken.Type}"
+                else if colonToken.Type <> Colon then Error $"Expected ':' but instead was given {idToken.Type}"
+                else 
+                    match typeToken.Type with
+                    | TypeAnnotation paramaterType -> Ok ({Id = idToken.Lexeme; Value = paramaterType}, tokens |> skipOrEmpty 3)
+                    | _ -> Error $"Expected a type but instead was given {idToken.Type}"
+
+        let funToken = tokens.Head
+        if (funToken.Type <> Fun) then next tokens
+        else
+            let mutable tokens = tokens |> skipOrEmpty 1
+            let mutable parameters = []
+            let mutable error = None
+            while tokens.Head.Type <> Arrow do
+                match error with
+                | Some _ -> ()
+                | None ->
+                    match parameter tokens with
+                    | Error message -> 
+                        error <- Some message
+                    | Ok (parameter, newTokens) ->
+                        tokens <- newTokens
+                        parameters <- parameters |> List.append [parameter]
+
+            match error with
+            | Some error -> (ParserError(funToken, error), tokens)
+            | None ->
+                if tokens.Head.Type <> Arrow then (ParserError(funToken, $"Expected '->' but instead was given {tokens.Head.Type}"), tokens)
+                else
+                    let (body, tokens) = expression (tokens |> skipOrEmpty 1)
+                    let node = 
+                        parameters
+                        |> skipOrEmpty 1
+                        |> List.fold(fun functionNode parameter -> 
+                            match functionNode with
+                            | FunctionNode _ ->
+                                FunctionNode (funToken, parameter, functionNode)
+                            | _ -> failwith "parameter funtion should only return a parameter node or an error"
+                        ) (FunctionNode(funToken, parameters.Head, body))
+
+                    (node, tokens)

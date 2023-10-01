@@ -1,9 +1,19 @@
 ﻿open FrostScript
 
 let frostScript = 
-    "let x = 6
-     x = 2
-     x"
+    """
+        let reduce = fun x:num y:num -> 
+        | spit x;
+          spit " - ";
+          spit y;
+          spit " = ";
+        |> x - y;
 
-printfn "%O" (FrostScript.execute frostScript)
-System.Console.ReadLine() |> ignore
+        print (reduce 1 2);
+
+    """
+
+frostScript
+|> FrostScript.execute
+|> System.Console.WriteLine
+|> ignore

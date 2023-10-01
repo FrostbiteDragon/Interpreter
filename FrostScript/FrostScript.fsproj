@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="NativeFunctions.fs" />
     <Compile Include="FrostScript.fs" />
   </ItemGroup>
 
