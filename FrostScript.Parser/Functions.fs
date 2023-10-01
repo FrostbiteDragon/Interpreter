@@ -145,28 +145,50 @@ module Functions =
 
     and func (next : ParserFunction) : ParserFunction = fun tokens ->
         let parameter tokens =
-            if (tokens |> skipOrEmpty 3).IsEmpty then (ParserError (tokens.Head, $"Unexpected end of file"), tokens)
+            if (tokens |> skipOrEmpty 3).IsEmpty then Error $"Unexpected end of file"
             else
                 let idToken = tokens.Head
                 let colonToken = (tokens |> skipOrEmpty 1).Head
                 let typeToken = (tokens |> skipOrEmpty 2).Head
 
-                if idToken.Type <> Id then (ParserError (idToken, $"Expected a paramater name but was instead given {idToken.Type}"), tokens)
-                else if colonToken.Type <> Colon then (ParserError (idToken, $"Expected ':' but instead was given {idToken.Type}"), tokens)
+                if idToken.Type <> Id then Error $"Expected a paramater name but was instead given {idToken.Type}"
+                else if colonToken.Type <> Colon then Error $"Expected ':' but instead was given {idToken.Type}"
                 else 
                     match typeToken.Type with
-                    | TypeAnnotation paramaterType -> (ParameterNode (idToken.Lexeme, paramaterType), tokens |> skipOrEmpty 3)
-                    | _ -> (ParserError (idToken, $"Expected a type but instead was given {idToken.Type}"), tokens)
+                    | TypeAnnotation paramaterType -> Ok ({Id = idToken.Lexeme; Value = paramaterType}, tokens |> skipOrEmpty 3)
+                    | _ -> Error $"Expected a type but instead was given {idToken.Type}"
 
         let funToken = tokens.Head
         if (funToken.Type <> Fun) then next tokens
         else
-            let (parameter, tokens) = parameter (tokens |> skipOrEmpty 1)
-            if tokens.Head.Type <> Arrow then (ParserError(funToken, $"Expected '->' but instead was given {tokens.Head.Type}"), tokens)
-            else
-                match parameter with
-                | ParserError _ -> (parameter, tokens)
-                | ParameterNode (id, dataType) ->
+            let mutable tokens = tokens |> skipOrEmpty 1
+            let mutable parameters = []
+            let mutable error = None
+            while tokens.Head.Type <> Arrow do
+                match error with
+                | Some _ -> ()
+                | None ->
+                    match parameter tokens with
+                    | Error message -> 
+                        error <- Some message
+                    | Ok (parameter, newTokens) ->
+                        tokens <- newTokens
+                        parameters <- parameters |> List.append [parameter]
+
+            match error with
+            | Some error -> (ParserError(funToken, error), tokens)
+            | None ->
+                if tokens.Head.Type <> Arrow then (ParserError(funToken, $"Expected '->' but instead was given {tokens.Head.Type}"), tokens)
+                else
                     let (body, tokens) = expression (tokens |> skipOrEmpty 1)
-                    (FunctionNode(funToken, (id, dataType), body), tokens)
-                | _ -> failwith "parameter funtion should only return a parameter node or an error"
+                    let node = 
+                        parameters
+                        |> skipOrEmpty 1
+                        |> List.fold(fun functionNode parameter -> 
+                            match functionNode with
+                            | FunctionNode _ ->
+                                FunctionNode (funToken, parameter, functionNode)
+                            | _ -> failwith "parameter funtion should only return a parameter node or an error"
+                        ) (FunctionNode(funToken, parameters.Head, body))
+
+                    (node, tokens)

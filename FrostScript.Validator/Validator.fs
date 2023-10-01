@@ -75,11 +75,11 @@ module Validator =
                         (error token $"Function expected argument of type {inputType} but was given an argument of type {argument.DataType} instead", identifiers)
                 | _ -> (error token $"{token.Lexeme} is not callable", identifiers)
                
-            | FunctionNode (token, (id, dataType), body) ->
-                let functionIdentifiers = {globalIds = identifiers.Ids; localIds = Map [id, (dataType, false)]}
+            | FunctionNode (_, parameter, body) ->
+                let functionIdentifiers = {globalIds = identifiers.Ids; localIds = Map [parameter.Id, (parameter.Value, false)]}
                 let (body, identifiers) = validateNode functionIdentifiers body
                 (
-                    expression (FunctionType(dataType, body.DataType)) (FunctionExpression({Id = id; Value = dataType}, body)), 
+                    expression (FunctionType(parameter.Value, body.DataType)) (FunctionExpression({Id = parameter.Id; Value = parameter.Value}, body)), 
                     {identifiers with localIds = identifiers.globalIds}
                 )
 

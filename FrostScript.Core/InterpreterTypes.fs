@@ -4,10 +4,6 @@ type Expression =
     { DataType : DataType
       Type : ExpressionType }
 
-and Paramater =
-    { Id : string
-      Value : DataType }
-
 and ExpressionType =
 | BinaryExpression of opporator : TokenType * Left : Expression * Right : Expression
 | BlockExpression of body : Expression list

@@ -8,6 +8,10 @@ type DataType =
 | FunctionType of Input : DataType * Output : DataType
 | VoidType
 
+and Paramater =
+    { Id : string
+      Value : DataType }
+
 type IdentifierMap<'T> = 
     { globalIds : Map<string, 'T>
       localIds : Map<string, 'T> }

@@ -2,7 +2,7 @@
 
 type Node = 
 | Stop
-| FunctionNode of Token * Parameter : (string * DataType) * Body : Node
+| FunctionNode of Token * Parameter : Paramater * Body : Node
 | ParameterNode of Name : string * Type : DataType
 | BlockNode of Token * Body : Node list
 | LiteralNode of Token
