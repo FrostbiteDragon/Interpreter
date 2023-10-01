@@ -2,26 +2,25 @@
 
 let frostScript = 
     """
-        let x = 
-        | let y = 1;
-          let z = 2;
-          spit y;
-          spit " + ";
-          spit z;
-          spit " = "
-        |> y + z;
+        var z = 2;
+        let addZ = fun x:num -> fun y:num -> 
+        | z = 4;
+        |> x + y + z;
 
-        print x;
+        print z;
+        print (addZ 2 7);
+        print z;
     """
 
 """
     let singleLineFunction = fun x y -> x + y;
 
-    let multiLineFunction = fun x y ->
+    let multiLineFunction = fun x:int ->
     |
         print x;
         print y;
         print x + y;
+
     |> x + y;
 
     type Test value1:int value2:bool;

@@ -1,5 +1,7 @@
 ﻿namespace FrostScript.Core
 
+
+
 type TokenType =
 //structural
 | SemiColon
@@ -33,7 +35,7 @@ type TokenType =
 | For | While | Increment | Decrement | By
 | Yeild
 //Types
-//| IntType | DoubleType | StringType | BoolType
+| TypeAnnotation of DataType
 
 
 type Token = {

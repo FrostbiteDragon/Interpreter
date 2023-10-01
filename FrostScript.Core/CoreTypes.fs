@@ -1,5 +1,13 @@
 ﻿namespace FrostScript.Core
 
+type DataType =
+| AnyType
+| NumberType
+| BoolType
+| StringType
+| FunctionType of Input : DataType * Output : DataType
+| VoidType
+
 type IdentifierMap<'T> = 
     { globalIds : Map<string, 'T>
       localIds : Map<string, 'T> }

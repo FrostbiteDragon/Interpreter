@@ -4,6 +4,7 @@ open FrostScript.Core
 module Lexer =
     let lex : Lexer = fun rawScript ->
         let chars = rawScript.ToCharArray() |> Array.toList
+
         seq { 
             let mutable character = 0
             let mutable line = 1
@@ -82,9 +83,15 @@ module Lexer =
                         |> List.toArray)
 
                     match word with
-                    | "let" -> yield {Type = Let; Lexeme = word; Literal = None; Line = line; Character = character}
-                    | "var" -> yield {Type = Var; Lexeme = word; Literal = None; Line = line; Character = character}
-                    | _ ->  yield {Type = Id; Lexeme = word; Literal = None; Line = line; Character = character}
+                    | "let"    -> yield {Type = Let; Lexeme = word; Literal = None; Line = line; Character = character}
+                    | "var"    -> yield {Type = Var; Lexeme = word; Literal = None; Line = line; Character = character}
+                    | "fun"    -> yield {Type = Fun; Lexeme = word; Literal = None; Line = line; Character = character}
+                    | "num"    -> yield {Type = TypeAnnotation (NumberType); Lexeme = word; Literal = None; Line = line; Character = character}
+                    | "any"    -> yield {Type = TypeAnnotation (AnyType); Lexeme = word; Literal = None; Line = line; Character = character}
+                    | "void"   -> yield {Type = TypeAnnotation (VoidType); Lexeme = word; Literal = None; Line = line; Character = character}
+                    | "bool"   -> yield {Type = TypeAnnotation (BoolType); Lexeme = word; Literal = None; Line = line; Character = character}
+                    | "string" -> yield {Type = TypeAnnotation (StringType); Lexeme = word; Literal = None; Line = line; Character = character}
+                    | _        -> yield {Type = Id; Lexeme = word; Literal = None; Line = line; Character = character}
 
                     i <- i + word.Length - 1
                     character <- character + word.Length

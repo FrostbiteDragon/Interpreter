@@ -3,34 +3,20 @@ open FrostScript.Core
 
 module Parser =
     let parse : Parser = fun tokens ->
-        let updateLast update source = 
-            let current = source |> List.last
-            source |> List.updateAt (source.Length - 1) (update current)
-
-        let x = 
-            tokens
-            |> List.fold (fun state token -> 
-                let (tokens, isBlock) = state
-                match token.Type with
-                | SemiColon -> 
-                    if isBlock then (tokens |> updateLast (fun lastTokenList -> List.append lastTokenList [token]), isBlock)
-                    else (List.append tokens [[]], isBlock)
-                | Pipe -> (tokens |> updateLast (fun lastTokenList -> List.append lastTokenList [token]), true)
-                | ReturnPipe -> (tokens |> updateLast (fun lastTokenList -> List.append lastTokenList [token]), false)
-                | _ -> (tokens |> updateLast (fun lastTokenList -> List.append lastTokenList [token]), isBlock)
-            ) ([[]], false)
-            |> fst
+        let appendToLastInState token tokens isBlock =
+            let current = tokens |> List.last
+            (tokens |> List.updateAt (tokens.Length - 1) (List.append current [token]), isBlock)
 
         tokens
         |> List.fold (fun state token -> 
             let (tokens, isBlock) = state
             match token.Type with
-            | SemiColon -> 
-                if isBlock then (tokens |> updateLast (fun lastTokenList -> List.append lastTokenList [token]), isBlock)
+            | SemiColon  -> 
+                if isBlock then appendToLastInState token tokens isBlock
                 else (List.append tokens [[]], isBlock)
-            | Pipe -> (tokens |> updateLast (fun lastTokenList -> List.append lastTokenList [token]), true)
-            | ReturnPipe -> (tokens |> updateLast (fun lastTokenList -> List.append lastTokenList [token]), false)
-            | _ -> (tokens |> updateLast (fun lastTokenList -> List.append lastTokenList [token]), isBlock)
+            | Pipe       -> appendToLastInState token tokens true
+            | ReturnPipe -> appendToLastInState token tokens false
+            | _          -> appendToLastInState token tokens isBlock
         ) ([[]], false)
         |> fst
         |> List.where (fun x -> not x.IsEmpty)

@@ -40,9 +40,8 @@ module Interpreter =
                 let (callee, ids) = execute ids callee
                 let (argument, ids) = execute ids argument
                 match (callee :?> Expression).Type with
-                | FrostFunction (closure, call) -> 
-                    let result = call argument
-                    (result, ids)
+                | FrostFunction (call) -> 
+                    call ids argument
                 | _ -> failwith "expression was not callable"
 
             | BlockExpression body ->
@@ -51,17 +50,17 @@ module Interpreter =
                     |> List.mapFold(fun ids expression -> execute ids expression) {globalIds = ids.Ids; localIds = Map.empty}
                 (results |> List.last, {globalIds = Map.empty; localIds = ids.globalIds} )
                 
-            //| FunctionExpression (paramater, body) ->
-            //    ({ DataType = body.DataType
-            //       Type =
-            //           FrostFunction (ids, fun argument ->
-            //                let argumentExpression = 
-            //                    { DataType = body.DataType
-            //                      Type = (LiteralExpression (argument)) }
-            //                execute (ids.Change paramater.Id argument) body) }
-            //    , ids)
+            | FunctionExpression (paramater, body) ->
+                ({ DataType = body.DataType
+                   Type =
+                       FrostFunction (fun ids argument ->
+                            let argumentExpression = 
+                                { DataType = paramater.Value
+                                  Type = (LiteralExpression (argument)) }
+                            execute (ids.Change paramater.Id argumentExpression) body) }
+                , ids)
 
-            | NativeFunction call -> ({ DataType = expression.DataType; Type = FrostFunction (ids, call) }, ids)
+            | NativeFunction call -> ({ DataType = expression.DataType; Type = FrostFunction (fun ids argument -> (call argument, ids)) }, ids)
             | FrostFunction _ -> failwith "Do not use FrostFunction, use NativeFunction Instead"
 
         expressions

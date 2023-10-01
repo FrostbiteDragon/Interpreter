@@ -81,6 +81,7 @@ module Functions =
 
         (node, tokens)
 
+        
     let rec expression : ParserFunction = fun tokens ->
         let stop : ParserFunction = fun tokens ->
             (Stop, tokens)
@@ -91,10 +92,10 @@ module Functions =
         |> factor
         |> term
         |> block
+        |> func
         |> call
         |> binding
-        |> assign
-        <| tokens
+        |> assign <| tokens
 
     and grouping (next : ParserFunction) : ParserFunction = fun tokens ->
         let (body, _) =
@@ -141,3 +142,31 @@ module Functions =
             (BlockNode(headToken, List.append body [value]), tokens)
 
         | _ -> next tokens
+
+    and func (next : ParserFunction) : ParserFunction = fun tokens ->
+        let parameter tokens =
+            if (tokens |> skipOrEmpty 3).IsEmpty then (ParserError (tokens.Head, $"Unexpected end of file"), tokens)
+            else
+                let idToken = tokens.Head
+                let colonToken = (tokens |> skipOrEmpty 1).Head
+                let typeToken = (tokens |> skipOrEmpty 2).Head
+
+                if idToken.Type <> Id then (ParserError (idToken, $"Expected a paramater name but was instead given {idToken.Type}"), tokens)
+                else if colonToken.Type <> Colon then (ParserError (idToken, $"Expected ':' but instead was given {idToken.Type}"), tokens)
+                else 
+                    match typeToken.Type with
+                    | TypeAnnotation paramaterType -> (ParameterNode (idToken.Lexeme, paramaterType), tokens |> skipOrEmpty 3)
+                    | _ -> (ParserError (idToken, $"Expected a type but instead was given {idToken.Type}"), tokens)
+
+        let funToken = tokens.Head
+        if (funToken.Type <> Fun) then next tokens
+        else
+            let (parameter, tokens) = parameter (tokens |> skipOrEmpty 1)
+            if tokens.Head.Type <> Arrow then (ParserError(funToken, $"Expected '->' but instead was given {tokens.Head.Type}"), tokens)
+            else
+                match parameter with
+                | ParserError _ -> (parameter, tokens)
+                | ParameterNode (id, dataType) ->
+                    let (body, tokens) = expression (tokens |> skipOrEmpty 1)
+                    (FunctionNode(funToken, (id, dataType), body), tokens)
+                | _ -> failwith "parameter funtion should only return a parameter node or an error"
