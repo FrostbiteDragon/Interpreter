@@ -26,14 +26,14 @@ type TokenType =
 //functional oparators
 | PipeOp
 //literals
-| Number | String | True | False | Id | Void 
+| Number | String | Id | Void | Bool
 //Keywords
 | If | Else | When 
 | Print 
 | Var | Let 
 | Fun 
 | For | While | Increment | Decrement | By
-| Yeild
+| Yield
 //Types
 | TypeAnnotation of DataType
 

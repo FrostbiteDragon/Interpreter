@@ -5,10 +5,12 @@ module Lexer =
     let lex : Lexer = fun rawScript ->
         let chars = rawScript.ToCharArray() |> Array.toList
 
+
         seq { 
             let mutable character = 0
             let mutable line = 1
             let mutable i = -1
+           
             while i < chars.Length - 1 do
                 character <- character + 1
                 i <- i + 1
@@ -23,7 +25,44 @@ module Lexer =
                 | '/' -> yield {Type = Slash; Lexeme = "/"; Literal = None; Line = line; Character = character}
                 | ';' -> yield {Type = SemiColon; Lexeme = ";"; Literal = None; Line = line; Character = character}
                 | ':' -> yield {Type = Colon; Lexeme = ":"; Literal = None; Line = line; Character = character}
-                | '=' -> yield {Type = Equal; Lexeme = "="; Literal = None; Line = line; Character = character}
+                | '>' ->
+                    yield
+                         match chars.[i + 1] with
+                            | '=' ->
+                                i <- i + 1
+                                character <- character + 1
+                                {Type = GreaterOrEqual; Lexeme = ">="; Literal = None; Line = line; Character = character}
+                            | _ -> 
+                                {Type = GreaterThen; Lexeme = ">"; Literal = None; Line = line; Character = character}
+
+                | '<' -> 
+                    yield
+                        match chars.[i + 1] with
+                        | '=' ->
+                            i <- i + 1
+                            character <- character + 1
+                            {Type = LessOrEqual; Lexeme = "<="; Literal = None; Line = line; Character = character}
+                        | _ -> 
+                            {Type = LessThen; Lexeme = "<"; Literal = None; Line = line; Character = character}
+                | '!' -> 
+                    yield 
+                        match chars.[i + 1] with
+                        | '=' ->
+                            i <- i + 1
+                            character <- character + 1
+                            {Type = NotEqual; Lexeme = "!="; Literal = None; Line = line; Character = character}
+                        | _ -> 
+                            {Type = Not; Lexeme = "!"; Literal = None; Line = line; Character = character}
+                            
+                | '=' ->
+                    yield 
+                        match chars.[i + 1] with
+                        | '=' ->
+                            i <- i + 1
+                            character <- character + 1
+                            {Type = Equal; Lexeme = "=="; Literal = None; Line = line; Character = character}
+                        | _ -> 
+                            {Type = Assign; Lexeme = "="; Literal = None; Line = line; Character = character}
                 | '|' -> 
                     yield 
                         match chars.[i + 1] with
@@ -83,6 +122,8 @@ module Lexer =
                         |> List.toArray)
 
                     match word with
+                    | "true"   -> yield {Type = Bool; Lexeme = word; Literal = Some true; Line = line; Character = character}
+                    | "false"  -> yield {Type = Bool; Lexeme = word; Literal = Some false; Line = line; Character = character}
                     | "let"    -> yield {Type = Let; Lexeme = word; Literal = None; Line = line; Character = character}
                     | "var"    -> yield {Type = Var; Lexeme = word; Literal = None; Line = line; Character = character}
                     | "fun"    -> yield {Type = Fun; Lexeme = word; Literal = None; Line = line; Character = character}

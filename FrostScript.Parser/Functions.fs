@@ -9,7 +9,7 @@ module Functions =
 
     let primary (next : ParserFunction) : ParserFunction = fun tokens -> 
         match (List.head tokens).Type with
-        | Number | String | Id | Void -> (LiteralNode (List.head tokens), tokens |> skipOrEmpty 1)
+        | Number | String | Id | Void | Bool -> (LiteralNode (List.head tokens), tokens |> skipOrEmpty 1)
         | _ -> next tokens
 
     let binary validTypes (next : ParserFunction) : ParserFunction = fun tokens -> 
@@ -28,6 +28,8 @@ module Functions =
 
     let term = binary [Plus; Minus]
     let factor = binary [Star; Slash]
+    let equality = binary [Equal; NotEqual]
+    let comparison = binary [LessThen; LessOrEqual; GreaterThen; GreaterOrEqual]
 
     let binding (next : ParserFunction) : ParserFunction = fun tokens ->
         let bindToken = List.head tokens
@@ -37,7 +39,7 @@ module Functions =
 
             match (tokens |> skipOrEmpty 2 |> List.tryHead) with
             | Some token -> 
-                if token.Type <> Equal then
+                if token.Type <> Assign then
                     (ParserError (token, "Expected '='"), tokens)
                 else
                     let (value, tokens) = next (tokens |> skipOrEmpty 3)
@@ -61,7 +63,7 @@ module Functions =
             | None -> next tokens
             | Some token ->
                 match token.Type with
-                | Equal -> 
+                | Assign -> 
                     let (value, tokens) = next (tokens |> skipOrEmpty 2) 
                     (AssignNode (token, idToken.Lexeme, value), tokens)
                 | _ -> next tokens
@@ -91,6 +93,8 @@ module Functions =
         |> primary
         |> factor
         |> term
+        |> comparison
+        |> equality
         |> block
         |> func
         |> call

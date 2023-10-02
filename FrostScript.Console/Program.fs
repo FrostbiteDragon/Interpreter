@@ -2,7 +2,7 @@
 
 let frostScript = 
     """
-      webGET "https://api.publicapis.org/entries"
+      "hello" + 2
 
     """
 

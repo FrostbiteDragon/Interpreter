@@ -7,20 +7,43 @@ module Interpreter =
         let rec execute (ids : IdentifierMap<Expression>) (expression : Expression) : obj * IdentifierMap<Expression> =
             match expression.Type with
             | BinaryExpression (opporator, left, right) ->
-                match expression.DataType with
-                | NumberType -> 
-                    let left = execute ids left |> fst
-                    let right = execute ids right |> fst
+                let left = execute ids left |> fst
+                let right = execute ids right |> fst
 
-                    let result = 
+                let result =
+                    match expression.DataType with
+                    | NumberType -> 
                         match opporator with
                         | Plus  -> box ((left :?> double) + (right :?> double)) 
                         | Minus -> box ((left :?> double) - (right :?> double))
                         | Slash -> box ((left :?> double) / (right :?> double))
                         | Star  -> box ((left :?> double) * (right :?> double))
+                        | GreaterThen     -> box ((left :?> double) > (right :?> double))
+                        | GreaterOrEqual  -> box ((left :?> double) >= (right :?> double))
+                        | LessThen        -> box ((left :?> double) < (right :?> double))
+                        | LessOrEqual     -> box ((left :?> double) <= (right :?> double))
+                        | NotEqual -> box ((left :?> double) <> (right :?> double))
+                        | Equal    -> (left :?> double) = (right :?> double)
                         | _ -> ()
 
-                    (result, ids)
+                    | BoolType ->
+                        match opporator with
+                        | NotEqual -> box ((left :?> bool) <> (right :?> bool))
+                        | Equal    -> (left :?> bool) = (right :?> bool)
+                        | _ -> ()
+
+                    | StringType ->
+                        match opporator with
+                        | Plus -> box ((left :?> string) + (right :?> string))
+                        | Equal -> (left :?> string) = (right :?> string)
+                        | _ -> ()
+
+                    | AnyType ->
+                        match opporator with
+                        | Equal -> left = right
+                        | _ -> ()
+
+                (result, ids)
 
             | LiteralExpression value -> (value, ids)
             | IdentifierExpression id ->

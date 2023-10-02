@@ -14,9 +14,33 @@ module Validator =
 
             match node with
             | BinaryNode (token, left, right) -> 
-                let (left, _) = validateNode identifiers left
-                let (right, _) = validateNode identifiers right
-                (expression NumberType (BinaryExpression (token.Type, left, right)), identifiers)
+                let (left, identifiers) = validateNode identifiers left
+                let (right, identifiers) = validateNode identifiers right
+
+                let dataType = 
+                    match token.Type with
+                    | LessThen 
+                    | LessOrEqual 
+                    | GreaterThen 
+                    | GreaterOrEqual 
+                    | Star
+                    | Slash 
+                    | Minus ->
+                        if left.DataType = NumberType && right.DataType = NumberType then Some NumberType
+                        else None
+
+                    | Plus ->
+                        if left.DataType = NumberType && right.DataType = NumberType then Some NumberType
+                        else if left.DataType = StringType && right.DataType = StringType then Some StringType
+                        else None
+
+                    | Equal
+                    | NotEqual -> Some BoolType
+                    | _ -> failwith "unhandled opporator"
+
+                match dataType with
+                | None -> (error token $"Opporator '{token.Lexeme}' cannot be used between types {left.DataType} and {right.DataType}", identifiers)
+                | Some dataType -> (expression dataType (BinaryExpression (token.Type, left, right)), identifiers)
 
             | BindNode (_, id, isMutable, value) -> 
                 let (value, identifiers) = validateNode identifiers value
@@ -51,8 +75,7 @@ module Validator =
 
                 let literalExpression = 
                     match token.Type with
-                    | True   -> expression BoolType   (LiteralExpression true)
-                    | False  -> expression BoolType   (LiteralExpression false)
+                    | Bool   -> expression BoolType   (LiteralExpression (valueOrUnit token.Literal))
                     | Number -> expression NumberType (LiteralExpression (valueOrUnit token.Literal))
                     | String -> expression StringType (LiteralExpression (valueOrUnit token.Literal))
                     | Void   -> expression VoidType   (LiteralExpression ())
