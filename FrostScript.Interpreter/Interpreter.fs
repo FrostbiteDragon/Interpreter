@@ -30,6 +30,8 @@ module Interpreter =
                         match opporator with
                         | NotEqual -> box ((left :?> bool) <> (right :?> bool))
                         | Equal    -> (left :?> bool) = (right :?> bool)
+                        | And      -> (left :?> bool) && (right :?> bool)
+                        | Or      -> (left :?> bool) || (right :?> bool)
                         | _ -> ()
 
                     | StringType ->

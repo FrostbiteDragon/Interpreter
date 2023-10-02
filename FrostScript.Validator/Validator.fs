@@ -36,6 +36,12 @@ module Validator =
 
                     | Equal
                     | NotEqual -> Some BoolType
+
+                    | And
+                    | Or ->
+                        if left.DataType = BoolType && right.DataType = BoolType then Some BoolType
+                        else None
+
                     | _ -> failwith "unhandled opporator"
 
                 match dataType with

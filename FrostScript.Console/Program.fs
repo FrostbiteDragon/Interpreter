@@ -2,8 +2,7 @@
 
 let frostScript = 
     """
-      "hello" + 2
-
+      true or false and true
     """
 
 frostScript

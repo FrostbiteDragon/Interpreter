@@ -30,6 +30,8 @@ module Functions =
     let factor = binary [Star; Slash]
     let equality = binary [Equal; NotEqual]
     let comparison = binary [LessThen; LessOrEqual; GreaterThen; GreaterOrEqual]
+    let andFunction = binary [And]
+    let orFunction = binary [Or]
 
     let binding (next : ParserFunction) : ParserFunction = fun tokens ->
         let bindToken = List.head tokens
@@ -95,6 +97,8 @@ module Functions =
         |> term
         |> comparison
         |> equality
+        |> andFunction
+        |> orFunction
         |> block
         |> func
         |> call

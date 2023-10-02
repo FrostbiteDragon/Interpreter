@@ -127,6 +127,8 @@ module Lexer =
                     | "let"    -> yield {Type = Let; Lexeme = word; Literal = None; Line = line; Character = character}
                     | "var"    -> yield {Type = Var; Lexeme = word; Literal = None; Line = line; Character = character}
                     | "fun"    -> yield {Type = Fun; Lexeme = word; Literal = None; Line = line; Character = character}
+                    | "or"    -> yield {Type = Or; Lexeme = word; Literal = None; Line = line; Character = character}
+                    | "and"    -> yield {Type = And; Lexeme = word; Literal = None; Line = line; Character = character}
                     | "num"    -> yield {Type = TypeAnnotation (NumberType); Lexeme = word; Literal = None; Line = line; Character = character}
                     | "any"    -> yield {Type = TypeAnnotation (AnyType); Lexeme = word; Literal = None; Line = line; Character = character}
                     | "void"   -> yield {Type = TypeAnnotation (VoidType); Lexeme = word; Literal = None; Line = line; Character = character}

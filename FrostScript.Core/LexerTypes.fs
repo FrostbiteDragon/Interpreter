@@ -22,7 +22,7 @@ type TokenType =
 //math operators
 | Minus | Plus | Slash | Star
 //logical operators
-| Equal | NotEqual | GreaterThen | GreaterOrEqual | LessOrEqual | LessThen | Not | Or
+| Equal | NotEqual | GreaterThen | GreaterOrEqual | LessOrEqual | LessThen | Not | Or | And
 //functional oparators
 | PipeOp
 //literals
