@@ -117,16 +117,17 @@ module Validator =
                 if condition.DataType <> BoolType then (error token "If condition must be of type bool", identifiers)
                 else 
                     let (trueExpression, identifiers) = validateNode identifiers trueNode
-                    if trueExpression.DataType = VoidType then (expression trueExpression.DataType (IfExpression(condition, trueExpression, None)), identifiers)
-                    else
-                        match falseNode with
-                        | None -> (error token "If expressions that do not return void must have an else clause", identifiers)
-                        | Some falseNode ->
-                            let (falseExpression, identifiers) = validateNode identifiers falseNode
-                            if trueExpression.DataType <> falseExpression.DataType then
-                                (error token $"Both casses of an If expression must return an expression of the same datatype. The types present are {trueExpression.DataType} and {falseExpression.DataType}", identifiers)
-                            else
-                                (expression trueExpression.DataType (IfExpression(condition, trueExpression, Some falseExpression)), identifiers)
+                    match falseNode with
+                    | Some falseNode -> 
+                        let (falseExpression, identifiers) = validateNode identifiers falseNode
+                        if trueExpression.DataType <> falseExpression.DataType then
+                            (error token $"Both casses of an If expression must return an expression of the same datatype. The types present are {trueExpression.DataType} and {falseExpression.DataType}", identifiers)
+                        else
+                            (expression trueExpression.DataType (IfExpression(condition, trueExpression, Some falseExpression)), identifiers)
+
+                    | None -> 
+                        if trueExpression.DataType = VoidType then (expression trueExpression.DataType (IfExpression(condition, trueExpression, None)), identifiers)
+                        else (error token "If expressions that do not return void must have an else clause", identifiers)
 
             | ParserError (token, message) -> (error token message, identifiers)
         
