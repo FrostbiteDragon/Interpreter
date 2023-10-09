@@ -2,7 +2,7 @@
 
 type ParserFunction = Token list -> Node * Token list
 
-module Functions =
+module ParserFunctions =
     let skipOrEmpty count list =
         if list |> List.isEmpty then []
         else list |> List.skip count

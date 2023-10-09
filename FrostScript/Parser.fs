@@ -20,6 +20,6 @@ module Parser =
         |> fst
         |> List.where (fun x -> not x.IsEmpty)
         |> List.map (fun tokens ->
-            let (node, _) = Functions.expression tokens
+            let (node, _) = ParserFunctions.expression tokens
             node
         )
