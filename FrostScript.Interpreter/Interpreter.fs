@@ -6,12 +6,12 @@ module Interpreter =
 
         let rec execute (ids : IdentifierMap<Expression>) (expression : Expression) : obj * IdentifierMap<Expression> =
             match expression.Type with
-            | BinaryExpression (opporator, left, right) ->
-                let left = execute ids left |> fst
+            | BinaryExpression (opporator, leftExpression, right) ->
+                let left = execute ids leftExpression |> fst
                 let right = execute ids right |> fst
 
                 let result =
-                    match expression.DataType with
+                    match leftExpression.DataType with
                     | NumberType -> 
                         match opporator with
                         | Plus  -> box ((left :?> double) + (right :?> double)) 
@@ -22,27 +22,29 @@ module Interpreter =
                         | GreaterOrEqual  -> box ((left :?> double) >= (right :?> double))
                         | LessThen        -> box ((left :?> double) < (right :?> double))
                         | LessOrEqual     -> box ((left :?> double) <= (right :?> double))
-                        | NotEqual -> box ((left :?> double) <> (right :?> double))
-                        | Equal    -> (left :?> double) = (right :?> double)
+                        | NotEqual -> left.Equals right |> not |> box
+                        | Equal    -> left.Equals right
                         | _ -> ()
 
                     | BoolType ->
                         match opporator with
-                        | NotEqual -> box ((left :?> bool) <> (right :?> bool))
-                        | Equal    -> (left :?> bool) = (right :?> bool)
                         | And      -> (left :?> bool) && (right :?> bool)
-                        | Or      -> (left :?> bool) || (right :?> bool)
+                        | Or       -> (left :?> bool) || (right :?> bool)
+                        | NotEqual -> left.Equals right |> not |> box
+                        | Equal    -> left.Equals right
                         | _ -> ()
 
                     | StringType ->
                         match opporator with
                         | Plus -> box ((left :?> string) + (right :?> string))
-                        | Equal -> (left :?> string) = (right :?> string)
+                        | NotEqual -> left.Equals right |> not |> box
+                        | Equal -> left.Equals right
                         | _ -> ()
 
                     | AnyType ->
                         match opporator with
-                        | Equal -> left = right
+                        | NotEqual -> left.Equals right |> not |> box
+                        | Equal -> left.Equals right
                         | _ -> ()
 
                 (result, ids)
@@ -74,6 +76,16 @@ module Interpreter =
                     body
                     |> List.mapFold(fun ids expression -> execute ids expression) {globalIds = ids.Ids; localIds = Map.empty}
                 (results |> List.last, {globalIds = Map.empty; localIds = ids.globalIds} )
+
+            | IfExpression (condition, trueExpression, falseExpression) ->
+                let condition = (execute ids condition |> fst) :?> bool
+                if condition then
+                    execute ids trueExpression
+                else
+                    match falseExpression with
+                    | None -> ((), ids)
+                    | Some falseExpression ->
+                        execute ids falseExpression
                 
             | FunctionExpression (paramater, body) ->
                 ({ DataType = body.DataType

@@ -5,8 +5,9 @@ type Expression =
       Type : ExpressionType }
 
 and ExpressionType =
-| BinaryExpression of opporator : TokenType * Left : Expression * Right : Expression
-| BlockExpression of body : Expression list
+| IfExpression of Condition : Expression * True : Expression * False : Expression option
+| BinaryExpression of Opporator : TokenType * Left : Expression * Right : Expression
+| BlockExpression of Body : Expression list
 | LiteralExpression of Value : obj
 | IdentifierExpression of Id : string
 | ValidationError of Token * Error : string

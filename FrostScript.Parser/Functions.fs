@@ -71,6 +71,8 @@ module Functions =
                 | _ -> next tokens
         | _ -> next tokens
 
+   
+
     let call (next : ParserFunction) : ParserFunction = fun tokens ->
         let (node, tokens) = next tokens
         let mutable node = node
@@ -93,13 +95,14 @@ module Functions =
         stop
         |> grouping
         |> primary
+        |> block
         |> factor
         |> term
         |> comparison
         |> equality
         |> andFunction
         |> orFunction
-        |> block
+        |> ifFunction
         |> func
         |> call
         |> binding
@@ -200,3 +203,22 @@ module Functions =
                         ) (FunctionNode(funToken, parameters.Head, body))
 
                     (node, tokens)
+
+    and ifFunction next tokens =
+        let ifToken = tokens |> List.head
+
+        if ifToken.Type <> If then next tokens 
+        else
+            let conditionTokens = tokens |> skipOrEmpty 1 |> List.takeWhile (fun x -> x.Type <> Arrow)
+            let (condition, _) = expression conditionTokens
+            let tokens = tokens |> skipOrEmpty (conditionTokens.Length + 1)
+            if tokens.Head.Type <> Arrow then (ParserError (tokens.Head, "Expected '->'"), tokens) 
+            else
+                let trueTokens = tokens |> skipOrEmpty 1 |> List.takeWhile (fun x -> x.Type <> Else)
+                let (trueNode, _) = expression trueTokens
+                let tokens = tokens |> skipOrEmpty (trueTokens.Length + 1)
+                if tokens.IsEmpty || tokens.Head.Type <> Else then (IfNode(ifToken, condition, trueNode, None), tokens)
+                else
+                    let (falseNode, tokens) = expression (tokens |> skipOrEmpty 1)
+                    (IfNode(ifToken, condition, trueNode, Some falseNode), tokens)
+                

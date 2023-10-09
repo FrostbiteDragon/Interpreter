@@ -2,7 +2,8 @@
 
 let frostScript = 
     """
-      true or false and true
+      if 2 == 2 -> print 1;
+
     """
 
 frostScript
