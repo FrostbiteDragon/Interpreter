@@ -1,8 +1,7 @@
 ﻿namespace FrostScript
-open FrostScript.Core
 
 module Validator =
-    let validate : Validator = fun nativeFunctions nodes ->
+    let validate nativeFunctions nodes =
         let rec validateNode (identifiers : IdentifierMap<DataType * bool>) node : Expression * IdentifierMap<DataType * bool> =
             let error token message =
                  { DataType = VoidType

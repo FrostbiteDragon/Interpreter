@@ -1,10 +1,9 @@
 ﻿module FrostScript.NativeFunctions
-open FrostScript.Core
 
 let nativeFunctions =
     let createExpression inputType outputType body =
-            { DataType = FunctionType(inputType, outputType)
-              Type = NativeFunction body }
+        { DataType = FunctionType(inputType, outputType)
+          Type = NativeFunction body }
 
     [ 
         ("print", createExpression AnyType VoidType <|

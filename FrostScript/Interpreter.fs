@@ -1,9 +1,7 @@
 ﻿namespace FrostScript
-open FrostScript.Core
 
 module Interpreter =
-    let interpret : Interpreter = fun nativeFunctions expressions ->
-
+    let interpret nativeFunctions expressions =
         let rec execute (ids : IdentifierMap<Expression>) (expression : Expression) : obj * IdentifierMap<Expression> =
             match expression.Type with
             | BinaryExpression (opporator, leftExpression, right) ->

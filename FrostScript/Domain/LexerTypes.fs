@@ -1,6 +1,4 @@
-﻿namespace FrostScript.Core
-
-
+﻿namespace FrostScript
 
 type TokenType =
 //structural
