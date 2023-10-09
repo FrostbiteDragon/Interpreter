@@ -6,16 +6,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="NativeFunctions.fs" />
+    <Compile Include="Domain\CoreTypes.fs" />
+    <Compile Include="Domain\LexerTypes.fs" />
+    <Compile Include="Domain\InterpreterTypes.fs" />
+    <Compile Include="Domain\ParserTypes.fs" />
+    <Compile Include="Domain\ValidatorTypes.fs" />
+    <Compile Include="Domain\NativeFunctions.fs" />
+    <Compile Include="Lexer.fs" />
+    <Compile Include="ParserFunctions.fs" />
+    <Compile Include="Parser.fs" />
+    <Compile Include="Validator.fs" />
+    <Compile Include="Interpreter.fs" />
     <Compile Include="FrostScript.fs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\FrostScript.Core\FrostScript.Core.fsproj" />
-    <ProjectReference Include="..\FrostScript.Interpreter\FrostScript.Interpreter.fsproj" />
-    <ProjectReference Include="..\FrostScript.Lexer\FrostScript.Lexer.fsproj" />
-    <ProjectReference Include="..\FrostScript.Parser\FrostScript.Parser.fsproj" />
-    <ProjectReference Include="..\FrostScript.Validator\FrostScript.Validator.fsproj" />
   </ItemGroup>
 
 </Project>

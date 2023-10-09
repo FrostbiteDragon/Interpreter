@@ -1,4 +1,4 @@
-﻿namespace FrostScript.Core
+﻿namespace FrostScript
 
 type Expression =
     { DataType : DataType

@@ -1,8 +1,7 @@
 ﻿namespace FrostScript
-open FrostScript.Core
 
 module Parser =
-    let parse : Parser = fun tokens ->
+    let parse (tokens : Token list) =
         let appendToLastInState token tokens isBlock =
             let current = tokens |> List.last
             (tokens |> List.updateAt (tokens.Length - 1) (List.append current [token]), isBlock)
@@ -21,6 +20,6 @@ module Parser =
         |> fst
         |> List.where (fun x -> not x.IsEmpty)
         |> List.map (fun tokens ->
-            let (node, _) = Functions.expression tokens
+            let (node, _) = ParserFunctions.expression tokens
             node
         )

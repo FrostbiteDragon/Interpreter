@@ -1,8 +1,8 @@
 ﻿namespace FrostScript
-open FrostScript.Core
+
 type ParserFunction = Token list -> Node * Token list
 
-module Functions =
+module ParserFunctions =
     let skipOrEmpty count list =
         if list |> List.isEmpty then []
         else list |> List.skip count
@@ -155,7 +155,7 @@ module Functions =
         | _ -> next tokens
 
     and func (next : ParserFunction) : ParserFunction = fun tokens ->
-        let parameter tokens =
+        let parameter (tokens : Token list) =
             if (tokens |> skipOrEmpty 3).IsEmpty then Error $"Unexpected end of file"
             else
                 let idToken = tokens.Head
