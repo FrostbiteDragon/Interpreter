@@ -88,9 +88,10 @@ module ParserFunctions =
         (node, tokens)
 
         
+    let stop : ParserFunction = fun tokens ->
+        (Stop, tokens)
+
     let rec expression : ParserFunction = fun tokens ->
-        let stop : ParserFunction = fun tokens ->
-            (Stop, tokens)
 
         stop
         |> grouping
@@ -212,13 +213,46 @@ module ParserFunctions =
             let conditionTokens = tokens |> skipOrEmpty 1 |> List.takeWhile (fun x -> x.Type <> Arrow)
             let (condition, _) = expression conditionTokens
             let tokens = tokens |> skipOrEmpty (conditionTokens.Length + 1)
+
             if tokens.Head.Type <> Arrow then (ParserError (tokens.Head, "Expected '->'"), tokens) 
             else
                 let trueTokens = tokens |> skipOrEmpty 1 |> List.takeWhile (fun x -> x.Type <> Else)
                 let (trueNode, _) = expression trueTokens
                 let tokens = tokens |> skipOrEmpty (trueTokens.Length + 1)
+
                 if tokens.IsEmpty || tokens.Head.Type <> Else then (IfNode(ifToken, condition, trueNode, None), tokens)
                 else
                     let (falseNode, tokens) = expression (tokens |> skipOrEmpty 1)
                     (IfNode(ifToken, condition, trueNode, Some falseNode), tokens)
+
+    and loop (next : ParserFunction) : ParserFunction = fun tokens ->
+        let loopToken = tokens |> List.head
+        match loopToken.Type with
+        | For ->
+            let bindingTokens = tokens |> skipOrEmpty 1 |> List.takeWhile (fun x -> x.Type <> While)
+            let (binding, _) = expression bindingTokens
+            let tokens = tokens |> skipOrEmpty (bindingTokens.Length + 1)
+
+            if tokens.Head.Type <> While then (ParserError(tokens.Head, "Expected 'while'"), tokens)
+            else
+                let conditionTokens = tokens |> skipOrEmpty 1 |> List.takeWhile (fun x -> x.Type <> Do)
+                let (condition, _) = expression conditionTokens
+                let tokens = tokens |> skipOrEmpty (conditionTokens.Length + 1)
+
+                if tokens.Head.Type <> Do then (ParserError(tokens.Head, "Expected 'do"), tokens)
+                else
+                    let mutable tokens = tokens |> skipOrEmpty 1
+                    let bodies = 
+                        seq {
+                            while tokens.Head.Type = Do do
+                                let bodyTokens = tokens |> skipOrEmpty 1 |> List.takeWhile (fun x -> x.Type <> Do)
+                                let (body, _) = expression tokens
+                                tokens <- tokens |> skipOrEmpty (bodyTokens.Length + 1)
+                                yield body
+                        } |> Seq.toList
+
+                    (LoopNode(loopToken, Some binding, condition, bodies), tokens)
+                        
+        //| While ->
+        | _ -> next tokens 
                 

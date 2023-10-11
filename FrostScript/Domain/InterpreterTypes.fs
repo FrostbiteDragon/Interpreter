@@ -5,6 +5,7 @@ type Expression =
       Type : ExpressionType }
 
 and ExpressionType =
+| LoopExpression of Bind : Expression option * Condition : Expression * Bodies : Expression List
 | IfExpression of Condition : Expression * True : Expression * False : Expression option
 | BinaryExpression of Opporator : TokenType * Left : Expression * Right : Expression
 | BlockExpression of Body : Expression list

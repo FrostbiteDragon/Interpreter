@@ -128,6 +128,29 @@ module Validator =
                         if trueExpression.DataType = VoidType then (expression trueExpression.DataType (IfExpression(condition, trueExpression, None)), identifiers)
                         else (error token "If expressions that do not return void must have an else clause", identifiers)
 
+            | LoopNode (token, binding, condition, bodies) ->
+                let loopIds = {globalIds = identifiers.Ids; localIds = Map.empty}
+                match binding with
+                | Some binding ->
+                    match binding with
+                    | BindNode _ ->
+                        let (binding, loopIds) = validateNode loopIds binding
+                        let (condition, loopIds) = validateNode loopIds condition
+
+                        if condition.DataType <> BoolType then (error token $"The expression following 'while' must be of type {BoolType}", identifiers)
+                        else 
+                            let (bodies, loopIds) = 
+                                bodies
+                                |> List.mapFold (fun (loopIds : IdentifierMap<DataType * bool>) body -> 
+                                    let bodyIds = {globalIds = loopIds.Ids; localIds = Map.empty}
+                                    let (body, bodyIds) = validateNode bodyIds body
+                                    (body, {bodyIds with localIds = bodyIds.globalIds})
+                                ) loopIds
+                            (expression ((bodies |> List.last).DataType) (LoopExpression(Some binding, condition, bodies)), { identifiers with localIds = loopIds.globalIds })
+                    | _ -> (error token "The expression following 'for' must be a binding", identifiers)
+                | None -> failwith "not implemented"
+                    
+
             | ParserError (token, message) -> (error token message, identifiers)
         
         let nativeFunctions = nativeFunctions |> Seq.map (fun (key, value) -> (key, (value.DataType, false))) |> Map.ofSeq

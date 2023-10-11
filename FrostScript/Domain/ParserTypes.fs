@@ -2,6 +2,7 @@
 
 type Node = 
 | Stop
+| LoopNode of Token * Binding : Node option * Condition : Node * Bodies : Node list 
 | IfNode of Token * Condition : Node * True : Node * False : Node option
 | FunctionNode of Token * Parameter : Paramater * Body : Node
 | ParameterNode of Name : string * Type : DataType
