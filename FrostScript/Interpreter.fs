@@ -52,7 +52,8 @@ module Interpreter =
                execute ids ids.[id]
 
             | AssignExpression (id, value) ->
-                ((), ids.Change id value)
+                let (newValue, ids) = execute ids value
+                ((), ids.Change id { DataType = value.DataType; Type = (LiteralExpression(newValue))})
 
             | BindExpression (id, value) ->
                 ((), ids.ChangeLocal id value)
