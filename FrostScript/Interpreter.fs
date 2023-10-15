@@ -71,10 +71,10 @@ module Interpreter =
                 | _ -> failwith "expression was not callable"
 
             | BlockExpression body ->
-                let (results, ids) =
+                let (results, blockIds) =
                     body
                     |> List.mapFold(fun ids expression -> execute ids expression) {globalIds = ids.Ids; localIds = Map.empty}
-                (results |> List.last, {globalIds = Map.empty; localIds = ids.globalIds} )
+                (results |> List.last, { ids with localIds = blockIds.globalIds })
 
             | IfExpression (condition, trueExpression, falseExpression) ->
                 let condition = (execute ids condition |> fst) :?> bool
@@ -85,6 +85,34 @@ module Interpreter =
                     | None -> ((), ids)
                     | Some falseExpression ->
                         execute ids falseExpression
+
+            | LoopExpression (binding, condition, bodies) ->
+                match binding with
+                | Some binding ->
+                    let mutable loopIds = execute { globalIds = ids.Ids; localIds = Map.empty } binding |> snd
+
+                    let results = 
+                        seq {
+                            let mutable keepLooping = true
+                            while keepLooping do 
+                                let (condition, newLoopIds) = execute loopIds condition
+                                if condition :?> bool |> not then
+                                    keepLooping <- false
+                                else
+                                    let (results, newLoopIds) =
+                                        bodies
+                                        |> List.fold(fun state body -> 
+                                            let (newLoopIds : IdentifierMap<Expression>) = state |> snd
+                                            let bodyIds = {globalIds = newLoopIds.Ids; localIds = Map.empty}
+                                            let (result, bodyIds) = execute bodyIds body
+                                            (result, {bodyIds with localIds = bodyIds.globalIds})
+                            
+                                        ) ((), newLoopIds)
+                                    loopIds <- newLoopIds
+                                    yield results
+                                    ()
+                        } |> Seq.toList
+                    (results, { loopIds with localIds = loopIds.globalIds })
                 
             | FunctionExpression (paramater, body) ->
                 ({ DataType = body.DataType

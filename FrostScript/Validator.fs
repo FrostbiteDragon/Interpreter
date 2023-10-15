@@ -18,10 +18,6 @@ module Validator =
 
                 let dataType = 
                     match token.Type with
-                    | LessThen 
-                    | LessOrEqual 
-                    | GreaterThen 
-                    | GreaterOrEqual 
                     | Star
                     | Slash 
                     | Minus ->
@@ -34,7 +30,11 @@ module Validator =
                         else None
 
                     | Equal
-                    | NotEqual -> Some BoolType
+                    | NotEqual 
+                    | LessThen 
+                    | LessOrEqual 
+                    | GreaterThen 
+                    | GreaterOrEqual -> Some BoolType
 
                     | And
                     | Or ->

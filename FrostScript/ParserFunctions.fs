@@ -1,12 +1,9 @@
 ﻿namespace FrostScript
+open Utilities
 
 type ParserFunction = Token list -> Node * Token list
 
 module ParserFunctions =
-    let skipOrEmpty count list =
-        if list |> List.isEmpty then []
-        else list |> List.skip count
-
     let primary (next : ParserFunction) : ParserFunction = fun tokens -> 
         match (List.head tokens).Type with
         | Number | String | Id | Void | Bool -> (LiteralNode (List.head tokens), tokens |> skipOrEmpty 1)
@@ -92,7 +89,6 @@ module ParserFunctions =
         (Stop, tokens)
 
     let rec expression : ParserFunction = fun tokens ->
-
         stop
         |> grouping
         |> primary
@@ -107,6 +103,7 @@ module ParserFunctions =
         |> func
         |> call
         |> binding
+        |> loop
         |> assign <| tokens
 
     and grouping (next : ParserFunction) : ParserFunction = fun tokens ->
@@ -129,21 +126,18 @@ module ParserFunctions =
         let headToken = tokens |> List.head
         match headToken.Type with
         | Pipe ->
-            let updateLast update source = 
-                let current = source |> List.last
-                source |> List.updateAt (source.Length - 1) (update current)
+            let tokens = tokens |> skipOrEmpty 1
 
-            let bodyTokens = tokens |> List.takeWhile (fun x -> x.Type <> ReturnPipe)
+            let bodyTokens = 
+                tokens
+                |> List.rev
+                |> List.skipWhile (fun x -> x.Type <> ReturnPipe)
+                |> List.skip 1
+                |> List.rev
+
             let body = 
                 bodyTokens
-                |> List.skip 1
-                |> List.takeWhile (fun x -> x.Type <> ReturnPipe)
-                |> List.fold (fun tokens token -> 
-                    match token.Type with
-                    | SemiColon -> List.append tokens [[]]
-                    | _ -> tokens |> updateLast (fun lastTokenList -> List.append lastTokenList [token])
-                ) [[]]
-                |> List.where(fun x -> not x.IsEmpty)
+                |> splitTokens
                 |> List.map (fun tokens ->  
                     let (node, _) = expression tokens
                     node
@@ -241,12 +235,12 @@ module ParserFunctions =
 
                 if tokens.Head.Type <> Do then (ParserError(tokens.Head, "Expected 'do"), tokens)
                 else
-                    let mutable tokens = tokens |> skipOrEmpty 1
+                    let mutable tokens = tokens
                     let bodies = 
                         seq {
-                            while tokens.Head.Type = Do do
+                            while tokens.IsEmpty |> not && tokens.Head.Type = Do do
                                 let bodyTokens = tokens |> skipOrEmpty 1 |> List.takeWhile (fun x -> x.Type <> Do)
-                                let (body, _) = expression tokens
+                                let (body, _) = expression bodyTokens
                                 tokens <- tokens |> skipOrEmpty (bodyTokens.Length + 1)
                                 yield body
                         } |> Seq.toList
