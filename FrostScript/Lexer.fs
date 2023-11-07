@@ -3,8 +3,6 @@
 module Lexer =
     let lex (rawScript : string) =
         let chars = rawScript.ToCharArray() |> Array.toList
-
-
         seq { 
             let mutable character = 0
             let mutable line = 1
@@ -135,6 +133,9 @@ module Lexer =
                     | "string" -> yield { Type = TypeAnnotation (StringType); Lexeme = word; Literal = None; Line = line; Character = character }
                     | "if"     -> yield { Type = If; Lexeme = word; Literal = None; Line = line; Character = character }
                     | "else"   -> yield { Type = Else; Lexeme = word; Literal = None; Line = line; Character = character }
+                    | "for"    -> yield { Type = For; Lexeme = word; Literal = None; Line = line; Character = character }
+                    | "while"  -> yield { Type = While; Lexeme = word; Literal = None; Line = line; Character = character }
+                    | "do"    -> yield { Type = Do; Lexeme = word; Literal = None; Line = line; Character = character }
                     | _        -> yield { Type = Id; Lexeme = word; Literal = None; Line = line; Character = character }
 
                     i <- i + word.Length - 1

@@ -2,9 +2,12 @@
 
 let frostScript = 
     """
-      if false -> print 1 
-      else print 2;
-
+    for var i = 0 while i < 10 do i = i + 1 do
+    | 
+        spit i;
+        spit " : ";
+        print i;
+    |> i;
     """
 
 frostScript

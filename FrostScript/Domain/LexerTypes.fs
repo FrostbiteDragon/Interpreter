@@ -30,7 +30,7 @@ type TokenType =
 | Print 
 | Var | Let 
 | Fun 
-| For | While | Increment | Decrement | By
+| For | While | Do
 | Yield
 //Types
 | TypeAnnotation of DataType
