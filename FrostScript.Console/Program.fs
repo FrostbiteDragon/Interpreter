@@ -1,13 +1,8 @@
 ﻿open FrostScript
+open System.IO
 
-let frostScript = 
-    """
-   
-    for var i = 0 while i < 10 do i = i + 1 do print i do i;
-
-    """
-
-frostScript
+System.Environment.GetCommandLineArgs().[1]
+|> File.ReadAllText
 |> FrostScript.execute
 |> System.Console.WriteLine
 |> ignore
