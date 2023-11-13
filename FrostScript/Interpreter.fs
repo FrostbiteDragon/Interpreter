@@ -112,6 +112,29 @@ module Interpreter =
                                     ()
                         } |> Seq.toList
                     (results, loopIds |> IdMap.closeLocal)
+                | None -> 
+                    let mutable loopIds = ids
+                    let results = 
+                        seq {
+                            let mutable keepLooping = true
+                            while keepLooping do 
+                                let (condition, newLoopIds) = execute loopIds condition
+                                if condition :?> bool |> not then
+                                    keepLooping <- false
+                                else
+                                    let (results, newLoopIds) =
+                                        bodies
+                                        |> List.fold(fun state body -> 
+                                            let (result, bodyIds) = state |> snd |> IdMap.useLocal (fun bodyIds -> execute bodyIds body)
+                                            (result, bodyIds)
+                            
+                                        ) ((), newLoopIds)
+                                    loopIds <- newLoopIds
+                                    yield results
+                                    ()
+                        } |> Seq.toList
+                    (results, loopIds)
+
                 
             | FunctionExpression (paramater, body) ->
                 ({ DataType = body.DataType

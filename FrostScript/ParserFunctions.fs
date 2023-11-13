@@ -220,6 +220,26 @@ module ParserFunctions =
                     (IfNode(ifToken, condition, trueNode, Some falseNode), tokens)
 
     and loop (next : ParserFunction) : ParserFunction = fun tokens ->
+        let getCondition (tokens : Token list) = 
+            let conditionTokens = tokens |> skipOrEmpty 1 |> List.takeWhile (fun x -> x.Type <> Do)
+            let (condition, _) = expression conditionTokens
+            let tokens = tokens |> skipOrEmpty (conditionTokens.Length + 1)
+            (condition, tokens)
+
+        let getBodies (tokens : Token list) = 
+            if tokens.Head.Type <> Do then (Error "Expected 'do", tokens)
+            else
+                let mutable tokens = tokens
+                let bodies = 
+                    seq {
+                        while tokens.IsEmpty |> not && tokens.Head.Type = Do do
+                            let bodyTokens = tokens |> skipOrEmpty 1 |> List.takeWhile (fun x -> x.Type <> Do)
+                            let (body, _) = expression bodyTokens
+                            tokens <- tokens |> skipOrEmpty (bodyTokens.Length + 1)
+                            yield body
+                    } |> Seq.toList
+                (Ok bodies, tokens)
+
         let loopToken = tokens |> List.head
         match loopToken.Type with
         | For ->
@@ -229,24 +249,19 @@ module ParserFunctions =
 
             if tokens.Head.Type <> While then (ParserError(tokens.Head, "Expected 'while'"), tokens)
             else
-                let conditionTokens = tokens |> skipOrEmpty 1 |> List.takeWhile (fun x -> x.Type <> Do)
-                let (condition, _) = expression conditionTokens
-                let tokens = tokens |> skipOrEmpty (conditionTokens.Length + 1)
+                let (condition, tokens) = getCondition tokens
+                let (bodies, tokens) = getBodies tokens
 
-                if tokens.Head.Type <> Do then (ParserError(tokens.Head, "Expected 'do"), tokens)
-                else
-                    let mutable tokens = tokens
-                    let bodies = 
-                        seq {
-                            while tokens.IsEmpty |> not && tokens.Head.Type = Do do
-                                let bodyTokens = tokens |> skipOrEmpty 1 |> List.takeWhile (fun x -> x.Type <> Do)
-                                let (body, _) = expression bodyTokens
-                                tokens <- tokens |> skipOrEmpty (bodyTokens.Length + 1)
-                                yield body
-                        } |> Seq.toList
-
-                    (LoopNode(loopToken, Some binding, condition, bodies), tokens)
+                match bodies with
+                | Error message -> (ParserError(tokens.Head, message), tokens)
+                | Ok bodies -> (LoopNode(loopToken, Some binding, condition, bodies), tokens)
                         
-        //| While ->
+        | While ->
+            let (condition, tokens) = getCondition tokens
+            let (bodies, tokens) = getBodies tokens
+
+            match bodies with
+            | Error message -> (ParserError(tokens.Head, message), tokens)
+            | Ok bodies -> (LoopNode(loopToken, None, condition, bodies), tokens)
         | _ -> next tokens 
                 

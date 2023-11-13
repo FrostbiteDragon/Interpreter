@@ -133,25 +133,49 @@ module Validator =
                         else (error token "If expressions that do not return void must have an else clause", identifiers)
 
             | LoopNode (token, binding, condition, bodies) ->
+                let validateCondition ids =
+                    let (condition, ids) = validateNode ids condition
+
+                    if condition.DataType <> BoolType then (Error $"The expression following 'while' must be of type {BoolType}", ids)
+                    else (Ok condition, ids)
+
+                let validateBodies ids =
+                    let (bodies, ids) = 
+                        bodies
+                        |> List.mapFold (fun (loopIds : (DataType * bool) idMap) body -> 
+                            loopIds |> IdMap.useLocal (fun bodyIds -> validateNode bodyIds body)
+                        ) ids
+                    (Ok bodies, ids)
+
                 match binding with
                 | Some binding ->
                     match binding with
                     | BindNode _ ->
                         ids |> IdMap.useLocal (fun loopIds ->
                             let (binding, loopIds) = validateNode loopIds binding
-                            let (condition, loopIds) = validateNode loopIds condition
+                            let (condition, loopIds) = validateCondition loopIds
+                            let (bodies, loopIds) = validateBodies loopIds
+                    
+                            match bodies with
+                            | Error message -> (error token message, ids)
+                            | Ok bodies -> 
+                                match condition with
+                                | Error message -> (error token message, ids)
+                                | Ok condition -> (expression ((bodies |> List.last).DataType) (LoopExpression(Some binding, condition, bodies)), loopIds))
 
-                            if condition.DataType <> BoolType then (error token $"The expression following 'while' must be of type {BoolType}", ids)
-                            else 
-                                let (bodies, loopIds) = 
-                                    bodies
-                                    |> List.mapFold (fun (loopIds : (DataType * bool) idMap) body -> 
-                                        loopIds |> IdMap.useLocal (fun bodyIds -> validateNode bodyIds body)
-                                    ) loopIds
-                                (expression ((bodies |> List.last).DataType) (LoopExpression(Some binding, condition, bodies)), loopIds)
-                        )
                     | _ -> (error token "The expression following 'for' must be a binding", ids)
-                | None -> failwith "not implemented"
+
+                | None -> 
+                    let (condition, ids) = validateCondition ids
+                    let (bodies, ids) = validateBodies ids
+                    
+                    match bodies with
+                    | Error message -> (error token message, ids)
+                    | Ok bodies -> 
+                        match condition with
+                        | Error message -> (error token message, ids)
+                        | Ok condition -> (expression ((bodies |> List.last).DataType) (LoopExpression(None, condition, bodies)), ids)
+                        
                     
 
             | ParserError (token, message) -> (error token message, ids)
