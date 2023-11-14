@@ -102,8 +102,8 @@ module ParserFunctions =
         |> ifFunction
         |> func
         |> call
-        |> binding
         |> loop
+        |> binding
         |> assign <| tokens
 
     and grouping (next : ParserFunction) : ParserFunction = fun tokens ->
