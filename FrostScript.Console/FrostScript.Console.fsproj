@@ -4,13 +4,13 @@
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="test.frs" />
+    <None Include="test.fr" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FrostScript\FrostScript.fsproj" />
   </ItemGroup>
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="if not exist test.frs (echo print &quot;hello world&quot; &gt; test.frs)" />
+    <Exec Command="if not exist test.fr (echo print &quot;hello world&quot; &gt; test.fr)" />
   </Target>
 </Project>
