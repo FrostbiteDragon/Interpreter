@@ -96,8 +96,8 @@ module ParserFunctions =
         stop
         |> grouping
         |> primary
-        |> objectAccessor
         |> object
+        |> objectAccessor
         |> block
         |> factor
         |> term
