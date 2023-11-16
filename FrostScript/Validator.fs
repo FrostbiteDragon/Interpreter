@@ -180,6 +180,16 @@ module Validator =
                 let fields = fields |> Map.map(fun _ y -> (validateNode ids y) |> fst)
                 (expression (ObjectType(fields |> Map.map(fun _ y -> y.DataType))) (ObjectExpression fields), ids)
 
+            | ObjectAccessorNode (token, accessee, feild) -> 
+                let (accessee, ids) = validateNode ids accessee
+                match accessee.DataType with 
+                | ObjectType fields ->
+                    let mutable dataType = VoidType 
+                    let exisits = fields.TryGetValue (feild.Lexeme, &dataType)
+                    if exisits then (expression dataType (ObjectAccessorExpression(accessee, feild.Lexeme)), ids)
+                    else (error token $"object does not contain the field \"{feild}\"", ids)
+                | _ -> (error token "Expression leading '.' must be of type object", ids)
+
             | ParserError (token, message) -> (error token message, ids)
         
         let nativeFunctions = nativeFunctions |> Seq.map (fun (key, value) -> (key, (value.DataType, false))) |> Map.ofSeq

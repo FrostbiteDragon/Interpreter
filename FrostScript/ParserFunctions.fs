@@ -30,6 +30,13 @@ module ParserFunctions =
     let andFunction = binary [And]
     let orFunction = binary [Or]
 
+    let objectAccessor (next : ParserFunction) : ParserFunction = fun tokens ->
+        let (object, tokens) = next tokens
+      
+        if tokens.Length = 0 || tokens.Head.Type <> Period then (object, tokens)
+        else if (tokens |> skipOrEmpty 1).Head.Type <> Id then (ParserError(tokens.[1], "Expected field name"), tokens)
+        else (ObjectAccessorNode (tokens.Head, object, tokens.[1]), tokens |> skipOrEmpty 2)
+            
     let binding (next : ParserFunction) : ParserFunction = fun tokens ->
         let bindToken = List.head tokens
 
@@ -73,7 +80,7 @@ module ParserFunctions =
         let mutable node = node
         let mutable tokens = tokens
 
-        while List.isEmpty tokens |> not do
+        while List.isEmpty tokens |> not && tokens.Head.Type <> Period do
             let (ArgumentNode, newTokens) = next tokens
 
             let CallNode = CallNode (List.head tokens, node, ArgumentNode)
@@ -98,9 +105,10 @@ module ParserFunctions =
         |> orFunction
         |> ifFunction
         |> func
-        |> call
         |> loop
         |> object
+        |> objectAccessor
+        |> call
         |> binding
         |> assign <| tokens
 
@@ -286,9 +294,13 @@ module ParserFunctions =
 
                         if tokens.Head.Type <> Comma then 
                             breakLoop <- true
-                }
+                } |> List.ofSeq
+
+
             match error with
             | Some (token, message) -> (ParserError(token, message), tokens)
-            | None -> (ObjectNode(objectToken, fields |> Map.ofSeq), tokens)
+            | None -> 
+                if tokens.Head.Type <> BraceClose then (ParserError(tokens.Head, "Expected '}'"), tokens)
+                else (ObjectNode(objectToken, fields |> Map.ofSeq), tokens |> skipOrEmpty 1)
                 
         | _ -> next tokens
