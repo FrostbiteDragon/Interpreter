@@ -96,6 +96,8 @@ module ParserFunctions =
         stop
         |> grouping
         |> primary
+        |> objectAccessor
+        |> object
         |> block
         |> factor
         |> term
@@ -106,8 +108,6 @@ module ParserFunctions =
         |> ifFunction
         |> func
         |> loop
-        |> object
-        |> objectAccessor
         |> call
         |> binding
         |> assign <| tokens
