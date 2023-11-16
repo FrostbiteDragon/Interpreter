@@ -135,7 +135,7 @@ module Lexer =
                     | "else"   -> yield { Type = Else; Lexeme = word; Literal = None; Line = line; Character = character }
                     | "for"    -> yield { Type = For; Lexeme = word; Literal = None; Line = line; Character = character }
                     | "while"  -> yield { Type = While; Lexeme = word; Literal = None; Line = line; Character = character }
-                    | "do"    -> yield { Type = Do; Lexeme = word; Literal = None; Line = line; Character = character }
+                    | "do"     -> yield { Type = Do; Lexeme = word; Literal = None; Line = line; Character = character }
                     | _        -> yield { Type = Id; Lexeme = word; Literal = None; Line = line; Character = character }
 
                     i <- i + word.Length - 1

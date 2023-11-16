@@ -149,6 +149,8 @@ module Interpreter =
             | NativeFunction call -> ({ DataType = expression.DataType; Type = FrostFunction (fun ids argument -> (call argument, ids)) }, ids)
             | FrostFunction _ -> failwith "Do not use FrostFunction, use NativeFunction Instead"
 
+            | ObjectExpression fields -> ({ fields = fields }, ids)
+
         expressions
         |> List.mapFold(fun ids expression -> execute ids expression) ([nativeFunctions |> Map] |> IdMap.ofList)
         |> fst

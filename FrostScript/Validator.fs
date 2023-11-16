@@ -176,7 +176,9 @@ module Validator =
                         | Error message -> (error token message, ids)
                         | Ok condition -> (expression ((bodies |> List.last).DataType) (LoopExpression(None, condition, bodies)), ids)
                         
-                    
+            | ObjectNode (_, fields) ->
+                let fields = fields |> Map.map(fun _ y -> (validateNode ids y) |> fst)
+                (expression (ObjectType(fields |> Map.map(fun _ y -> y.DataType))) (ObjectExpression fields), ids)
 
             | ParserError (token, message) -> (error token message, ids)
         

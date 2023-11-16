@@ -13,3 +13,4 @@ type Node =
 | ParserError of Token * Error : string
 | AssignNode of Token * Id : string * Value : Node
 | CallNode of Token * Callee : Node * Argument : Node
+| ObjectNode of Token * Fields: Map<string, Node>

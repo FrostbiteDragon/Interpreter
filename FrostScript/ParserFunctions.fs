@@ -68,8 +68,6 @@ module ParserFunctions =
                 | _ -> next tokens
         | _ -> next tokens
 
-   
-
     let call (next : ParserFunction) : ParserFunction = fun tokens ->
         let (node, tokens) = next tokens
         let mutable node = node
@@ -84,7 +82,6 @@ module ParserFunctions =
 
         (node, tokens)
 
-        
     let stop : ParserFunction = fun tokens ->
         (Stop, tokens)
 
@@ -103,6 +100,7 @@ module ParserFunctions =
         |> func
         |> call
         |> loop
+        |> object
         |> binding
         |> assign <| tokens
 
@@ -265,3 +263,32 @@ module ParserFunctions =
             | Ok bodies -> (LoopNode(loopToken, None, condition, bodies), tokens)
         | _ -> next tokens 
                 
+    and object (next : ParserFunction) : ParserFunction = fun tokens ->
+        let objectToken = tokens.Head
+        match objectToken.Type with
+        | BraceOpen -> 
+            let mutable tokens = tokens
+            let mutable error = None 
+            let fields =
+                seq {
+                    let mutable breakLoop = false
+                    while not breakLoop do
+                        match (tokens |> skipOrEmpty 1).Head.Type with
+                        | Id ->
+                            let id = (tokens |> List.skip 1).Head.Lexeme
+                            let valueTokens = tokens |> skipOrEmpty 2 |> List.takeWhile (fun x -> x.Type <> Comma && x.Type <> BraceClose)
+                            let (value, _) = next valueTokens
+                            tokens <- tokens |> List.skip (2 + valueTokens.Length) 
+                            yield (id, value)
+                        | _ ->
+                            error <- Some (tokens.Head, "Expected label")
+                            breakLoop <- true
+
+                        if tokens.Head.Type <> Comma then 
+                            breakLoop <- true
+                }
+            match error with
+            | Some (token, message) -> (ParserError(token, message), tokens)
+            | None -> (ObjectNode(objectToken, fields |> Map.ofSeq), tokens)
+                
+        | _ -> next tokens
