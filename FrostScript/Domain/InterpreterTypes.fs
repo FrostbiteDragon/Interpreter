@@ -28,7 +28,6 @@ and ExpressionType =
 | ObjectExpression of fields : Map<string, Expression>
 | ObjectAccessorExpression of Accessee : Expression * Field : string
 
-
 type FrostObject =
     { fields : Map<string, Expression> }
     with override this.ToString() = 
