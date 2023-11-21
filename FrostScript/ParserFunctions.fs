@@ -76,6 +76,7 @@ module ParserFunctions =
         | _ -> next tokens
 
     let call (next : ParserFunction) : ParserFunction = fun tokens ->
+        let callToken = tokens.Head
         let (node, tokens) = next tokens
         let mutable node = node
         let mutable tokens = tokens
@@ -83,7 +84,7 @@ module ParserFunctions =
         while List.isEmpty tokens |> not && tokens.Head.Type <> Period do
             let (ArgumentNode, newTokens) = next tokens
 
-            let CallNode = CallNode (List.head tokens, node, ArgumentNode)
+            let CallNode = CallNode (callToken, node, ArgumentNode)
             tokens <- newTokens
             node <- CallNode
 
@@ -176,7 +177,7 @@ module ParserFunctions =
             let mutable tokens = tokens |> skipOrEmpty 1
             let mutable parameters = []
             let mutable error = None
-            while tokens.Head.Type <> Arrow do
+            while error = None && tokens.Head.Type <> Arrow do
                 match error with
                 | Some _ -> ()
                 | None ->
@@ -188,7 +189,7 @@ module ParserFunctions =
                         parameters <- parameters |> List.append [parameter]
 
             match error with
-            | Some error -> (ParserError(funToken, error), tokens)
+            | Some error -> (ParserError(funToken, error), [])
             | None ->
                 if tokens.Head.Type <> Arrow then (ParserError(funToken, $"Expected '->' but instead was given {tokens.Head.Type}"), tokens)
                 else

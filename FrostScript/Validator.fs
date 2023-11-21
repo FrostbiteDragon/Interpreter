@@ -48,10 +48,13 @@ module Validator =
                 | Some dataType -> (expression dataType (BinaryExpression (token.Type, left, right)), identifiers)
 
             | BindNode (_, id, isMutable, value) -> 
-                let (value, ids) = validateNode ids value
-                let bindEpression = expression value.DataType (BindExpression(id, value))
+                match value with
+                | ParserError (token, message)-> (error token message, ids)
+                | _ ->
+                    let (value, ids) = validateNode ids value
+                    let bindEpression = expression value.DataType (BindExpression(id, value))
 
-                (bindEpression, IdMap.updateLocal id (value.DataType, isMutable) ids)
+                    (bindEpression, IdMap.updateLocal id (value.DataType, isMutable) ids)
 
             | AssignNode (token, id, value) ->
                 let identifier = ids |> IdMap.tryFind id
@@ -96,12 +99,14 @@ module Validator =
             | CallNode (token, callee, argument) ->
                 let (callee, _) = validateNode ids callee
                 let (argument, _) = validateNode ids argument
-                match callee.DataType with
-                | FunctionType (inputType, outputType) ->
+                match callee with
+                | { DataType = FunctionType (inputType, outputType) } ->
                     if inputType = argument.DataType || inputType = AnyType then
                         (expression outputType (CallExpression (callee, argument)), ids)
                     else
                         (error token $"Function expected argument of type {inputType} but was given an argument of type {argument.DataType} instead", ids)
+
+                | { Type = ValidationError _ }-> (callee, ids)
                 | _ -> (error token $"{token.Lexeme} is not callable", ids)
                
             | FunctionNode (_, parameter, body) ->
