@@ -4,9 +4,9 @@ module Interpreter =
     let interpret nativeFunctions expressions =
         let rec execute (ids : Expression IdMap) (expression : Expression) : obj * Expression IdMap =
             match expression.Type with
-            | BinaryExpression (opporator, leftExpression, right) ->
+            | BinaryExpression (opporator, leftExpression, rightExpression) ->
                 let left = execute ids leftExpression |> fst
-                let right = execute ids right |> fst
+                let right = execute ids rightExpression |> fst
 
                 let result =
                     match leftExpression.DataType with
@@ -148,6 +148,12 @@ module Interpreter =
 
             | NativeFunction call -> ({ DataType = expression.DataType; Type = FrostFunction (fun ids argument -> (call argument, ids)) }, ids)
             | FrostFunction _ -> failwith "Do not use FrostFunction, use NativeFunction Instead"
+
+            | ObjectExpression fields -> ({ fields = fields }, ids)
+            | ObjectAccessorExpression (accessee, field) ->
+                let (accessee, ids) = execute ids accessee
+                let accessee = accessee :?> FrostObject
+                execute ids accessee.fields.[field]
 
         expressions
         |> List.mapFold(fun ids expression -> execute ids expression) ([nativeFunctions |> Map] |> IdMap.ofList)

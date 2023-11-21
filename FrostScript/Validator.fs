@@ -107,7 +107,7 @@ module Validator =
                         (error token $"Function expected argument of type {inputType} but was given an argument of type {argument.DataType} instead", ids)
 
                 | { Type = ValidationError _ }-> (callee, ids)
-                | _ -> (error token $"{token.Lexeme} is not callable", ids)
+                | _ -> (error token $"The value {argument} could not be applied since the preceding expression is not callable", ids)
                
             | FunctionNode (_, parameter, body) ->
                 let (body, ids) = ids |> IdMap.useLocal (fun functionIds -> 
@@ -181,7 +181,19 @@ module Validator =
                         | Error message -> (error token message, ids)
                         | Ok condition -> (expression ((bodies |> List.last).DataType) (LoopExpression(None, condition, bodies)), ids)
                         
-                    
+            | ObjectNode (_, fields) ->
+                let fields = fields |> Map.map(fun _ y -> (validateNode ids y) |> fst)
+                (expression (ObjectType(fields |> Map.map(fun _ y -> y.DataType))) (ObjectExpression fields), ids)
+
+            | ObjectAccessorNode (token, accessee, feild) -> 
+                let (accessee, ids) = validateNode ids accessee
+                match accessee.DataType with 
+                | ObjectType fields ->
+                    let mutable dataType = VoidType 
+                    let exisits = fields.TryGetValue (feild.Lexeme, &dataType)
+                    if exisits then (expression dataType (ObjectAccessorExpression(accessee, feild.Lexeme)), ids)
+                    else (error token $"object does not contain the field \"{feild}\"", ids)
+                | _ -> (error token "Expression leading '.' must be of type object", ids)
 
             | ParserError (token, message) -> (error token message, ids)
         
