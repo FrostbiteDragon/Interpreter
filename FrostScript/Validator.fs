@@ -107,7 +107,7 @@ module Validator =
                         (error token $"Function expected argument of type {inputType} but was given an argument of type {argument.DataType} instead", ids)
 
                 | { Type = ValidationError _ }-> (callee, ids)
-                | _ -> (error token $"{token.Lexeme} is not callable", ids)
+                | _ -> (error token $"The value {argument} could not be applied since the preceding expression is not callable", ids)
                
             | FunctionNode (_, parameter, body) ->
                 let (body, ids) = ids |> IdMap.useLocal (fun functionIds -> 

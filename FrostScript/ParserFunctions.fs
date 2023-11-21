@@ -76,7 +76,6 @@ module ParserFunctions =
         | _ -> next tokens
 
     let call (next : ParserFunction) : ParserFunction = fun tokens ->
-        let callToken = tokens.Head
         let (node, tokens) = next tokens
         let mutable node = node
         let mutable tokens = tokens
@@ -84,7 +83,7 @@ module ParserFunctions =
         while List.isEmpty tokens |> not && tokens.Head.Type <> Period do
             let (ArgumentNode, newTokens) = next tokens
 
-            let CallNode = CallNode (callToken, node, ArgumentNode)
+            let CallNode = CallNode (tokens.Head, node, ArgumentNode)
             tokens <- newTokens
             node <- CallNode
 
@@ -286,7 +285,7 @@ module ParserFunctions =
                         | Id ->
                             let id = (tokens |> List.skip 1).Head.Lexeme
                             let valueTokens = tokens |> skipOrEmpty 2 |> List.takeWhile (fun x -> x.Type <> Comma && x.Type <> BraceClose)
-                            let (value, _) = next valueTokens
+                            let (value, _) = expression valueTokens
                             tokens <- tokens |> List.skip (2 + valueTokens.Length) 
                             yield (id, value)
                         | _ ->
