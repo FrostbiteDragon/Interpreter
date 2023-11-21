@@ -89,6 +89,49 @@ module ParserFunctions =
 
         (node, tokens)
 
+    let parameterGroup (tokens : Token list) =
+        let parameter (tokens : Token list) =
+            if (tokens |> skipOrEmpty 2).IsEmpty then Error $"Unexpected end of file"
+            else
+                let idToken = tokens.Head
+                let typeToken = tokens |> skipOrEmpty 1 |> List.head
+
+                if idToken.Type <> Id then Error $"Expected a paramater name but was instead given {idToken.Type}"
+                else 
+                    match typeToken.Type with
+                    | TypeAnnotation paramaterType -> Ok ({Id = idToken.Lexeme; Value = paramaterType}, tokens |> skipOrEmpty 2)
+                    | _ -> Error $"Expected a type but instead was given {idToken.Type}"
+
+        if (tokens.Head.Type <> ParentheseOpen) then (Error("Expected '('"), tokens)
+        else 
+            let mutable tokens = tokens |> skipOrEmpty 1
+            let mutable parameters = []
+            let mutable error = None
+            while tokens <> [] && error = None && tokens.Head.Type = Id do
+                match error with
+                | Some _ -> ()
+                | None ->
+                    match parameter tokens with
+                    | Error message -> 
+                        error <- Some message
+                    | Ok (parameter, newTokens) ->
+                        if newTokens.Head.Type <> Comma && newTokens.Head.Type <> ParentheseClose then 
+                            error <- Some "Expected ','"
+                            tokens <- newTokens
+                        else if newTokens.Head.Type <> ParentheseClose then
+                            tokens <- newTokens |> skipOrEmpty 1
+                            parameters <- parameters |> List.append [parameter]
+                        else
+                            tokens <- newTokens
+                            parameters <- parameters |> List.append [parameter]
+
+            match error with
+            | Some error -> (Error(error), tokens)
+            | _ ->
+                if (tokens.Head.Type <> ParentheseClose) then (Error("Expected ')'"), tokens)
+                else
+                    (Ok parameters, tokens |> skipOrEmpty 1)
+
     let stop : ParserFunction = fun tokens ->
         (Stop, tokens)
 
@@ -156,40 +199,13 @@ module ParserFunctions =
         | _ -> next tokens
 
     and func (next : ParserFunction) : ParserFunction = fun tokens ->
-        let parameter (tokens : Token list) =
-            if (tokens |> skipOrEmpty 3).IsEmpty then Error $"Unexpected end of file"
-            else
-                let idToken = tokens.Head
-                let colonToken = (tokens |> skipOrEmpty 1).Head
-                let typeToken = (tokens |> skipOrEmpty 2).Head
-
-                if idToken.Type <> Id then Error $"Expected a paramater name but was instead given {idToken.Type}"
-                else if colonToken.Type <> Colon then Error $"Expected ':' but instead was given {idToken.Type}"
-                else 
-                    match typeToken.Type with
-                    | TypeAnnotation paramaterType -> Ok ({Id = idToken.Lexeme; Value = paramaterType}, tokens |> skipOrEmpty 3)
-                    | _ -> Error $"Expected a type but instead was given {idToken.Type}"
-
         let funToken = tokens.Head
         if (funToken.Type <> Fun) then next tokens
         else
-            let mutable tokens = tokens |> skipOrEmpty 1
-            let mutable parameters = []
-            let mutable error = None
-            while error = None && tokens.Head.Type <> Arrow do
-                match error with
-                | Some _ -> ()
-                | None ->
-                    match parameter tokens with
-                    | Error message -> 
-                        error <- Some message
-                    | Ok (parameter, newTokens) ->
-                        tokens <- newTokens
-                        parameters <- parameters |> List.append [parameter]
-
-            match error with
-            | Some error -> (ParserError(funToken, error), [])
-            | None ->
+            let (parameters, tokens) = parameterGroup (tokens |> skipOrEmpty 1)
+            match parameters with
+            | Error error -> (ParserError(funToken, error), [])
+            | Ok parameters ->
                 if tokens.Head.Type <> Arrow then (ParserError(funToken, $"Expected '->' but instead was given {tokens.Head.Type}"), tokens)
                 else
                     let (body, tokens) = expression (tokens |> skipOrEmpty 1)
