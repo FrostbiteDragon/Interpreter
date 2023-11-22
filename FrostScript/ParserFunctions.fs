@@ -132,6 +132,31 @@ module ParserFunctions =
                 else
                     (Ok parameters, tokens |> skipOrEmpty 1)
 
+    let constructor next : ParserFunction = fun tokens ->
+        let constructorToken = tokens.Head
+        if (constructorToken.Type <> New) then next tokens
+        else
+            let (parameters, tokens) = parameterGroup (tokens |> skipOrEmpty 1)
+            match parameters with
+            | Error error -> (ParserError(constructorToken, error), [])
+            | Ok parameters ->
+                let object =
+                    let fields =  
+                        parameters 
+                        |> List.map (fun x -> (x.Id, LiteralNode { Type = Id; Lexeme = x.Id; Literal = None; Line = 0; Character = 0 }))
+                        |> Map
+                    ObjectNode(constructorToken, fields)
+                let node = 
+                    parameters
+                    |> skipOrEmpty 1
+                    |> List.fold(fun functionNode parameter -> 
+                        match functionNode with
+                        | FunctionNode _ ->
+                            FunctionNode (constructorToken, parameter, functionNode)
+                        | _ -> failwith "parameter funtion should only return a parameter node or an error"
+                    ) (FunctionNode(constructorToken, parameters.Head, object))
+                (node, tokens)
+
     let stop : ParserFunction = fun tokens ->
         (Stop, tokens)
 
@@ -150,6 +175,7 @@ module ParserFunctions =
         |> orFunction
         |> ifFunction
         |> func
+        |> constructor
         |> loop
         |> call
         |> binding
@@ -300,9 +326,9 @@ module ParserFunctions =
                         match (tokens |> skipOrEmpty 1).Head.Type with
                         | Id ->
                             let id = (tokens |> List.skip 1).Head.Lexeme
-                            let valueTokens = tokens |> skipOrEmpty 2 |> List.takeWhile (fun x -> x.Type <> Comma && x.Type <> BraceClose)
-                            let (value, _) = expression valueTokens
-                            tokens <- tokens |> List.skip (2 + valueTokens.Length) 
+                            //let valueTokens = tokens |> skipOrEmpty 2 |> List.takeWhile (fun x -> x.Type <> Comma && x.Type <> BraceClose)
+                            let (value, _) = expression (tokens |> skipOrEmpty 2)
+                            tokens <- tokens
                             yield (id, value)
                         | _ ->
                             error <- Some (tokens.Head, "Expected label")
