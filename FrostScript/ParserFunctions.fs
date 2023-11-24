@@ -79,13 +79,16 @@ module ParserFunctions =
         let (node, tokens) = next tokens
         let mutable node = node
         let mutable tokens = tokens
+        let mutable keepLooping = true
 
-        while List.isEmpty tokens |> not && tokens.Head.Type <> Period do
+        while keepLooping && List.isEmpty tokens |> not && tokens.Head.Type <> Period do
             let (ArgumentNode, newTokens) = next tokens
 
-            let CallNode = CallNode (tokens.Head, node, ArgumentNode)
-            tokens <- newTokens
-            node <- CallNode
+            if ArgumentNode = Stop then keepLooping <- false
+            else
+                let CallNode = CallNode (tokens.Head, node, ArgumentNode)
+                tokens <- newTokens
+                node <- CallNode
 
         (node, tokens)
 
@@ -182,20 +185,19 @@ module ParserFunctions =
         |> assign <| tokens
 
     and grouping (next : ParserFunction) : ParserFunction = fun tokens ->
-        let (body, _) =
-            match (tokens |> List.head).Type with
+        let (body, tokens) =
+            match tokens.Head.Type with
             | ParentheseOpen -> 
-                expression (tokens |> skipOrEmpty 1 |> List.takeWhile (fun x -> x.Type <> ParentheseClose))
+                expression (tokens |> skipOrEmpty 1)
             | _ -> next tokens
             
-        let tokens = tokens |> List.skipWhile (fun x -> x.Type <> ParentheseClose)
-
-        if tokens |> List.isEmpty then failwith "token chunk failed to match"
-
-        let nextToken = tokens |> List.head
-        match nextToken.Type with
-        | ParentheseClose -> (body, tokens |> skipOrEmpty 1)
-        | _ -> (ParserError (nextToken, "Expected ')'"), tokens |> skipOrEmpty 1)
+        match body with
+        | Stop -> (body, tokens)
+        | _ ->
+            let nextToken = tokens.Head
+            match nextToken.Type with
+            | ParentheseClose -> (body, tokens |> skipOrEmpty 1)
+            | _ -> (ParserError (nextToken, "Expected ')'"), tokens |> skipOrEmpty 1)
 
     and block (next : ParserFunction) : ParserFunction = fun tokens ->
         let headToken = tokens |> List.head
@@ -252,15 +254,11 @@ module ParserFunctions =
 
         if ifToken.Type <> If then next tokens 
         else
-            let conditionTokens = tokens |> skipOrEmpty 1 |> List.takeWhile (fun x -> x.Type <> Arrow)
-            let (condition, _) = expression conditionTokens
-            let tokens = tokens |> skipOrEmpty (conditionTokens.Length + 1)
+            let (condition, tokens) = expression (tokens |> skipOrEmpty 1)
 
             if tokens.Head.Type <> Arrow then (ParserError (tokens.Head, "Expected '->'"), tokens) 
             else
-                let trueTokens = tokens |> skipOrEmpty 1 |> List.takeWhile (fun x -> x.Type <> Else)
-                let (trueNode, _) = expression trueTokens
-                let tokens = tokens |> skipOrEmpty (trueTokens.Length + 1)
+                let (trueNode, tokens) = expression (tokens |> skipOrEmpty 1)
 
                 if tokens.IsEmpty || tokens.Head.Type <> Else then (IfNode(ifToken, condition, trueNode, None), tokens)
                 else
@@ -268,22 +266,15 @@ module ParserFunctions =
                     (IfNode(ifToken, condition, trueNode, Some falseNode), tokens)
 
     and loop (next : ParserFunction) : ParserFunction = fun tokens ->
-        let getCondition (tokens : Token list) = 
-            let conditionTokens = tokens |> skipOrEmpty 1 |> List.takeWhile (fun x -> x.Type <> Do)
-            let (condition, _) = expression conditionTokens
-            let tokens = tokens |> skipOrEmpty (conditionTokens.Length + 1)
-            (condition, tokens)
-
         let getBodies (tokens : Token list) = 
             if tokens.Head.Type <> Do then (Error "Expected 'do", tokens)
             else
                 let mutable tokens = tokens
-                let bodies = 
+                let bodies =
                     seq {
                         while tokens.IsEmpty |> not && tokens.Head.Type = Do do
-                            let bodyTokens = tokens |> skipOrEmpty 1 |> List.takeWhile (fun x -> x.Type <> Do)
-                            let (body, _) = expression bodyTokens
-                            tokens <- tokens |> skipOrEmpty (bodyTokens.Length + 1)
+                            let (body, newTokens) = expression (tokens |> skipOrEmpty 1)
+                            tokens <- newTokens
                             yield body
                     } |> Seq.toList
                 (Ok bodies, tokens)
@@ -297,7 +288,7 @@ module ParserFunctions =
 
             if tokens.Head.Type <> While then (ParserError(tokens.Head, "Expected 'while'"), tokens)
             else
-                let (condition, tokens) = getCondition tokens
+                let (condition, tokens) = expression (tokens |> skipOrEmpty 1)
                 let (bodies, tokens) = getBodies tokens
 
                 match bodies with
@@ -305,7 +296,8 @@ module ParserFunctions =
                 | Ok bodies -> (LoopNode(loopToken, Some binding, condition, bodies), tokens)
                         
         | While ->
-            let (condition, tokens) = getCondition tokens
+            let (condition, tokens) = expression (tokens |> skipOrEmpty 1)
+
             let (bodies, tokens) = getBodies tokens
 
             match bodies with
@@ -326,9 +318,8 @@ module ParserFunctions =
                         match (tokens |> skipOrEmpty 1).Head.Type with
                         | Id ->
                             let id = (tokens |> List.skip 1).Head.Lexeme
-                            //let valueTokens = tokens |> skipOrEmpty 2 |> List.takeWhile (fun x -> x.Type <> Comma && x.Type <> BraceClose)
-                            let (value, _) = expression (tokens |> skipOrEmpty 2)
-                            tokens <- tokens
+                            let (value, newTokens) = expression (tokens |> skipOrEmpty 2)
+                            tokens <- newTokens
                             yield (id, value)
                         | _ ->
                             error <- Some (tokens.Head, "Expected label")
