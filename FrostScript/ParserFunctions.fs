@@ -276,9 +276,8 @@ module ParserFunctions =
                         match (tokens |> skipOrEmpty 1).Head.Type with
                         | Id ->
                             let id = (tokens |> List.skip 1).Head.Lexeme
-                            let valueTokens = tokens |> skipOrEmpty 2 |> List.takeWhile (fun x -> x.Type <> Comma && x.Type <> BraceClose)
-                            let (value, _) = expression valueTokens
-                            tokens <- tokens |> List.skip (2 + valueTokens.Length) 
+                            let (value, newTokens) = expression (tokens |> skipOrEmpty 2)
+                            tokens <- newTokens
                             yield (id, value)
                         | _ ->
                             error <- Some (tokens.Head, "Expected label")
