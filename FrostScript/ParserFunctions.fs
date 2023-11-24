@@ -79,13 +79,16 @@ module ParserFunctions =
         let (node, tokens) = next tokens
         let mutable node = node
         let mutable tokens = tokens
+        let mutable keepLooping = true
 
-        while List.isEmpty tokens |> not && tokens.Head.Type <> Period do
+        while keepLooping && List.isEmpty tokens |> not && tokens.Head.Type <> Period do
             let (ArgumentNode, newTokens) = next tokens
 
-            let CallNode = CallNode (tokens.Head, node, ArgumentNode)
-            tokens <- newTokens
-            node <- CallNode
+            if ArgumentNode = Stop then keepLooping <- false
+            else
+                let CallNode = CallNode (tokens.Head, node, ArgumentNode)
+                tokens <- newTokens
+                node <- CallNode
 
         (node, tokens)
 
@@ -113,20 +116,19 @@ module ParserFunctions =
         |> assign <| tokens
 
     and grouping (next : ParserFunction) : ParserFunction = fun tokens ->
-        let (body, _) =
-            match (tokens |> List.head).Type with
+        let (body, tokens) =
+            match tokens.Head.Type with
             | ParentheseOpen -> 
-                expression (tokens |> skipOrEmpty 1 |> List.takeWhile (fun x -> x.Type <> ParentheseClose))
+                expression (tokens |> skipOrEmpty 1)
             | _ -> next tokens
             
-        let tokens = tokens |> List.skipWhile (fun x -> x.Type <> ParentheseClose)
-
-        if tokens |> List.isEmpty then failwith "token chunk failed to match"
-
-        let nextToken = tokens |> List.head
-        match nextToken.Type with
-        | ParentheseClose -> (body, tokens |> skipOrEmpty 1)
-        | _ -> (ParserError (nextToken, "Expected ')'"), tokens |> skipOrEmpty 1)
+        match body with
+        | Stop -> (body, tokens)
+        | _ ->
+            let nextToken = tokens.Head
+            match nextToken.Type with
+            | ParentheseClose -> (body, tokens |> skipOrEmpty 1)
+            | _ -> (ParserError (nextToken, "Expected ')'"), tokens |> skipOrEmpty 1)
 
     and block (next : ParserFunction) : ParserFunction = fun tokens ->
         let headToken = tokens |> List.head
