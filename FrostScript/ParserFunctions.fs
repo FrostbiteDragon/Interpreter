@@ -212,15 +212,11 @@ module ParserFunctions =
 
         if ifToken.Type <> If then next tokens 
         else
-            let conditionTokens = tokens |> skipOrEmpty 1 |> List.takeWhile (fun x -> x.Type <> Arrow)
-            let (condition, _) = expression conditionTokens
-            let tokens = tokens |> skipOrEmpty (conditionTokens.Length + 1)
+            let (condition, tokens) = expression (tokens |> skipOrEmpty 1)
 
             if tokens.Head.Type <> Arrow then (ParserError (tokens.Head, "Expected '->'"), tokens) 
             else
-                let trueTokens = tokens |> skipOrEmpty 1 |> List.takeWhile (fun x -> x.Type <> Else)
-                let (trueNode, _) = expression trueTokens
-                let tokens = tokens |> skipOrEmpty (trueTokens.Length + 1)
+                let (trueNode, tokens) = expression (tokens |> skipOrEmpty 1)
 
                 if tokens.IsEmpty || tokens.Head.Type <> Else then (IfNode(ifToken, condition, trueNode, None), tokens)
                 else
