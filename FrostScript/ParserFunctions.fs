@@ -31,11 +31,18 @@ module ParserFunctions =
     let orFunction = binary [Or]
 
     let objectAccessor (next : ParserFunction) : ParserFunction = fun tokens ->
-        let (object, tokens) = next tokens
-      
-        if tokens.Length = 0 || tokens.Head.Type <> Period then (object, tokens)
-        else if (tokens |> skipOrEmpty 1).Head.Type <> Id then (ParserError(tokens.[1], "Expected field name"), tokens)
-        else (ObjectAccessorNode (tokens.Head, object, tokens.[1]), tokens |> skipOrEmpty 2)
+        let (accessee, tokens) = next tokens
+        let mutable accessee = accessee
+        let mutable tokens = tokens
+
+        while tokens.IsEmpty |> not && tokens.Head.Type = Period do
+            if (tokens |> skipOrEmpty 1).Head.Type <> Id then 
+                accessee <- ParserError(tokens.[1], "Expected field name")
+            else 
+                accessee <- ObjectAccessorNode (tokens.Head, accessee, tokens.[1])
+                tokens <- tokens |> skipOrEmpty 2
+                    
+        (accessee, tokens)
             
     let binding (next : ParserFunction) : ParserFunction = fun tokens ->
         let bindToken = List.head tokens

@@ -187,13 +187,16 @@ module Validator =
 
             | ObjectAccessorNode (token, accessee, feild) -> 
                 let (accessee, ids) = validateNode ids accessee
-                match accessee.DataType with 
-                | ObjectType fields ->
-                    let mutable dataType = VoidType 
-                    let exisits = fields.TryGetValue (feild.Lexeme, &dataType)
-                    if exisits then (expression dataType (ObjectAccessorExpression(accessee, feild.Lexeme)), ids)
-                    else (error token $"object does not contain the field \"{feild}\"", ids)
-                | _ -> (error token "Expression leading '.' must be of type object", ids)
+                match accessee.Type with
+                | ValidationError _ -> (accessee, ids)
+                | _ ->
+                    match accessee.DataType with 
+                    | ObjectType fields ->
+                        let mutable dataType = VoidType 
+                        let exisits = fields.TryGetValue (feild.Lexeme, &dataType)
+                        if exisits then (expression dataType (ObjectAccessorExpression(accessee, feild.Lexeme)), ids)
+                        else (error token $"object does not contain the field \"{feild.Lexeme}\"", ids)
+                    | _ -> (error token "Expression leading '.' must be of type object", ids)
 
             | ParserError (token, message) -> (error token message, ids)
         
