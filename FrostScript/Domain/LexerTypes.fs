@@ -29,7 +29,7 @@ type TokenType =
 | If | Else | When 
 | Print 
 | Var | Let 
-| Fun 
+| Fun | New
 | For | While | Do
 | Yield
 //Types

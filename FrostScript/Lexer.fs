@@ -104,7 +104,6 @@ module Lexer =
                             |> List.skip (i + 1) 
                             |> List.takeWhile (fun x -> x <> '"')
                             |> List.toArray)
-                            
 
                         yield {Type = String; Lexeme = word; Literal = Some word; Line = line; Character = character }
                         i <- i + word.Length + 1
@@ -136,6 +135,7 @@ module Lexer =
                     | "for"    -> yield { Type = For; Lexeme = word; Literal = None; Line = line; Character = character }
                     | "while"  -> yield { Type = While; Lexeme = word; Literal = None; Line = line; Character = character }
                     | "do"     -> yield { Type = Do; Lexeme = word; Literal = None; Line = line; Character = character }
+                    | "new"     -> yield { Type = New; Lexeme = word; Literal = None; Line = line; Character = character }
                     | _        -> yield { Type = Id; Lexeme = word; Literal = None; Line = line; Character = character }
 
                     i <- i + word.Length - 1
