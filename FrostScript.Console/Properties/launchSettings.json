@@ -2,7 +2,8 @@
   "profiles": {
     "FrostScript.Console": {
       "commandName": "Project",
-      "commandLineArgs": "\"test.frs\""
+      "commandLineArgs": "test.fr",
+      "workingDirectory": "./"
     }
   }
 }

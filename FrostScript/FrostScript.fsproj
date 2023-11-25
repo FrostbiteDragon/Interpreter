@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Domain\IdMap.fs" />
+    <Compile Include="Domain\CoreTypes.fs" />
+    <Compile Include="Domain\LexerTypes.fs" />
+    <Compile Include="Domain\InterpreterTypes.fs" />
+    <Compile Include="Domain\ParserTypes.fs" />
+    <Compile Include="Domain\ValidatorTypes.fs" />
+    <Compile Include="Domain\NativeFunctions.fs" />
+    <Compile Include="Utilities.fs" />
+    <Compile Include="ParserFunctions.fs" />
+    <Compile Include="Parser.fs" />
+    <Compile Include="Lexer.fs" />
+    <Compile Include="Validator.fs" />
+    <Compile Include="Interpreter.fs" />
+    <Compile Include="FrostScript.fs" />
+  </ItemGroup>
+
+</Project>
