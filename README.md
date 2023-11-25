@@ -4,7 +4,6 @@ A custom, interpreted language for study and fun
 ## Table of Contents
 * [Introduction](#introduction)
 * [Getting Started](#getting-started)
-* [Technologies](#technologies)
 * [Wiki](https://github.com/FrostbiteDragon/FrostScript/wiki)
 
 # Introduction
