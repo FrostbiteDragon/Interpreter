@@ -195,7 +195,7 @@ module Validator =
                         let mutable dataType = VoidType 
                         let exisits = fields.TryGetValue (feild.Lexeme, &dataType)
                         if exisits then (expression dataType (ObjectAccessorExpression(accessee, feild.Lexeme)), ids)
-                        else (error token $"object does not contain the field \"{feild.Lexeme}\"", ids)
+                        else (error token $"Object does not contain the field \"{feild.Lexeme}\"", ids)
                     | _ -> (error token "Expression leading '.' must be of type object", ids)
 
             | ParserError (token, message) -> (error token message, ids)
