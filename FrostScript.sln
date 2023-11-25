@@ -3,11 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33424.131
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FrostScript.CSharp", "FrostScript.CSharp\FrostScript.CSharp.csproj", "{FADB8936-8073-44E4-8D5E-F3EFD4B186BF}"
-	ProjectSection(ProjectDependencies) = postProject
-		{40EF3AC1-D1BD-4F65-AD1D-B9B4DF56D4CC} = {40EF3AC1-D1BD-4F65-AD1D-B9B4DF56D4CC}
-	EndProjectSection
-EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FrostScript", "FrostScript\FrostScript.fsproj", "{40EF3AC1-D1BD-4F65-AD1D-B9B4DF56D4CC}"
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FrostScript.Console", "FrostScript.Console\FrostScript.Console.fsproj", "{5E4D539A-FB12-4A4B-8058-B4D482388B4E}"
@@ -18,10 +13,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{FADB8936-8073-44E4-8D5E-F3EFD4B186BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FADB8936-8073-44E4-8D5E-F3EFD4B186BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FADB8936-8073-44E4-8D5E-F3EFD4B186BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FADB8936-8073-44E4-8D5E-F3EFD4B186BF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{40EF3AC1-D1BD-4F65-AD1D-B9B4DF56D4CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{40EF3AC1-D1BD-4F65-AD1D-B9B4DF56D4CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40EF3AC1-D1BD-4F65-AD1D-B9B4DF56D4CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
