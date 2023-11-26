@@ -12,40 +12,52 @@ module Validator =
                   Type = expression }
 
             match node with
-            | BinaryNode (token, left, right) -> 
-                let (left, identifiers) = validateNode ids left
-                let (right, identifiers) = validateNode identifiers right
+            | BinaryNode (token, operator, left, right) -> 
+                let (left, ids) = validateNode ids left
+                let (right, ids) = validateNode ids right
 
-                let dataType = 
-                    match token.Type with
-                    | Operator Multiply
-                    | Operator Devide 
-                    | Operator Minus ->
-                        if left.DataType = NumberType && right.DataType = NumberType then Some NumberType
-                        else None
+                let binaryExpression dataType = expression dataType (BinaryExpression (operator, left, right))
+                let invalidDataTypeError = error token $"Opporator '{token.Lexeme}' cannot be used between types {left.DataType} and {right.DataType}"
+                match operator with
+                | Multiply
+                | Devide 
+                | Minus ->
+                    if left.DataType = NumberType && right.DataType = NumberType then (binaryExpression NumberType, ids)
+                    else (invalidDataTypeError, ids)
 
-                    | Operator Plus ->
-                        if left.DataType = NumberType && right.DataType = NumberType then Some NumberType
-                        else if left.DataType = StringType && right.DataType = StringType then Some StringType
-                        else None
+                | Plus ->
+                    if left.DataType = NumberType && right.DataType = NumberType then (binaryExpression NumberType, ids)
+                    else if left.DataType = StringType && right.DataType = StringType then (binaryExpression NumberType, ids)
+                    else (invalidDataTypeError, ids)
 
-                    | Equal
-                    | NotEqual 
-                    | LessThen 
-                    | LessOrEqual 
-                    | GreaterThen 
-                    | GreaterOrEqual -> Some BoolType
+                | Equal
+                | NotEqual 
+                | LessThen 
+                | LessOrEqual 
+                | GreaterThen 
+                | GreaterOrEqual -> (binaryExpression BoolType, ids)
 
-                    | And
-                    | Or ->
-                        if left.DataType = BoolType && right.DataType = BoolType then Some BoolType
-                        else None
+                | And
+                | Or ->
+                    if left.DataType = BoolType && right.DataType = BoolType then (binaryExpression BoolType, ids)
+                    else (invalidDataTypeError, ids)
 
-                    | _ -> failwith "unhandled opporator"
+                | ObjectAccessor ->
+                    match left.Type with
+                    | ValidationError _ -> (left, ids)
+                    | _ ->
+                        match left.DataType with 
+                        | ObjectType fields ->
+                            match right.Type with
+                            | FieldExpression field ->
+                                let mutable dataType = VoidType 
+                                let exists = fields.TryGetValue (field, &dataType)
+                                if exists then (expression dataType (BinaryExpression(ObjectAccessor, left, right)), ids)
+                                else (error token $"Object does not contain the field \"{field}\"", ids)
+                            | _ -> (error token "Expected field name after '.'", ids)
+                        | _ -> (error token "Expression leading '.' must be of type object", ids)
 
-                match dataType with
-                | None -> (error token $"Opporator '{token.Lexeme}' cannot be used between types {left.DataType} and {right.DataType}", identifiers)
-                | Some dataType -> (expression dataType (BinaryExpression (token.Type, left, right)), identifiers)
+            | FieldNode token -> (expression AnyType (FieldExpression token.Lexeme), ids)
 
             | BindNode (_, id, isMutable, value) -> 
                 match value with
@@ -184,19 +196,6 @@ module Validator =
             | ObjectNode (_, fields) ->
                 let fields = fields |> Map.map(fun _ y -> (validateNode ids y) |> fst)
                 (expression (ObjectType(fields |> Map.map(fun _ y -> y.DataType))) (ObjectExpression fields), ids)
-
-            | ObjectAccessorNode (token, accessee, feild) -> 
-                let (accessee, ids) = validateNode ids accessee
-                match accessee.Type with
-                | ValidationError _ -> (accessee, ids)
-                | _ ->
-                    match accessee.DataType with 
-                    | ObjectType fields ->
-                        let mutable dataType = VoidType 
-                        let exisits = fields.TryGetValue (feild.Lexeme, &dataType)
-                        if exisits then (expression dataType (ObjectAccessorExpression(accessee, feild.Lexeme)), ids)
-                        else (error token $"Object does not contain the field \"{feild.Lexeme}\"", ids)
-                    | _ -> (error token "Expression leading '.' must be of type object", ids)
 
             | ParserError (token, message) -> (error token message, ids)
         

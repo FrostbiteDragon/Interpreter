@@ -18,6 +18,7 @@ and ExpressionType =
 | BlockExpression of Body : Expression list
 | LiteralExpression of Value : obj
 | IdentifierExpression of Id : string
+| FieldExpression of Id : string
 | ValidationError of Token * Error : string
 | BindExpression of Id : string * Value : Expression
 | AssignExpression of Id : string * Value : Expression

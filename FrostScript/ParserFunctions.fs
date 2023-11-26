@@ -9,41 +9,25 @@ module ParserFunctions =
         | Number | String | Id | Void | Bool -> (LiteralNode (List.head tokens), tokens |> skipOrEmpty 1)
         | _ -> next tokens
 
-    let binary validTypes (next : ParserFunction) : ParserFunction = fun tokens -> 
+    let binary getRightNode validTypes (next : ParserFunction) : ParserFunction = fun tokens -> 
         let (node, tokens) = next tokens
-        let mutable node = node
-        let mutable tokens = tokens
 
-        while List.isEmpty tokens |> not && validTypes |> List.contains (List.head tokens).Type do
-            let (rightNode, newTokens) = next (tokens |> skipOrEmpty 1)
+        if (tokens.IsEmpty) then (node, tokens)
+        else 
+            match tokens.Head.Type with
+            | Operator operator ->
+                let mutable node = node
+                let mutable tokens = tokens
+                while List.isEmpty tokens |> not && validTypes |> List.contains operator do
+                    let (rightNode, newTokens) = getRightNode (tokens |> skipOrEmpty 1)
 
-            let binaryNode = BinaryNode (List.head tokens, node, rightNode)
-            tokens <- newTokens
-            node <- binaryNode
+                    let binaryNode = BinaryNode (tokens.Head, operator, node, rightNode)
+                    tokens <- newTokens
+                    node <- binaryNode
 
-        (node, tokens)
+                (node, tokens)
+            | _ -> (node, tokens)
 
-    let term = binary [Operator Plus; Operator Minus]
-    let factor = binary [Operator Multiply; Operator Devide]
-    let equality = binary [Equal; NotEqual]
-    let comparison = binary [LessThen; LessOrEqual; GreaterThen; GreaterOrEqual]
-    let andFunction = binary [And]
-    let orFunction = binary [Or]
-
-    let objectAccessor (next : ParserFunction) : ParserFunction = fun tokens ->
-        let (accessee, tokens) = next tokens
-        let mutable accessee = accessee
-        let mutable tokens = tokens
-
-        while tokens.IsEmpty |> not && tokens.Head.Type = Period do
-            if (tokens |> skipOrEmpty 1).Head.Type <> Id then 
-                accessee <- ParserError(tokens.[1], "Expected field name")
-            else 
-                accessee <- ObjectAccessorNode (tokens.Head, accessee, tokens.[1])
-                tokens <- tokens |> skipOrEmpty 2
-                    
-        (accessee, tokens)
-            
     let binding (next : ParserFunction) : ParserFunction = fun tokens ->
         let bindToken = List.head tokens
 
@@ -205,6 +189,21 @@ module ParserFunctions =
             match nextToken.Type with
             | ParentheseClose -> (body, tokens |> skipOrEmpty 1)
             | _ -> (ParserError (nextToken, "Expected ')'"), tokens |> skipOrEmpty 1)
+
+    and term = binary expression [Plus; Minus] 
+    and factor = binary expression [Multiply; Devide]
+    and equality = binary expression [Equal; NotEqual]
+    and comparison = binary expression [LessThen; LessOrEqual; GreaterThen; GreaterOrEqual]
+    and andFunction = binary expression [And]
+    and orFunction = binary expression [Or]
+    
+    and objectAccessor = 
+        binary 
+        <| fun tokens -> 
+            if tokens.Head.Type = Id then 
+                (FieldNode(tokens.Head), tokens |> skipOrEmpty 1) 
+            else (ParserError (tokens.Head, "Expected field name after '.'"), tokens)
+        <| [ObjectAccessor] 
 
     and block (next : ParserFunction) : ParserFunction = fun tokens ->
         let headToken = tokens |> List.head

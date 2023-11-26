@@ -2,6 +2,9 @@
 
 type Operator =
 | Minus | Plus | Devide | Multiply
+| Equal | NotEqual | GreaterThen | GreaterOrEqual | LessOrEqual | LessThen | Or | And
+| Pipe
+| ObjectAccessor
 
 type TokenType =
 //structural
@@ -22,10 +25,7 @@ type TokenType =
 | Colon
 | LexerError of string
 | Operator of Operator
-//logical operators
-| Equal | NotEqual | GreaterThen | GreaterOrEqual | LessOrEqual | LessThen | Not | Or | And
-//functional oparators
-| PipeOp
+| Not 
 //literals
 | Number | String | Id | Void | Bool
 //Keywords

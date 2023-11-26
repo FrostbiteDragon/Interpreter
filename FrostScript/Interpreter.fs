@@ -4,12 +4,12 @@ module Interpreter =
     let interpret nativeFunctions expressions =
         let rec execute (ids : Expression IdMap) (expression : Expression) : obj * Expression IdMap =
             match expression.Type with
-            | BinaryExpression (opporator, leftExpression, rightExpression) ->
-                let left = execute ids leftExpression |> fst
-                let right = execute ids rightExpression |> fst
+            | BinaryExpression (operator, leftExpression, rightExpression) ->
+                let (left, ids) = execute ids leftExpression
+                let (right, ids) = execute ids rightExpression
 
                 let result =
-                    match opporator with
+                    match operator with
                     | Plus  -> 
                         match leftExpression.DataType with
                         | NumberType -> box ((left :?> double) + (right :?> double))
@@ -18,48 +18,24 @@ module Interpreter =
                     | Minus -> box ((left :?> double) - (right :?> double))
                     | Devide -> box ((left :?> double) / (right :?> double))
                     | Multiply  -> box ((left :?> double) * (right :?> double))
+                    | GreaterThen     -> box ((left :?> double) > (right :?> double))
+                    | GreaterOrEqual  -> box ((left :?> double) >= (right :?> double))
+                    | LessThen        -> box ((left :?> double) < (right :?> double))
+                    | LessOrEqual     -> box ((left :?> double) <= (right :?> double))
 
+                    | And -> (left :?> bool) && (right :?> bool)
+                    | Or       -> (left :?> bool) || (right :?> bool)
+                    | NotEqual -> left.Equals right |> not |> box
+                    | Equal    -> left.Equals right
 
-                //let result =
-                //    match leftExpression.DataType with
-                //    | NumberType -> 
-                //        match opporator with
-                //        | Operator Plus  -> box ((left :?> double) + (right :?> double)) 
-                //        | Operator Minus -> box ((left :?> double) - (right :?> double))
-                //        | Operator Devide -> box ((left :?> double) / (right :?> double))
-                //        | Operator Multiply  -> box ((left :?> double) * (right :?> double))
-                //        | GreaterThen     -> box ((left :?> double) > (right :?> double))
-                //        | GreaterOrEqual  -> box ((left :?> double) >= (right :?> double))
-                //        | LessThen        -> box ((left :?> double) < (right :?> double))
-                //        | LessOrEqual     -> box ((left :?> double) <= (right :?> double))
-                //        | NotEqual -> left.Equals right |> not |> box
-                //        | Equal    -> left.Equals right
-                //        | _ -> ()
-
-                //    | BoolType ->
-                //        match opporator with
-                //        | And      -> (left :?> bool) && (right :?> bool)
-                //        | Or       -> (left :?> bool) || (right :?> bool)
-                //        | NotEqual -> left.Equals right |> not |> box
-                //        | Equal    -> left.Equals right
-                //        | _ -> ()
-
-                //    | StringType ->
-                //        match opporator with
-                //        | Operator Plus -> box ((left :?> string) + (right :?> string))
-                //        | NotEqual -> left.Equals right |> not |> box
-                //        | Equal -> left.Equals right
-                //        | _ -> ()
-
-                //    | AnyType ->
-                //        match opporator with
-                //        | NotEqual -> left.Equals right |> not |> box
-                //        | Equal -> left.Equals right
-                //        | _ -> ()
-
+                    | ObjectAccessor ->
+                        let accessee = left :?> FrostObject
+                        execute ids accessee.fields.[right :?> string] |> fst
+               
                 (result, ids)
 
             | LiteralExpression value -> (value, ids)
+            | FieldExpression id -> (id, ids)
             | IdentifierExpression id ->
                execute ids ids.[id]
 
