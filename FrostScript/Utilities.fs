@@ -11,8 +11,8 @@
             | SemiColon  -> 
                 if blockDepth > 0 then appendToLastInState token tokens blockDepth
                 else (List.append tokens [[]], blockDepth)
-            | Pipe       -> appendToLastInState token tokens (blockDepth + 1)
-            | ReturnPipe -> appendToLastInState token tokens (blockDepth - 1)
+            | BlockOpen       -> appendToLastInState token tokens (blockDepth + 1)
+            | BlockReturn -> appendToLastInState token tokens (blockDepth - 1)
             | _          -> appendToLastInState token tokens blockDepth
         ) ([[]], 0)
         |> fst
