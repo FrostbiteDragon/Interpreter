@@ -209,13 +209,13 @@ module ParserFunctions =
     and block (next : ParserFunction) : ParserFunction = fun tokens ->
         let headToken = tokens |> List.head
         match headToken.Type with
-        | Pipe ->
+        | BlockOpen ->
             let tokens = tokens |> skipOrEmpty 1
 
             let bodyTokens = 
                 tokens
                 |> List.rev
-                |> List.skipWhile (fun x -> x.Type <> ReturnPipe)
+                |> List.skipWhile (fun x -> x.Type <> BlockReturn)
                 |> List.skip 1
                 |> List.rev
 

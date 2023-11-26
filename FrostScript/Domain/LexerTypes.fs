@@ -15,9 +15,10 @@ type TokenType =
 | Arrow
 | Assign
 | Discard
+| BlockOpen
 | Pipe
-| ClosePipe
-| ReturnPipe
+| ObjectPipe
+| BlockReturn
 | Colon
 | LexerError of string
 | Operator of Operator
