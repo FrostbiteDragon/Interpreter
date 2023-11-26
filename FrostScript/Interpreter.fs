@@ -9,41 +9,53 @@ module Interpreter =
                 let right = execute ids rightExpression |> fst
 
                 let result =
-                    match leftExpression.DataType with
-                    | NumberType -> 
-                        match opporator with
-                        | Plus  -> box ((left :?> double) + (right :?> double)) 
-                        | Minus -> box ((left :?> double) - (right :?> double))
-                        | Slash -> box ((left :?> double) / (right :?> double))
-                        | Star  -> box ((left :?> double) * (right :?> double))
-                        | GreaterThen     -> box ((left :?> double) > (right :?> double))
-                        | GreaterOrEqual  -> box ((left :?> double) >= (right :?> double))
-                        | LessThen        -> box ((left :?> double) < (right :?> double))
-                        | LessOrEqual     -> box ((left :?> double) <= (right :?> double))
-                        | NotEqual -> left.Equals right |> not |> box
-                        | Equal    -> left.Equals right
+                    match opporator with
+                    | Plus  -> 
+                        match leftExpression.DataType with
+                        | NumberType -> box ((left :?> double) + (right :?> double))
+                        | StringType -> box ((left :?> string) + (right :?> string))
                         | _ -> ()
+                    | Minus -> box ((left :?> double) - (right :?> double))
+                    | Devide -> box ((left :?> double) / (right :?> double))
+                    | Multiply  -> box ((left :?> double) * (right :?> double))
 
-                    | BoolType ->
-                        match opporator with
-                        | And      -> (left :?> bool) && (right :?> bool)
-                        | Or       -> (left :?> bool) || (right :?> bool)
-                        | NotEqual -> left.Equals right |> not |> box
-                        | Equal    -> left.Equals right
-                        | _ -> ()
 
-                    | StringType ->
-                        match opporator with
-                        | Plus -> box ((left :?> string) + (right :?> string))
-                        | NotEqual -> left.Equals right |> not |> box
-                        | Equal -> left.Equals right
-                        | _ -> ()
+                //let result =
+                //    match leftExpression.DataType with
+                //    | NumberType -> 
+                //        match opporator with
+                //        | Operator Plus  -> box ((left :?> double) + (right :?> double)) 
+                //        | Operator Minus -> box ((left :?> double) - (right :?> double))
+                //        | Operator Devide -> box ((left :?> double) / (right :?> double))
+                //        | Operator Multiply  -> box ((left :?> double) * (right :?> double))
+                //        | GreaterThen     -> box ((left :?> double) > (right :?> double))
+                //        | GreaterOrEqual  -> box ((left :?> double) >= (right :?> double))
+                //        | LessThen        -> box ((left :?> double) < (right :?> double))
+                //        | LessOrEqual     -> box ((left :?> double) <= (right :?> double))
+                //        | NotEqual -> left.Equals right |> not |> box
+                //        | Equal    -> left.Equals right
+                //        | _ -> ()
 
-                    | AnyType ->
-                        match opporator with
-                        | NotEqual -> left.Equals right |> not |> box
-                        | Equal -> left.Equals right
-                        | _ -> ()
+                //    | BoolType ->
+                //        match opporator with
+                //        | And      -> (left :?> bool) && (right :?> bool)
+                //        | Or       -> (left :?> bool) || (right :?> bool)
+                //        | NotEqual -> left.Equals right |> not |> box
+                //        | Equal    -> left.Equals right
+                //        | _ -> ()
+
+                //    | StringType ->
+                //        match opporator with
+                //        | Operator Plus -> box ((left :?> string) + (right :?> string))
+                //        | NotEqual -> left.Equals right |> not |> box
+                //        | Equal -> left.Equals right
+                //        | _ -> ()
+
+                //    | AnyType ->
+                //        match opporator with
+                //        | NotEqual -> left.Equals right |> not |> box
+                //        | Equal -> left.Equals right
+                //        | _ -> ()
 
                 (result, ids)
 

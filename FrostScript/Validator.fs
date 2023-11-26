@@ -18,13 +18,13 @@ module Validator =
 
                 let dataType = 
                     match token.Type with
-                    | Star
-                    | Slash 
-                    | Minus ->
+                    | Operator Multiply
+                    | Operator Devide 
+                    | Operator Minus ->
                         if left.DataType = NumberType && right.DataType = NumberType then Some NumberType
                         else None
 
-                    | Plus ->
+                    | Operator Plus ->
                         if left.DataType = NumberType && right.DataType = NumberType then Some NumberType
                         else if left.DataType = StringType && right.DataType = StringType then Some StringType
                         else None

@@ -1,5 +1,8 @@
 ﻿namespace FrostScript
 
+type Operator =
+| Minus | Plus | Devide | Multiply
+
 type TokenType =
 //structural
 | SemiColon
@@ -17,8 +20,7 @@ type TokenType =
 | ReturnPipe
 | Colon
 | LexerError of string
-//math operators
-| Minus | Plus | Slash | Star
+| Operator of Operator
 //logical operators
 | Equal | NotEqual | GreaterThen | GreaterOrEqual | LessOrEqual | LessThen | Not | Or | And
 //functional oparators

@@ -17,9 +17,9 @@ module Lexer =
                 | '}' -> yield { Type = BraceClose; Lexeme = "}"; Literal = None; Line = line; Character = character }
                 | ',' -> yield { Type = Comma; Lexeme = ","; Literal = None; Line = line; Character = character }
                 | '.' -> yield { Type = Period; Lexeme = "."; Literal = None; Line = line; Character = character }
-                | '+' -> yield { Type = Plus; Lexeme = "+"; Literal = None; Line = line; Character = character }
-                | '*' -> yield { Type = Star; Lexeme = "*"; Literal = None; Line = line; Character = character }
-                | '/' -> yield { Type = Slash; Lexeme = "/"; Literal = None; Line = line; Character = character }
+                | '+' -> yield { Type = Operator Plus; Lexeme = "+"; Literal = None; Line = line; Character = character }
+                | '*' -> yield { Type = Operator Multiply; Lexeme = "*"; Literal = None; Line = line; Character = character }
+                | '/' -> yield { Type = Operator Devide; Lexeme = "/"; Literal = None; Line = line; Character = character }
                 | ';' -> yield { Type = SemiColon; Lexeme = ";"; Literal = None; Line = line; Character = character }
                 | ':' -> yield { Type = Colon; Lexeme = ":"; Literal = None; Line = line; Character = character }
                 | '>' ->
@@ -87,7 +87,7 @@ module Lexer =
                             character <- character + 1
                             { Type = Arrow; Lexeme = "->"; Literal = None; Line = line; Character = character }
                         | _ -> 
-                            { Type = Minus; Lexeme = "-"; Literal = None; Line = line; Character = character }
+                            { Type = Operator Minus; Lexeme = "-"; Literal = None; Line = line; Character = character }
 
                 //strings
                 | '"' ->

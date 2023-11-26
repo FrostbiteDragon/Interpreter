@@ -23,8 +23,8 @@ module ParserFunctions =
 
         (node, tokens)
 
-    let term = binary [Plus; Minus]
-    let factor = binary [Star; Slash]
+    let term = binary [Operator Plus; Operator Minus]
+    let factor = binary [Operator Multiply; Operator Devide]
     let equality = binary [Equal; NotEqual]
     let comparison = binary [LessThen; LessOrEqual; GreaterThen; GreaterOrEqual]
     let andFunction = binary [And]
