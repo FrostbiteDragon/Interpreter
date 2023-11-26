@@ -54,7 +54,7 @@ module Validator =
                                 let exists = fields.TryGetValue (field, &dataType)
                                 if exists then (expression dataType (BinaryExpression(ObjectAccessor, left, right)), ids)
                                 else (error token $"Object does not contain the field \"{field}\"", ids)
-                            | _ -> (error token "Expected field name after '.'", ids)
+                            | _ -> failwith "I'm not a teapot"
                         | _ -> (error token "Expression leading '.' must be of type object", ids)
 
             | FieldNode token -> (expression AnyType (FieldExpression token.Lexeme), ids)
