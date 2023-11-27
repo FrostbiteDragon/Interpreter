@@ -22,19 +22,21 @@ module ParserFunctions =
 
         if (tokens.IsEmpty) then (node, tokens)
         else 
-            match tokens.Head.Type with
-            | Operator operator ->
-                let mutable node = node
-                let mutable tokens = tokens
-                while List.isEmpty tokens |> not && validTypes |> List.contains operator do
-                    let (rightNode, newTokens) = getRightNode (tokens |> skipOrEmpty 1)
+            let mutable node = node
+            let mutable tokens = tokens
+            let mutable keepLooping = true
+            while keepLooping && List.isEmpty tokens |> not do
+                match tokens.Head.Type with
+                | Operator operator ->
+                    if validTypes |> List.contains operator then
+                        let (rightNode, newTokens) = getRightNode (tokens |> skipOrEmpty 1)
 
-                    let binaryNode = newNode tokens.Head (BinaryNode (operator, node, rightNode))
-                    tokens <- newTokens
-                    node <- binaryNode
-
-                (node, tokens)
-            | _ -> (node, tokens)
+                        let binaryNode = newNode tokens.Head (BinaryNode (operator, node, rightNode))
+                        tokens <- newTokens
+                        node <- binaryNode
+                    else keepLooping <- false
+                | _ -> keepLooping <- false
+            (node, tokens)
 
     let binding (next : ParserFunction) : ParserFunction = fun tokens ->
         let bindToken = List.head tokens

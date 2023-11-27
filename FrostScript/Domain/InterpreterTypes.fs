@@ -28,6 +28,9 @@ and ExpressionType =
 | NativeFunction of Call : (obj -> obj)
 | ObjectExpression of fields : Map<string, Expression>
 
+type FrostFunction =
+    { call : Expression idMap -> obj -> obj * Expression idMap }
+
 type FrostObject =
     { fields : Map<string, Expression> }
     with override this.ToString() = 

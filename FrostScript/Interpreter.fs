@@ -28,6 +28,9 @@ module Interpreter =
                     | NotEqual -> left.Equals right |> not |> box
                     | Equal    -> left.Equals right
 
+                    //| Pipe -> 
+                    //    right :?>;
+
                     | ObjectAccessor ->
                         let accessee = left :?> FrostObject
                         execute ids accessee.fields.[right :?> string] |> fst
@@ -53,10 +56,8 @@ module Interpreter =
             | CallExpression (callee, argument) ->
                 let (callee, ids) = execute ids callee
                 let (argument, ids) = execute ids argument
-                match (callee :?> Expression).Type with
-                | FrostFunction (call) -> 
-                    call ids argument
-                | _ -> failwith "expression was not callable"
+                let callee = callee :?> FrostFunction
+                callee.call ids argument
 
             | BlockExpression body ->
                 let (results, ids) = ids |> IdMap.useLocal (fun blockIds -> 
@@ -123,19 +124,17 @@ module Interpreter =
                         } |> Seq.toList
                     (results, loopIds)
 
-                
             | FunctionExpression (paramater, body) ->
-                ({ DataType = body.DataType
-                   Type =
-                       FrostFunction (fun ids argument ->
-                            let argumentExpression = 
-                                { DataType = paramater.Value
-                                  Type = (LiteralExpression (argument)) }
-                            execute (ids |> IdMap.updateLocal paramater.Id argumentExpression) body) }
-                , ids)
+                let call = 
+                    fun ids argument ->
+                        let argumentExpression = 
+                            { DataType = paramater.Value
+                              Type = (LiteralExpression (argument)) }
+                        execute (ids |> IdMap.updateLocal paramater.Id argumentExpression) body
+                
+                ({ call = call }, ids)
 
             | NativeFunction call -> ({ DataType = expression.DataType; Type = FrostFunction (fun ids argument -> (call argument, ids)) }, ids)
-            | FrostFunction _ -> failwith "Do not use FrostFunction, use NativeFunction Instead"
 
             | ObjectExpression fields -> ({ fields = fields }, ids)
 
