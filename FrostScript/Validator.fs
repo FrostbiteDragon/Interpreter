@@ -76,12 +76,9 @@ module Validator =
                             let mutable dataType = VoidType 
                             let exists = fields.TryGetValue (right.Token.Lexeme, &dataType)
                             if exists then 
-                                let (right, ids) = validateNode ids right
-                                (expression dataType (BinaryExpression(ObjectAccessor, left, right)), ids)
+                                (expression dataType (BinaryExpression(ObjectAccessor, left, expression dataType (FieldExpression right.Token.Lexeme))), ids)
                             else (error token $"Object does not contain the field \"{right.Token.Lexeme}\"", ids)
                         | _ -> (error token "Expression leading '.' must be of type object", ids)
-
-            | FieldNode -> (expression AnyType (FieldExpression token.Lexeme), ids)
 
             | BindNode (id, isMutable, value) -> 
                 match value.Type with

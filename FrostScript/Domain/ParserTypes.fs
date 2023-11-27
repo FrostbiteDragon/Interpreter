@@ -2,7 +2,6 @@
 
 type NodeType = 
 | Stop
-| FieldNode
 | LiteralNode
 | LoopNode of Binding : Node option * Condition : Node * Bodies : Node list 
 | IfNode of Condition : Node * True : Node * False : Node option

@@ -17,7 +17,7 @@ module ParserFunctions =
         | Number | String | Id | Void | Bool -> (newNode tokens.Head LiteralNode, tokens |> skipOrEmpty 1)
         | _ -> next tokens
 
-    let binary validTypes getRightNode (next : ParserFunction) : ParserFunction = fun tokens -> 
+    let binary validTypes (next : ParserFunction) : ParserFunction = fun tokens -> 
         let (node, tokens) = next tokens
 
         if (tokens.IsEmpty) then (node, tokens)
@@ -29,7 +29,7 @@ module ParserFunctions =
                 match tokens.Head.Type with
                 | Operator operator ->
                     if validTypes |> List.contains operator then
-                        let (rightNode, newTokens) = getRightNode (tokens |> skipOrEmpty 1)
+                        let (rightNode, newTokens) = next (tokens |> skipOrEmpty 1)
 
                         let binaryNode = newNode tokens.Head (BinaryNode (operator, node, rightNode))
                         tokens <- newTokens
@@ -202,19 +202,14 @@ module ParserFunctions =
             | ParentheseClose -> (body, tokens |> skipOrEmpty 1)
             | _ -> (error nextToken "Expected ')'", tokens |> skipOrEmpty 1)
 
-    and term = binary [Plus; Minus] expression
-    and factor = binary [Multiply; Devide] expression
-    and equality = binary [Equal; NotEqual] expression
-    and comparison = binary [LessThen; LessOrEqual; GreaterThen; GreaterOrEqual] expression
-    and andFunction = binary [And] expression
-    and orFunction = binary [Or] expression
-    and pipe = binary [Pipe] expression
-    and objectAccessor = 
-        binary [ObjectAccessor]
-        <| fun tokens -> 
-            if tokens.Head.Type = Id then 
-                (newNode tokens.Head FieldNode, tokens |> skipOrEmpty 1) 
-            else (error tokens.Head "Expected field name after '.'", tokens |> skipOrEmpty 1)
+    and term           = binary [Plus; Minus]
+    and factor         = binary [Multiply; Devide]
+    and equality       = binary [Equal; NotEqual]
+    and comparison     = binary [LessThen; LessOrEqual; GreaterThen; GreaterOrEqual]
+    and andFunction    = binary [And]
+    and orFunction     = binary [Or]
+    and pipe           = binary [Pipe]
+    and objectAccessor = binary [ObjectAccessor]
 
     and block (next : ParserFunction) : ParserFunction = fun tokens ->
         let headToken = tokens |> List.head
