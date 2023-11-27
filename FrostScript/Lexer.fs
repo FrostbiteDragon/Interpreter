@@ -16,10 +16,10 @@ module Lexer =
                 | '{' -> yield { Type = BraceOpen; Lexeme = "{"; Literal = None; Line = line; Character = character }
                 | '}' -> yield { Type = BraceClose; Lexeme = "}"; Literal = None; Line = line; Character = character }
                 | ',' -> yield { Type = Comma; Lexeme = ","; Literal = None; Line = line; Character = character }
-                | '.' -> yield { Type = Period; Lexeme = "."; Literal = None; Line = line; Character = character }
-                | '+' -> yield { Type = Plus; Lexeme = "+"; Literal = None; Line = line; Character = character }
-                | '*' -> yield { Type = Star; Lexeme = "*"; Literal = None; Line = line; Character = character }
-                | '/' -> yield { Type = Slash; Lexeme = "/"; Literal = None; Line = line; Character = character }
+                | '.' -> yield { Type = Operator ObjectAccessor; Lexeme = "."; Literal = None; Line = line; Character = character }
+                | '+' -> yield { Type = Operator Plus; Lexeme = "+"; Literal = None; Line = line; Character = character }
+                | '*' -> yield { Type = Operator Multiply; Lexeme = "*"; Literal = None; Line = line; Character = character }
+                | '/' -> yield { Type = Operator Devide; Lexeme = "/"; Literal = None; Line = line; Character = character }
                 | ';' -> yield { Type = SemiColon; Lexeme = ";"; Literal = None; Line = line; Character = character }
                 | ':' -> yield { Type = Colon; Lexeme = ":"; Literal = None; Line = line; Character = character }
                 | '>' ->
@@ -28,9 +28,9 @@ module Lexer =
                             | '=' ->
                                 i <- i + 1
                                 character <- character + 1
-                                { Type = GreaterOrEqual; Lexeme = ">="; Literal = None; Line = line; Character = character }
+                                { Type = Operator GreaterOrEqual; Lexeme = ">="; Literal = None; Line = line; Character = character }
                             | _ -> 
-                                { Type = GreaterThen; Lexeme = ">"; Literal = None; Line = line; Character = character }
+                                { Type = Operator GreaterThen; Lexeme = ">"; Literal = None; Line = line; Character = character }
 
                 | '<' -> 
                     yield
@@ -38,16 +38,16 @@ module Lexer =
                         | '=' ->
                             i <- i + 1
                             character <- character + 1
-                            { Type = LessOrEqual; Lexeme = "<="; Literal = None; Line = line; Character = character }
+                            { Type = Operator LessOrEqual; Lexeme = "<="; Literal = None; Line = line; Character = character }
                         | _ -> 
-                            { Type = LessThen; Lexeme = "<"; Literal = None; Line = line; Character = character }
+                            { Type = Operator LessThen; Lexeme = "<"; Literal = None; Line = line; Character = character }
                 | '!' -> 
                     yield 
                         match chars.[i + 1] with
                         | '=' ->
                             i <- i + 1
                             character <- character + 1
-                            { Type = NotEqual; Lexeme = "!="; Literal = None; Line = line; Character = character }
+                            { Type = Operator NotEqual; Lexeme = "!="; Literal = None; Line = line; Character = character }
                         | _ -> 
                             { Type = Not; Lexeme = "!"; Literal = None; Line = line; Character = character }
                             
@@ -57,7 +57,7 @@ module Lexer =
                         | '=' ->
                             i <- i + 1
                             character <- character + 1
-                            { Type = Equal; Lexeme = "=="; Literal = None; Line = line; Character = character }
+                            { Type = Operator Equal; Lexeme = "=="; Literal = None; Line = line; Character = character }
                         | _ -> 
                             { Type = Assign; Lexeme = "="; Literal = None; Line = line; Character = character }
                 | '|' -> 
@@ -66,9 +66,17 @@ module Lexer =
                         | '>' ->
                             i <- i + 1
                             character <- character + 1
-                            { Type = ReturnPipe; Lexeme = "|>"; Literal = None; Line = line; Character = character }
+                            { Type = BlockReturn; Lexeme = "|>"; Literal = None; Line = line; Character = character }
+                        | '-' ->
+                            i <- i + 1
+                            character <- character + 1
+                            { Type = Operator Pipe; Lexeme = "|-"; Literal = None; Line = line; Character = character }
+                        | '.' ->
+                            i <- i + 1
+                            character <- character + 1
+                            { Type = Operator AccessorPipe; Lexeme = "|."; Literal = None; Line = line; Character = character }
                         | _ -> 
-                            { Type = Pipe; Lexeme = "|"; Literal = None; Line = line; Character = character }
+                            { Type = BlockOpen; Lexeme = "|"; Literal = None; Line = line; Character = character }
                 | '(' -> 
                     yield 
                         match chars.[i + 1] with
@@ -87,7 +95,7 @@ module Lexer =
                             character <- character + 1
                             { Type = Arrow; Lexeme = "->"; Literal = None; Line = line; Character = character }
                         | _ -> 
-                            { Type = Minus; Lexeme = "-"; Literal = None; Line = line; Character = character }
+                            { Type = Operator Minus; Lexeme = "-"; Literal = None; Line = line; Character = character }
 
                 //strings
                 | '"' ->
@@ -123,13 +131,13 @@ module Lexer =
                     | "let"    -> yield { Type = Let; Lexeme = word; Literal = None; Line = line; Character = character }
                     | "var"    -> yield { Type = Var; Lexeme = word; Literal = None; Line = line; Character = character }
                     | "fun"    -> yield { Type = Fun; Lexeme = word; Literal = None; Line = line; Character = character }
-                    | "or"     -> yield { Type = Or; Lexeme = word; Literal = None; Line = line; Character = character }
-                    | "and"    -> yield { Type = And; Lexeme = word; Literal = None; Line = line; Character = character }
-                    | "num"    -> yield { Type = TypeAnnotation (NumberType); Lexeme = word; Literal = None; Line = line; Character = character }
-                    | "any"    -> yield { Type = TypeAnnotation (AnyType); Lexeme = word; Literal = None; Line = line; Character = character }
-                    | "void"   -> yield { Type = TypeAnnotation (VoidType); Lexeme = word; Literal = None; Line = line; Character = character }
-                    | "bool"   -> yield { Type = TypeAnnotation (BoolType); Lexeme = word; Literal = None; Line = line; Character = character }
-                    | "string" -> yield { Type = TypeAnnotation (StringType); Lexeme = word; Literal = None; Line = line; Character = character }
+                    | "or"     -> yield { Type = Operator Or; Lexeme = word; Literal = None; Line = line; Character = character }
+                    | "and"    -> yield { Type = Operator And; Lexeme = word; Literal = None; Line = line; Character = character }
+                    | "num"    -> yield { Type = TypeAnnotation NumberType; Lexeme = word; Literal = None; Line = line; Character = character }
+                    | "any"    -> yield { Type = TypeAnnotation AnyType; Lexeme = word; Literal = None; Line = line; Character = character }
+                    | "void"   -> yield { Type = TypeAnnotation VoidType; Lexeme = word; Literal = None; Line = line; Character = character }
+                    | "bool"   -> yield { Type = TypeAnnotation BoolType; Lexeme = word; Literal = None; Line = line; Character = character }
+                    | "string" -> yield { Type = TypeAnnotation StringType; Lexeme = word; Literal = None; Line = line; Character = character }
                     | "if"     -> yield { Type = If; Lexeme = word; Literal = None; Line = line; Character = character }
                     | "else"   -> yield { Type = Else; Lexeme = word; Literal = None; Line = line; Character = character }
                     | "for"    -> yield { Type = For; Lexeme = word; Literal = None; Line = line; Character = character }

@@ -4,50 +4,46 @@ module Interpreter =
     let interpret nativeFunctions expressions =
         let rec execute (ids : Expression IdMap) (expression : Expression) : obj * Expression IdMap =
             match expression.Type with
-            | BinaryExpression (opporator, leftExpression, rightExpression) ->
-                let left = execute ids leftExpression |> fst
-                let right = execute ids rightExpression |> fst
+            | BinaryExpression (operator, leftExpression, rightExpression) ->
+                let (left, ids) = execute ids leftExpression
+                let (right, ids) = execute ids rightExpression
 
                 let result =
-                    match leftExpression.DataType with
-                    | NumberType -> 
-                        match opporator with
-                        | Plus  -> box ((left :?> double) + (right :?> double)) 
-                        | Minus -> box ((left :?> double) - (right :?> double))
-                        | Slash -> box ((left :?> double) / (right :?> double))
-                        | Star  -> box ((left :?> double) * (right :?> double))
-                        | GreaterThen     -> box ((left :?> double) > (right :?> double))
-                        | GreaterOrEqual  -> box ((left :?> double) >= (right :?> double))
-                        | LessThen        -> box ((left :?> double) < (right :?> double))
-                        | LessOrEqual     -> box ((left :?> double) <= (right :?> double))
-                        | NotEqual -> left.Equals right |> not |> box
-                        | Equal    -> left.Equals right
+                    match operator with
+                    | Plus  -> 
+                        match leftExpression.DataType with
+                        | NumberType -> box ((left :?> double) + (right :?> double))
+                        | StringType -> box ((left :?> string) + (right :?> string))
                         | _ -> ()
+                    | Minus -> box ((left :?> double) - (right :?> double))
+                    | Devide -> box ((left :?> double) / (right :?> double))
+                    | Multiply  -> box ((left :?> double) * (right :?> double))
+                    | GreaterThen     -> box ((left :?> double) > (right :?> double))
+                    | GreaterOrEqual  -> box ((left :?> double) >= (right :?> double))
+                    | LessThen        -> box ((left :?> double) < (right :?> double))
+                    | LessOrEqual     -> box ((left :?> double) <= (right :?> double))
 
-                    | BoolType ->
-                        match opporator with
-                        | And      -> (left :?> bool) && (right :?> bool)
-                        | Or       -> (left :?> bool) || (right :?> bool)
-                        | NotEqual -> left.Equals right |> not |> box
-                        | Equal    -> left.Equals right
-                        | _ -> ()
+                    | And -> (left :?> bool) && (right :?> bool)
+                    | Or       -> (left :?> bool) || (right :?> bool)
+                    | NotEqual -> left.Equals right |> not |> box
+                    | Equal    -> left.Equals right
 
-                    | StringType ->
-                        match opporator with
-                        | Plus -> box ((left :?> string) + (right :?> string))
-                        | NotEqual -> left.Equals right |> not |> box
-                        | Equal -> left.Equals right
-                        | _ -> ()
+                    | Pipe -> 
+                        let func = right :?> FrostFunction;
+                        func.call ids left |> fst
 
-                    | AnyType ->
-                        match opporator with
-                        | NotEqual -> left.Equals right |> not |> box
-                        | Equal -> left.Equals right
-                        | _ -> ()
+                    | AccessorPipe -> 
+                        let accessee = left :?> FrostObject
+                        accessee.fields.[right :?> string]
 
+                    | ObjectAccessor ->
+                        let accessee = left :?> FrostObject
+                        accessee.fields.[right :?> string]
+               
                 (result, ids)
 
             | LiteralExpression value -> (value, ids)
+            | FieldExpression id -> (id, ids)
             | IdentifierExpression id ->
                execute ids ids.[id]
 
@@ -59,16 +55,14 @@ module Interpreter =
                 ((), ids |> IdMap.updateLocal id value)
                 
             | ValidationError (token, message) ->
-                printfn "(Line:%i Character:%i) %s" token.Line token.Character message
+                printfn "[Line:%i Character:%i] %s" token.Line token.Character message
                 ((), ids)
 
             | CallExpression (callee, argument) ->
                 let (callee, ids) = execute ids callee
                 let (argument, ids) = execute ids argument
-                match (callee :?> Expression).Type with
-                | FrostFunction (call) -> 
-                    call ids argument
-                | _ -> failwith "expression was not callable"
+                let callee = callee :?> FrostFunction
+                callee.call ids argument
 
             | BlockExpression body ->
                 let (results, ids) = ids |> IdMap.useLocal (fun blockIds -> 
@@ -135,25 +129,19 @@ module Interpreter =
                         } |> Seq.toList
                     (results, loopIds)
 
-                
             | FunctionExpression (paramater, body) ->
-                ({ DataType = body.DataType
-                   Type =
-                       FrostFunction (fun ids argument ->
-                            let argumentExpression = 
-                                { DataType = paramater.Value
-                                  Type = (LiteralExpression (argument)) }
-                            execute (ids |> IdMap.updateLocal paramater.Id argumentExpression) body) }
-                , ids)
+                let call = 
+                    fun ids argument ->
+                        let argumentExpression = 
+                            { DataType = paramater.Value
+                              Type = (LiteralExpression (argument)) }
+                        execute (ids |> IdMap.updateLocal paramater.Id argumentExpression) body
+                
+                ({ call = call }, ids)
 
-            | NativeFunction call -> ({ DataType = expression.DataType; Type = FrostFunction (fun ids argument -> (call argument, ids)) }, ids)
-            | FrostFunction _ -> failwith "Do not use FrostFunction, use NativeFunction Instead"
+            | NativeFunction call -> ({ call = (fun ids argument -> (call argument, ids)) }, ids)
 
-            | ObjectExpression fields -> ({ fields = fields }, ids)
-            | ObjectAccessorExpression (accessee, field) ->
-                let (accessee, ids) = execute ids accessee
-                let accessee = accessee :?> FrostObject
-                execute ids accessee.fields.[field]
+            | ObjectExpression fields -> ({ fields = fields |> Map.map (fun _ expression -> execute ids expression |> fst) }, ids)
 
         expressions
         |> List.mapFold(fun ids expression -> execute ids expression) ([nativeFunctions |> Map] |> IdMap.ofList)

@@ -14,10 +14,11 @@ type Expression =
 and ExpressionType =
 | LoopExpression of Bind : Expression option * Condition : Expression * Bodies : Expression List
 | IfExpression of Condition : Expression * True : Expression * False : Expression option
-| BinaryExpression of Opporator : TokenType * Left : Expression * Right : Expression
+| BinaryExpression of Operator : Operator * Left : Expression * Right : Expression
 | BlockExpression of Body : Expression list
 | LiteralExpression of Value : obj
 | IdentifierExpression of Id : string
+| FieldExpression of Id : string
 | ValidationError of Token * Error : string
 | BindExpression of Id : string * Value : Expression
 | AssignExpression of Id : string * Value : Expression
@@ -26,10 +27,12 @@ and ExpressionType =
 | CallExpression of Callee : Expression * Argument : Expression
 | NativeFunction of Call : (obj -> obj)
 | ObjectExpression of fields : Map<string, Expression>
-| ObjectAccessorExpression of Accessee : Expression * Field : string
+
+type FrostFunction =
+    { call : Expression idMap -> obj -> obj * Expression idMap }
 
 type FrostObject =
-    { fields : Map<string, Expression> }
+    { fields : Map<string, obj> }
     with override this.ToString() = 
             let fields = 
                 this.fields 

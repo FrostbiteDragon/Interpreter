@@ -1,5 +1,11 @@
 ﻿namespace FrostScript
 
+type Operator =
+| Minus | Plus | Devide | Multiply
+| Equal | NotEqual | GreaterThen | GreaterOrEqual | LessOrEqual | LessThen | Or | And
+| Pipe| AccessorPipe
+| ObjectAccessor
+
 type TokenType =
 //structural
 | SemiColon
@@ -12,17 +18,12 @@ type TokenType =
 | Arrow
 | Assign
 | Discard
-| Pipe
-| ClosePipe
-| ReturnPipe
+| BlockOpen
+| BlockReturn
 | Colon
 | LexerError of string
-//math operators
-| Minus | Plus | Slash | Star
-//logical operators
-| Equal | NotEqual | GreaterThen | GreaterOrEqual | LessOrEqual | LessThen | Not | Or | And
-//functional oparators
-| PipeOp
+| Operator of Operator
+| Not 
 //literals
 | Number | String | Id | Void | Bool
 //Keywords
@@ -32,6 +33,7 @@ type TokenType =
 | Fun | New
 | For | While | Do
 | Yield
+| Stop
 //Types
 | TypeAnnotation of DataType
 
