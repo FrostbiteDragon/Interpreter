@@ -63,7 +63,7 @@ module Validator =
                     | FunctionType (inputType, outputType) ->
                         if left.DataType <> inputType && inputType <> AnyType then (error token $"Can not pipe value {left.DataType} into function with input {inputType}", ids)
                         else (binaryExpression outputType left right, ids)
-                    | _ -> (error token "Right side of pipe oporator must be a function", ids)
+                    | _ -> (error token "Right side of pipe operator must be a function", ids)
 
                 | ObjectAccessor ->
                     let (left, ids) = validateNode ids left
@@ -82,7 +82,7 @@ module Validator =
 
             | BindNode (id, isMutable, value) -> 
                 match value.Type with
-                | ParserError (message)-> (error token message, ids)
+                | ParserError (message)-> (error value.Token message, ids)
                 | _ ->
                     let (value, ids) = validateNode ids value
                     let bindEpression = expression value.DataType (BindExpression(id, value))

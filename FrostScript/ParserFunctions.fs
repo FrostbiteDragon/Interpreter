@@ -111,23 +111,25 @@ module ParserFunctions =
             let mutable tokens = tokens |> skipOrEmpty 1
             let mutable parameters = []
             let mutable error = None
-            while tokens <> [] && error = None && tokens.Head.Type = Id do
-                match error with
-                | Some _ -> ()
-                | None ->
-                    match parameter tokens with
-                    | Error message -> 
-                        error <- Some message
-                    | Ok (parameter, newTokens) ->
-                        if newTokens.Head.Type <> Comma && newTokens.Head.Type <> ParentheseClose then 
-                            error <- Some "Expected ','"
-                            tokens <- newTokens
-                        else if newTokens.Head.Type <> ParentheseClose then
-                            tokens <- newTokens |> skipOrEmpty 1
-                            parameters <- parameters |> List.append [parameter]
-                        else
-                            tokens <- newTokens
-                            parameters <- parameters |> List.append [parameter]
+            while tokens <> [] && error = None && tokens.Head.Type <> ParentheseClose do
+                if tokens.Head.Type <> Id  then error <- Some $"Espected Id but got {tokens.Head.Type}"
+                else
+                    match error with
+                    | Some _ -> ()
+                    | None ->
+                        match parameter tokens with
+                        | Error message -> 
+                            error <- Some message
+                        | Ok (parameter, newTokens) ->
+                            if newTokens.Head.Type <> Comma && newTokens.Head.Type <> ParentheseClose then 
+                                error <- Some "Expected ','"
+                                tokens <- newTokens
+                            else if newTokens.Head.Type <> ParentheseClose then
+                                tokens <- newTokens |> skipOrEmpty 1
+                                parameters <- parameters |> List.append [parameter]
+                            else
+                                tokens <- newTokens
+                                parameters <- parameters |> List.append [parameter]
 
             match error with
             | Some error -> (Error(error), tokens)
@@ -142,7 +144,7 @@ module ParserFunctions =
         else
             let (parameters, tokens) = parameterGroup (tokens |> skipOrEmpty 1)
             match parameters with
-            | Error message -> (error constructorToken message, [])
+            | Error message -> (error tokens.Head message, [])
             | Ok parameters ->
                 let object =
                     let fields =  
