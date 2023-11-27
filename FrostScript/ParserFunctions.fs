@@ -17,7 +17,7 @@ module ParserFunctions =
         | Number | String | Id | Void | Bool -> (newNode tokens.Head LiteralNode, tokens |> skipOrEmpty 1)
         | _ -> next tokens
 
-    let binary getRightNode validTypes (next : ParserFunction) : ParserFunction = fun tokens -> 
+    let binary validTypes getRightNode (next : ParserFunction) : ParserFunction = fun tokens -> 
         let (node, tokens) = next tokens
 
         if (tokens.IsEmpty) then (node, tokens)
@@ -199,20 +199,19 @@ module ParserFunctions =
             | ParentheseClose -> (body, tokens |> skipOrEmpty 1)
             | _ -> (error nextToken "Expected ')'", tokens |> skipOrEmpty 1)
 
-    and term = binary expression [Plus; Minus] 
-    and factor = binary expression [Multiply; Devide]
-    and equality = binary expression [Equal; NotEqual]
-    and comparison = binary expression [LessThen; LessOrEqual; GreaterThen; GreaterOrEqual]
-    and andFunction = binary expression [And]
-    and orFunction = binary expression [Or]
+    and term = binary [Plus; Minus] expression
+    and factor = binary [Multiply; Devide] expression
+    and equality = binary [Equal; NotEqual] expression
+    and comparison = binary [LessThen; LessOrEqual; GreaterThen; GreaterOrEqual] expression
+    and andFunction = binary [And] expression
+    and orFunction = binary [Or] expression
     
     and objectAccessor = 
-        binary 
+        binary [ObjectAccessor]
         <| fun tokens -> 
             if tokens.Head.Type = Id then 
                 (newNode tokens.Head FieldNode, tokens |> skipOrEmpty 1) 
             else (error tokens.Head "Expected field name after '.'", tokens |> skipOrEmpty 1)
-        <| [ObjectAccessor] 
 
     and block (next : ParserFunction) : ParserFunction = fun tokens ->
         let headToken = tokens |> List.head
