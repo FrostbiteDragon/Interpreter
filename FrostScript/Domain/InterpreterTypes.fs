@@ -27,7 +27,6 @@ and ExpressionType =
 | CallExpression of Callee : Expression * Argument : Expression
 | NativeFunction of Call : (obj -> obj)
 | ObjectExpression of fields : Map<string, Expression>
-| ObjectAccessorExpression of Accessee : Expression * Field : string
 
 type FrostObject =
     { fields : Map<string, Expression> }

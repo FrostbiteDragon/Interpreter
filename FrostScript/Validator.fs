@@ -2,7 +2,7 @@
 
 module Validator =
     let validate nativeFunctions nodes =
-        let rec validateNode (ids : (DataType * bool) idMap) node : Expression * (DataType * bool) idMap =
+        let rec validateNode (ids : (DataType * bool) idMap) (node : Node) : Expression * (DataType * bool) idMap =
             let error token message =
                  { DataType = VoidType
                    Type = ValidationError (token, message) }
@@ -11,64 +11,78 @@ module Validator =
                 { DataType = dataType
                   Type = expression }
 
-            match node with
-            | BinaryNode (token, operator, left, right) -> 
-                let (left, ids) = validateNode ids left
-                let (right, ids) = validateNode ids right
+            let token = node.Token
 
-                let binaryExpression dataType = expression dataType (BinaryExpression (operator, left, right))
-                let invalidDataTypeError = error token $"Opporator '{token.Lexeme}' cannot be used between types {left.DataType} and {right.DataType}"
+            match node.Type with
+            | BinaryNode (operator, left, right) -> 
+
+                let binaryExpression dataType left right = expression dataType (BinaryExpression (operator, left, right))
+                let invalidDataTypeError leftType rightType = error token  $"Opporator '{token.Lexeme}' cannot be used between types {leftType} and {rightType}"
                 match operator with
                 | Multiply
                 | Devide 
                 | Minus ->
-                    if left.DataType = NumberType && right.DataType = NumberType then (binaryExpression NumberType, ids)
-                    else (invalidDataTypeError, ids)
+                    let (left, ids) = validateNode ids left
+                    let (right, ids) = validateNode ids right
+                    
+                    if left.DataType = NumberType && right.DataType = NumberType then (binaryExpression NumberType left right, ids)
+                    else (invalidDataTypeError left right, ids)
 
                 | Plus ->
-                    if left.DataType = NumberType && right.DataType = NumberType then (binaryExpression NumberType, ids)
-                    else if left.DataType = StringType && right.DataType = StringType then (binaryExpression NumberType, ids)
-                    else (invalidDataTypeError, ids)
+                    let (left, ids) = validateNode ids left
+                    let (right, ids) = validateNode ids right
+
+                    if left.DataType = NumberType && right.DataType = NumberType then (binaryExpression NumberType left right, ids)
+                    else if left.DataType = StringType && right.DataType = StringType then (binaryExpression NumberType left right, ids)
+                    else (invalidDataTypeError left right, ids)
 
                 | Equal
                 | NotEqual 
                 | LessThen 
                 | LessOrEqual 
                 | GreaterThen 
-                | GreaterOrEqual -> (binaryExpression BoolType, ids)
+                | GreaterOrEqual -> 
+                    let (left, ids) = validateNode ids left
+                    let (right, ids) = validateNode ids right
+
+                    (expression BoolType (BinaryExpression (operator, left, right)), ids)
 
                 | And
                 | Or ->
-                    if left.DataType = BoolType && right.DataType = BoolType then (binaryExpression BoolType, ids)
-                    else (invalidDataTypeError, ids)
+                    let (left, ids) = validateNode ids left
+                    let (right, ids) = validateNode ids right
+
+                    if left.DataType = BoolType && right.DataType = BoolType then (binaryExpression BoolType left right, ids)
+                    else (invalidDataTypeError left right, ids)
 
                 | ObjectAccessor ->
+                    let (left, ids) = validateNode ids left
+
                     match left.Type with
                     | ValidationError _ -> (left, ids)
                     | _ ->
                         match left.DataType with 
                         | ObjectType fields ->
-                            match right.Type with
-                            | FieldExpression field ->
-                                let mutable dataType = VoidType 
-                                let exists = fields.TryGetValue (field, &dataType)
-                                if exists then (expression dataType (BinaryExpression(ObjectAccessor, left, right)), ids)
-                                else (error token $"Object does not contain the field \"{field}\"", ids)
-                            | _ -> failwith "I'm not a teapot"
+                            let mutable dataType = VoidType 
+                            let exists = fields.TryGetValue (right.Token.Lexeme, &dataType)
+                            if exists then 
+                                let (right, ids) = validateNode ids right
+                                (expression dataType (BinaryExpression(ObjectAccessor, left, right)), ids)
+                            else (error token $"Object does not contain the field \"{right.Token.Lexeme}\"", ids)
                         | _ -> (error token "Expression leading '.' must be of type object", ids)
 
-            | FieldNode token -> (expression AnyType (FieldExpression token.Lexeme), ids)
+            | FieldNode -> (expression AnyType (FieldExpression token.Lexeme), ids)
 
-            | BindNode (_, id, isMutable, value) -> 
-                match value with
-                | ParserError (token, message)-> (error token message, ids)
+            | BindNode (id, isMutable, value) -> 
+                match value.Type with
+                | ParserError (message)-> (error token message, ids)
                 | _ ->
                     let (value, ids) = validateNode ids value
                     let bindEpression = expression value.DataType (BindExpression(id, value))
 
                     (bindEpression, IdMap.updateLocal id (value.DataType, isMutable) ids)
 
-            | AssignNode (token, id, value) ->
+            | AssignNode (id, value) ->
                 let identifier = ids |> IdMap.tryFind id
                 match identifier with
                 | Some (dataType, isMutable) -> 
@@ -80,7 +94,7 @@ module Validator =
                         (error token "Varriable is not mutable", ids)
                 | None -> (error token $"Identifier \"{id}\" doesn't exist or is out of scope", ids)
                 
-            | BlockNode (_, body) ->
+            | BlockNode body ->
                 let (expressions, ids) = ids |> IdMap.useLocal (fun blockIds -> 
                     body
                     |> List.mapFold (fun identifiers node -> validateNode identifiers node) blockIds
@@ -88,7 +102,7 @@ module Validator =
 
                 (expression ((expressions |> List.last).DataType) (BlockExpression expressions), ids)
 
-            | LiteralNode token -> 
+            | LiteralNode -> 
                 let valueOrUnit (option : obj option) =
                     match option with
                     | Some value -> value
@@ -108,7 +122,7 @@ module Validator =
 
                 (literalExpression, ids)
 
-            | CallNode (token, callee, argument) ->
+            | CallNode (callee, argument) ->
                 let (callee, _) = validateNode ids callee
                 let (argument, _) = validateNode ids argument
                 match callee with
@@ -121,7 +135,7 @@ module Validator =
                 | { Type = ValidationError _ }-> (callee, ids)
                 | _ -> (error token $"The value {argument} could not be applied since the preceding expression is not callable", ids)
                
-            | FunctionNode (_, parameter, body) ->
+            | FunctionNode (parameter, body) ->
                 let (body, ids) = ids |> IdMap.useLocal (fun functionIds -> 
                     let functionIdentifiers = functionIds |> IdMap.updateLocal parameter.Id (parameter.Value, false)
                     validateNode functionIdentifiers body
@@ -132,7 +146,7 @@ module Validator =
                     ids
                 )
 
-            | IfNode (token, condition, trueNode, falseNode) ->
+            | IfNode (condition, trueNode, falseNode) ->
                 let (condition, identifiers) = validateNode ids condition
                 if condition.DataType <> BoolType then (error token "If condition must be of type bool", identifiers)
                 else 
@@ -149,7 +163,7 @@ module Validator =
                         if trueExpression.DataType = VoidType then (expression trueExpression.DataType (IfExpression(condition, trueExpression, None)), identifiers)
                         else (error token "If expressions that do not return void must have an else clause", identifiers)
 
-            | LoopNode (token, binding, condition, bodies) ->
+            | LoopNode (binding, condition, bodies) ->
                 let validateCondition ids =
                     let (condition, ids) = validateNode ids condition
 
@@ -166,7 +180,7 @@ module Validator =
 
                 match binding with
                 | Some binding ->
-                    match binding with
+                    match binding.Type with
                     | BindNode _ ->
                         ids |> IdMap.useLocal (fun loopIds ->
                             let (binding, loopIds) = validateNode loopIds binding
@@ -193,11 +207,11 @@ module Validator =
                         | Error message -> (error token message, ids)
                         | Ok condition -> (expression ((bodies |> List.last).DataType) (LoopExpression(None, condition, bodies)), ids)
                         
-            | ObjectNode (_, fields) ->
+            | ObjectNode fields ->
                 let fields = fields |> Map.map(fun _ y -> (validateNode ids y) |> fst)
                 (expression (ObjectType(fields |> Map.map(fun _ y -> y.DataType))) (ObjectExpression fields), ids)
 
-            | ParserError (token, message) -> (error token message, ids)
+            | ParserError message -> (error token message, ids)
         
         let nativeFunctions = nativeFunctions |> Seq.map (fun (key, value) -> (key, (value.DataType, false))) |> Map.ofSeq
         nodes

@@ -138,10 +138,6 @@ module Interpreter =
             | FrostFunction _ -> failwith "Do not use FrostFunction, use NativeFunction Instead"
 
             | ObjectExpression fields -> ({ fields = fields }, ids)
-            | ObjectAccessorExpression (accessee, field) ->
-                let (accessee, ids) = execute ids accessee
-                let accessee = accessee :?> FrostObject
-                execute ids accessee.fields.[field]
 
         expressions
         |> List.mapFold(fun ids expression -> execute ids expression) ([nativeFunctions |> Map] |> IdMap.ofList)

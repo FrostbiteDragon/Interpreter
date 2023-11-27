@@ -4,9 +4,17 @@ open Utilities
 type ParserFunction = Token list -> Node * Token list
 
 module ParserFunctions =
+    let private newNode token nodeType = {Token = token; Type = nodeType}
+    let private error token message = {Token = token; Type = ParserError message}
+    
+    let lexerError (next : ParserFunction) : ParserFunction = fun tokens -> 
+        match tokens.Head.Type with
+        | LexerError message -> (error tokens.Head message, tokens)
+        | _ -> next tokens
+
     let primary (next : ParserFunction) : ParserFunction = fun tokens -> 
         match (List.head tokens).Type with
-        | Number | String | Id | Void | Bool -> (LiteralNode (List.head tokens), tokens |> skipOrEmpty 1)
+        | Number | String | Id | Void | Bool -> (newNode tokens.Head LiteralNode, tokens |> skipOrEmpty 1)
         | _ -> next tokens
 
     let binary getRightNode validTypes (next : ParserFunction) : ParserFunction = fun tokens -> 
@@ -21,7 +29,7 @@ module ParserFunctions =
                 while List.isEmpty tokens |> not && validTypes |> List.contains operator do
                     let (rightNode, newTokens) = getRightNode (tokens |> skipOrEmpty 1)
 
-                    let binaryNode = BinaryNode (tokens.Head, operator, node, rightNode)
+                    let binaryNode = newNode tokens.Head (BinaryNode (operator, node, rightNode))
                     tokens <- newTokens
                     node <- binaryNode
 
@@ -37,14 +45,14 @@ module ParserFunctions =
             match (tokens |> skipOrEmpty 2 |> List.tryHead) with
             | Some token -> 
                 if token.Type <> Assign then
-                    (ParserError (token, "Expected '='"), tokens)
+                    (error token "Expected '='", tokens)
                 else
                     let (value, tokens) = next (tokens |> skipOrEmpty 3)
 
                     match idToken with
-                    | Some token -> (BindNode(token, token.Lexeme, isMutable, value), tokens)
-                    | None -> (ParserError (bindToken, "Expected identifier name"), tokens)
-            | None -> (ParserError (bindToken, "Expected '='"), tokens)
+                    | Some token -> (newNode token (BindNode(token.Lexeme, isMutable, value)), tokens)
+                    | None -> (error bindToken "Expected identifier name", tokens)
+            | None ->  (error bindToken "Expected '='", tokens)
 
         match bindToken.Type with
         | Var -> getBind true
@@ -62,7 +70,7 @@ module ParserFunctions =
                 match token.Type with
                 | Assign -> 
                     let (value, tokens) = next (tokens |> skipOrEmpty 2) 
-                    (AssignNode (token, idToken.Lexeme, value), tokens)
+                    (newNode token (AssignNode (idToken.Lexeme, value)), tokens)
                 | _ -> next tokens
         | _ -> next tokens
 
@@ -75,9 +83,9 @@ module ParserFunctions =
         while keepLooping && List.isEmpty tokens |> not && tokens.Head.Type <> Period do
             let (ArgumentNode, newTokens) = next tokens
 
-            if ArgumentNode = Stop then keepLooping <- false
+            if ArgumentNode.Type = Stop then keepLooping <- false
             else
-                let CallNode = CallNode (tokens.Head, node, ArgumentNode)
+                let CallNode = newNode tokens.Head (CallNode (node, ArgumentNode))
                 tokens <- newTokens
                 node <- CallNode
 
@@ -132,30 +140,31 @@ module ParserFunctions =
         else
             let (parameters, tokens) = parameterGroup (tokens |> skipOrEmpty 1)
             match parameters with
-            | Error error -> (ParserError(constructorToken, error), [])
+            | Error message -> (error constructorToken message, [])
             | Ok parameters ->
                 let object =
                     let fields =  
                         parameters 
-                        |> List.map (fun x -> (x.Id, LiteralNode { Type = Id; Lexeme = x.Id; Literal = None; Line = 0; Character = 0 }))
+                        |> List.map (fun x -> (x.Id, newNode { Type = Id; Lexeme = x.Id; Literal = None; Line = 0; Character = 0 } LiteralNode))
                         |> Map
-                    ObjectNode(constructorToken, fields)
+                    newNode constructorToken (ObjectNode fields)
                 let node = 
                     parameters
                     |> skipOrEmpty 1
                     |> List.fold(fun functionNode parameter -> 
-                        match functionNode with
+                        match functionNode.Type with
                         | FunctionNode _ ->
-                            FunctionNode (constructorToken, parameter, functionNode)
+                            newNode constructorToken (FunctionNode (parameter, functionNode))
                         | _ -> failwith "parameter funtion should only return a parameter node or an error"
-                    ) (FunctionNode(constructorToken, parameters.Head, object))
+                    ) (newNode constructorToken (FunctionNode(parameters.Head, object)))
                 (node, tokens)
 
     let stop : ParserFunction = fun tokens ->
-        (Stop, tokens)
+        (Node.Stop , tokens)
 
     let rec expression : ParserFunction = fun tokens ->
         stop
+        |> lexerError
         |> grouping
         |> primary
         |> object
@@ -182,13 +191,13 @@ module ParserFunctions =
                 expression (tokens |> skipOrEmpty 1)
             | _ -> next tokens
             
-        match body with
+        match body.Type with
         | Stop -> (body, tokens)
         | _ ->
             let nextToken = tokens.Head
             match nextToken.Type with
             | ParentheseClose -> (body, tokens |> skipOrEmpty 1)
-            | _ -> (ParserError (nextToken, "Expected ')'"), tokens |> skipOrEmpty 1)
+            | _ -> (error nextToken "Expected ')'", tokens |> skipOrEmpty 1)
 
     and term = binary expression [Plus; Minus] 
     and factor = binary expression [Multiply; Devide]
@@ -201,8 +210,8 @@ module ParserFunctions =
         binary 
         <| fun tokens -> 
             if tokens.Head.Type = Id then 
-                (FieldNode(tokens.Head), tokens |> skipOrEmpty 1) 
-            else (ParserError (tokens.Head, "Expected field name after '.'"), tokens)
+                (newNode tokens.Head FieldNode, tokens |> skipOrEmpty 1) 
+            else (error tokens.Head "Expected field name after '.'", tokens |> skipOrEmpty 1)
         <| [ObjectAccessor] 
 
     and block (next : ParserFunction) : ParserFunction = fun tokens ->
@@ -228,7 +237,7 @@ module ParserFunctions =
 
             let (value, tokens) = expression (tokens |> List.skip (bodyTokens.Length + 1))
 
-            (BlockNode(headToken, List.append body [value]), tokens)
+            (newNode headToken (BlockNode(List.append body [value])), tokens)
 
         | _ -> next tokens
 
@@ -238,20 +247,20 @@ module ParserFunctions =
         else
             let (parameters, tokens) = parameterGroup (tokens |> skipOrEmpty 1)
             match parameters with
-            | Error error -> (ParserError(funToken, error), [])
+            | Error message -> (error funToken message, [])
             | Ok parameters ->
-                if tokens.Head.Type <> Arrow then (ParserError(funToken, $"Expected '->' but instead was given {tokens.Head.Type}"), tokens)
+                if tokens.Head.Type <> Arrow then (error funToken $"Expected '->' but instead was given {tokens.Head.Type}", tokens)
                 else
                     let (body, tokens) = expression (tokens |> skipOrEmpty 1)
                     let node = 
                         parameters
                         |> skipOrEmpty 1
                         |> List.fold(fun functionNode parameter -> 
-                            match functionNode with
+                            match functionNode.Type with
                             | FunctionNode _ ->
-                                FunctionNode (funToken, parameter, functionNode)
+                                newNode funToken (FunctionNode (parameter, functionNode))
                             | _ -> failwith "parameter funtion should only return a parameter node or an error"
-                        ) (FunctionNode(funToken, parameters.Head, body))
+                        ) (newNode funToken (FunctionNode(parameters.Head, body)))
 
                     (node, tokens)
 
@@ -262,14 +271,14 @@ module ParserFunctions =
         else
             let (condition, tokens) = expression (tokens |> skipOrEmpty 1)
 
-            if tokens.Head.Type <> Arrow then (ParserError (tokens.Head, "Expected '->'"), tokens) 
+            if tokens.Head.Type <> Arrow then (error tokens.Head "Expected '->'", tokens) 
             else
                 let (trueNode, tokens) = expression (tokens |> skipOrEmpty 1)
 
-                if tokens.IsEmpty || tokens.Head.Type <> Else then (IfNode(ifToken, condition, trueNode, None), tokens)
+                if tokens.IsEmpty || tokens.Head.Type <> Else then (newNode ifToken (IfNode(condition, trueNode, None)), tokens)
                 else
                     let (falseNode, tokens) = expression (tokens |> skipOrEmpty 1)
-                    (IfNode(ifToken, condition, trueNode, Some falseNode), tokens)
+                    (newNode ifToken (IfNode(condition, trueNode, Some falseNode)), tokens)
 
     and loop (next : ParserFunction) : ParserFunction = fun tokens ->
         let getBodies (tokens : Token list) = 
@@ -292,14 +301,14 @@ module ParserFunctions =
             let (binding, _) = expression bindingTokens
             let tokens = tokens |> skipOrEmpty (bindingTokens.Length + 1)
 
-            if tokens.Head.Type <> While then (ParserError(tokens.Head, "Expected 'while'"), tokens)
+            if tokens.Head.Type <> While then (error tokens.Head "Expected 'while'", tokens)
             else
                 let (condition, tokens) = expression (tokens |> skipOrEmpty 1)
                 let (bodies, tokens) = getBodies tokens
 
                 match bodies with
-                | Error message -> (ParserError(tokens.Head, message), tokens)
-                | Ok bodies -> (LoopNode(loopToken, Some binding, condition, bodies), tokens)
+                | Error message -> (error tokens.Head message, tokens)
+                | Ok bodies -> (newNode loopToken (LoopNode(Some binding, condition, bodies)), tokens)
                         
         | While ->
             let (condition, tokens) = expression (tokens |> skipOrEmpty 1)
@@ -307,8 +316,8 @@ module ParserFunctions =
             let (bodies, tokens) = getBodies tokens
 
             match bodies with
-            | Error message -> (ParserError(tokens.Head, message), tokens)
-            | Ok bodies -> (LoopNode(loopToken, None, condition, bodies), tokens)
+            | Error message -> (error tokens.Head message, tokens)
+            | Ok bodies -> (newNode loopToken (LoopNode(None, condition, bodies)), tokens)
         | _ -> next tokens 
                 
     and object (next : ParserFunction) : ParserFunction = fun tokens ->
@@ -316,7 +325,7 @@ module ParserFunctions =
         match objectToken.Type with
         | BraceOpen -> 
             let mutable tokens = tokens
-            let mutable error = None 
+            let mutable parseError = None 
             let fields =
                 seq {
                     let mutable breakLoop = false
@@ -328,7 +337,7 @@ module ParserFunctions =
                             tokens <- newTokens
                             yield (id, value)
                         | _ ->
-                            error <- Some (tokens.Head, "Expected label")
+                            parseError <- Some (tokens.Head, "Expected label")
                             breakLoop <- true
 
                         if tokens.Head.Type <> Comma then 
@@ -336,10 +345,10 @@ module ParserFunctions =
                 } |> List.ofSeq
 
 
-            match error with
-            | Some (token, message) -> (ParserError(token, message), tokens)
+            match parseError with
+            | Some (token, message) -> (error token message, tokens)
             | None -> 
-                if tokens.Head.Type <> BraceClose then (ParserError(tokens.Head, "Expected '}'"), tokens)
-                else (ObjectNode(objectToken, fields |> Map.ofSeq), tokens |> skipOrEmpty 1)
+                if tokens.Head.Type <> BraceClose then (error tokens.Head "Expected '}'", tokens)
+                else (newNode objectToken (ObjectNode(fields |> Map.ofSeq)), tokens |> skipOrEmpty 1)
                 
         | _ -> next tokens

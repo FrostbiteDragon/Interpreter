@@ -35,6 +35,7 @@ type TokenType =
 | Fun | New
 | For | While | Do
 | Yield
+| Stop
 //Types
 | TypeAnnotation of DataType
 

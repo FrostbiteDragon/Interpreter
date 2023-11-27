@@ -1,17 +1,22 @@
 ﻿namespace FrostScript
 
-type Node = 
+type NodeType = 
 | Stop
-| LoopNode of Token * Binding : Node option * Condition : Node * Bodies : Node list 
-| IfNode of Token * Condition : Node * True : Node * False : Node option
-| FunctionNode of Token * Parameter : Paramater * Body : Node
-| BlockNode of Token * Body : Node list
-| LiteralNode of Token
-| BinaryNode of Token * Operator * Left : Node * Right : Node
-| BindNode of Token * Id : string * Mutable : bool * Value : Node
-| ParserError of Token * Error : string
-| AssignNode of Token * Id : string * Value : Node
-| CallNode of Token * Callee : Node * Argument : Node
-| ObjectNode of Token * Fields: Map<string, Node>
-| ObjectAccessorNode of Token * Accessee : Node * Field : Token
-| FieldNode of Token
+| FieldNode
+| LiteralNode
+| LoopNode of Binding : Node option * Condition : Node * Bodies : Node list 
+| IfNode of Condition : Node * True : Node * False : Node option
+| FunctionNode of Parameter : Paramater * Body : Node
+| BlockNode of Body : Node list
+| BinaryNode of Operator * Left : Node * Right : Node
+| BindNode of Id : string * Mutable : bool * Value : Node
+| ParserError of Error : string
+| AssignNode of Id : string * Value : Node
+| CallNode of Callee : Node * Argument : Node
+| ObjectNode of Fields: Map<string, Node>
+
+and Node =
+    { Token : Token
+      Type : NodeType }
+    static member Stop = { Token = { Type = TokenType.Stop; Lexeme = ""; Literal = None; Line = 0; Character = 0 }; Type = Stop }
+
