@@ -210,7 +210,7 @@ module ParserFunctions =
     and comparison     = binary [LessThen; LessOrEqual; GreaterThen; GreaterOrEqual]
     and andFunction    = binary [And]
     and orFunction     = binary [Or]
-    and pipe           = binary [Pipe]
+    and pipe           = binary [Pipe; AccessorPipe]
     and objectAccessor = binary [ObjectAccessor]
 
     and block (next : ParserFunction) : ParserFunction = fun tokens ->

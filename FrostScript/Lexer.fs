@@ -74,7 +74,7 @@ module Lexer =
                         | '.' ->
                             i <- i + 1
                             character <- character + 1
-                            { Type = Operator ObjectPipe; Lexeme = "|."; Literal = None; Line = line; Character = character }
+                            { Type = Operator AccessorPipe; Lexeme = "|."; Literal = None; Line = line; Character = character }
                         | _ -> 
                             { Type = BlockOpen; Lexeme = "|"; Literal = None; Line = line; Character = character }
                 | '(' -> 

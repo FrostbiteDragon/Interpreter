@@ -32,7 +32,7 @@ type FrostFunction =
     { call : Expression idMap -> obj -> obj * Expression idMap }
 
 type FrostObject =
-    { fields : Map<string, Expression> }
+    { fields : Map<string, obj> }
     with override this.ToString() = 
             let fields = 
                 this.fields 

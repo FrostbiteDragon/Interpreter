@@ -32,9 +32,13 @@ module Interpreter =
                         let func = right :?> FrostFunction;
                         func.call ids left |> fst
 
+                    | AccessorPipe -> 
+                        let accessee = left :?> FrostObject
+                        accessee.fields.[right :?> string]
+
                     | ObjectAccessor ->
                         let accessee = left :?> FrostObject
-                        execute ids accessee.fields.[right :?> string] |> fst
+                        accessee.fields.[right :?> string]
                
                 (result, ids)
 
@@ -137,7 +141,7 @@ module Interpreter =
 
             | NativeFunction call -> ({ call = (fun ids argument -> (call argument, ids)) }, ids)
 
-            | ObjectExpression fields -> ({ fields = fields }, ids)
+            | ObjectExpression fields -> ({ fields = fields |> Map.map (fun _ expression -> execute ids expression |> fst) }, ids)
 
         expressions
         |> List.mapFold(fun ids expression -> execute ids expression) ([nativeFunctions |> Map] |> IdMap.ofList)

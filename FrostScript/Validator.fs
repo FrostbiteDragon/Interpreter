@@ -65,6 +65,18 @@ module Validator =
                         else (binaryExpression outputType left right, ids)
                     | _ -> (error token "Right side of pipe operator must be a function", ids)
 
+                | AccessorPipe ->
+                    let (left, ids) = validateNode ids left
+
+                    match left.DataType with
+                    | ObjectType (fields) ->
+                        let mutable dataType = VoidType 
+                        let exists = fields.TryGetValue (right.Token.Lexeme, &dataType)
+
+                        if exists |> not then (error token $"Object does not contain the field \"{right.Token.Lexeme}\"", ids)
+                        else (binaryExpression dataType left (expression dataType (FieldExpression right.Token.Lexeme)), ids)
+                    | _ -> (error token "Left side of Pipe must be an object", ids)
+
                 | ObjectAccessor ->
                     let (left, ids) = validateNode ids left
 
@@ -75,8 +87,8 @@ module Validator =
                         | ObjectType fields ->
                             let mutable dataType = VoidType 
                             let exists = fields.TryGetValue (right.Token.Lexeme, &dataType)
-                            if exists then 
-                                (expression dataType (BinaryExpression(ObjectAccessor, left, expression dataType (FieldExpression right.Token.Lexeme))), ids)
+
+                            if exists then (binaryExpression dataType left (expression dataType (FieldExpression right.Token.Lexeme)), ids)
                             else (error token $"Object does not contain the field \"{right.Token.Lexeme}\"", ids)
                         | _ -> (error token "Expression leading '.' must be of type object", ids)
 

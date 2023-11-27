@@ -3,7 +3,7 @@
 type Operator =
 | Minus | Plus | Devide | Multiply
 | Equal | NotEqual | GreaterThen | GreaterOrEqual | LessOrEqual | LessThen | Or | And
-| Pipe| ObjectPipe
+| Pipe| AccessorPipe
 | ObjectAccessor
 
 type TokenType =
