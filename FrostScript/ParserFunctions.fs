@@ -183,6 +183,7 @@ module ParserFunctions =
         |> constructor
         |> loop
         |> call
+        |> pipe
         |> binding
         |> assign <| tokens
 
@@ -207,6 +208,7 @@ module ParserFunctions =
     and comparison = binary [LessThen; LessOrEqual; GreaterThen; GreaterOrEqual] expression
     and andFunction = binary [And] expression
     and orFunction = binary [Or] expression
+    and pipe = binary [Pipe] expression
     and objectAccessor = 
         binary [ObjectAccessor]
         <| fun tokens -> 

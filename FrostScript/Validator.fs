@@ -55,6 +55,16 @@ module Validator =
                     if left.DataType = BoolType && right.DataType = BoolType then (binaryExpression BoolType left right, ids)
                     else (invalidDataTypeError left right, ids)
 
+                | Pipe ->
+                    let (left, ids) = validateNode ids left
+                    let (right, ids) = validateNode ids right
+
+                    match right.DataType with
+                    | FunctionType (inputType, outputType) ->
+                        if left.DataType <> inputType && inputType <> AnyType then (error token $"Can not pipe value {left.DataType} into function with input {inputType}", ids)
+                        else (binaryExpression outputType left right, ids)
+                    | _ -> (error token "Right side of pipe oporator must be a function", ids)
+
                 | ObjectAccessor ->
                     let (left, ids) = validateNode ids left
 

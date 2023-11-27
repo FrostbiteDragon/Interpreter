@@ -70,11 +70,11 @@ module Lexer =
                         | '-' ->
                             i <- i + 1
                             character <- character + 1
-                            { Type = Pipe; Lexeme = "|-"; Literal = None; Line = line; Character = character }
+                            { Type = Operator Pipe; Lexeme = "|-"; Literal = None; Line = line; Character = character }
                         | '.' ->
                             i <- i + 1
                             character <- character + 1
-                            { Type = ObjectPipe; Lexeme = "|."; Literal = None; Line = line; Character = character }
+                            { Type = Operator ObjectPipe; Lexeme = "|."; Literal = None; Line = line; Character = character }
                         | _ -> 
                             { Type = BlockOpen; Lexeme = "|"; Literal = None; Line = line; Character = character }
                 | '(' -> 

@@ -28,8 +28,9 @@ module Interpreter =
                     | NotEqual -> left.Equals right |> not |> box
                     | Equal    -> left.Equals right
 
-                    //| Pipe -> 
-                    //    right :?>;
+                    | Pipe -> 
+                        let func = right :?> FrostFunction;
+                        func.call ids left |> fst
 
                     | ObjectAccessor ->
                         let accessee = left :?> FrostObject
@@ -50,7 +51,7 @@ module Interpreter =
                 ((), ids |> IdMap.updateLocal id value)
                 
             | ValidationError (token, message) ->
-                printfn "(Line:%i Character:%i) %s" token.Line token.Character message
+                printfn "[Line:%i Character:%i] %s" token.Line token.Character message
                 ((), ids)
 
             | CallExpression (callee, argument) ->
@@ -134,7 +135,7 @@ module Interpreter =
                 
                 ({ call = call }, ids)
 
-            | NativeFunction call -> ({ DataType = expression.DataType; Type = FrostFunction (fun ids argument -> (call argument, ids)) }, ids)
+            | NativeFunction call -> ({ call = (fun ids argument -> (call argument, ids)) }, ids)
 
             | ObjectExpression fields -> ({ fields = fields }, ids)
 
