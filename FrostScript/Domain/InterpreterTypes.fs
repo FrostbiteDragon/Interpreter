@@ -29,7 +29,9 @@ and ExpressionType =
 | ObjectExpression of fields : Map<string, Expression>
 
 type FrostFunction =
-    { call : Expression idMap -> obj -> obj * Expression idMap }
+    { Type : DataType
+      Call : Expression idMap -> obj -> obj * Expression idMap }
+    with override this.ToString() = this.Type.ToString()
 
 type FrostObject =
     { fields : Map<string, obj> }

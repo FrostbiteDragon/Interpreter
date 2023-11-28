@@ -30,7 +30,7 @@ module Interpreter =
 
                     | Pipe -> 
                         let func = right :?> FrostFunction;
-                        func.call ids left |> fst
+                        func.Call ids left |> fst
 
                     | AccessorPipe -> 
                         let accessee = left :?> FrostObject
@@ -62,7 +62,7 @@ module Interpreter =
                 let (callee, ids) = execute ids callee
                 let (argument, ids) = execute ids argument
                 let callee = callee :?> FrostFunction
-                callee.call ids argument
+                callee.Call ids argument
 
             | BlockExpression body ->
                 let (results, ids) = ids |> IdMap.useLocal (fun blockIds -> 
@@ -137,9 +137,10 @@ module Interpreter =
                               Type = (LiteralExpression (argument)) }
                         execute (ids |> IdMap.updateLocal paramater.Id argumentExpression) body
                 
-                ({ call = call }, ids)
+                ({ Type = expression.DataType; Call = call }, ids)
 
-            | NativeFunction call -> ({ call = (fun ids argument -> (call argument, ids)) }, ids)
+            | NativeFunction call -> 
+                    ({Type = expression.DataType; Call = (fun ids argument -> (call argument, ids)) }, ids)
 
             | ObjectExpression fields -> ({ fields = fields |> Map.map (fun _ expression -> execute ids expression |> fst) }, ids)
 
