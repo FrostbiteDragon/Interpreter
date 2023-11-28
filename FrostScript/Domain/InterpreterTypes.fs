@@ -23,7 +23,6 @@ and ExpressionType =
 | BindExpression of Id : string * Value : Expression
 | AssignExpression of Id : string * Value : Expression
 | FunctionExpression of Paramater : Paramater * Body : Expression
-| FrostFunction of Call : (Expression idMap -> obj -> obj * Expression idMap)
 | CallExpression of Callee : Expression * Argument : Expression
 | NativeFunction of Call : (obj -> obj)
 | ObjectExpression of fields : Map<string, Expression>
