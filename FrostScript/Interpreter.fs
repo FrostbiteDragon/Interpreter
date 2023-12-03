@@ -53,6 +53,9 @@ module Interpreter =
 
             | BindExpression (id, value) ->
                 ((), ids |> IdMap.updateLocal id value)
+
+            | ListExpression (values) ->
+                (values |> List.map (fun x -> execute ids x |> fst) |> box, ids)
                 
             | ValidationError (token, message) ->
                 printfn "[Line:%i Character:%i] %s" token.Line token.Character message

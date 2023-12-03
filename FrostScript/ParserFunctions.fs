@@ -20,7 +20,7 @@ module ParserFunctions =
     let binary validTypes (next : ParserFunction) : ParserFunction = fun tokens -> 
         let (node, tokens) = next tokens
 
-        if (tokens.IsEmpty) then (node, tokens)
+        if tokens.IsEmpty then (node, tokens)
         else 
             let mutable node = node
             let mutable tokens = tokens
@@ -106,7 +106,7 @@ module ParserFunctions =
                     | TypeAnnotation paramaterType -> Ok ({Id = idToken.Lexeme; Value = paramaterType}, tokens |> skipOrEmpty 2)
                     | _ -> Error $"Expected a type but instead was given {idToken.Type}"
 
-        if (tokens.Head.Type <> ParentheseOpen) then (Error("Expected '('"), tokens)
+        if tokens.Head.Type <> ParentheseOpen then (Error("Expected '('"), tokens)
         else 
             let mutable tokens = tokens |> skipOrEmpty 1
             let mutable parameters = []
@@ -140,7 +140,7 @@ module ParserFunctions =
 
     let constructor next : ParserFunction = fun tokens ->
         let constructorToken = tokens.Head
-        if (constructorToken.Type <> New) then next tokens
+        if constructorToken.Type <> New then next tokens
         else
             let (parameters, tokens) = parameterGroup (tokens |> skipOrEmpty 1)
             match parameters with
@@ -163,6 +163,26 @@ module ParserFunctions =
                     ) (newNode constructorToken (FunctionNode(parameters.Head, object)))
                 (node, tokens)
 
+    let list next : ParserFunction = fun tokens ->
+        let listToken = tokens.Head
+        if listToken.Type = SquareBracketOpen then
+            if (tokens |> skipOrEmpty 1).Head.Type = SquareBracketClose then (newNode listToken (ListNode []), tokens |> skipOrEmpty 2)
+            else
+                let mutable tokens = tokens
+                let nodes = 
+                    seq {
+                        let (node, newTokens) = next (tokens |> skipOrEmpty 1)
+                        yield node
+                        tokens <- newTokens
+
+                        while tokens.IsEmpty |> not && tokens.Head.Type = Comma do
+                            let (node, newTokens) = next (tokens |> skipOrEmpty 1)
+                            yield node
+                            tokens <- newTokens
+                    } |> Seq.toList
+                (newNode listToken (ListNode nodes), tokens)
+        else next tokens
+
     let stop : ParserFunction = fun tokens ->
         (Node.Stop , tokens)
 
@@ -179,6 +199,7 @@ module ParserFunctions =
         |> comparison
         |> equality
         |> andFunction
+        |> list
         |> orFunction
         |> ifFunction
         |> func
@@ -242,7 +263,7 @@ module ParserFunctions =
 
     and func (next : ParserFunction) : ParserFunction = fun tokens ->
         let funToken = tokens.Head
-        if (funToken.Type <> Fun) then next tokens
+        if funToken.Type <> Fun then next tokens
         else
             let (parameters, tokens) = parameterGroup (tokens |> skipOrEmpty 1)
             match parameters with

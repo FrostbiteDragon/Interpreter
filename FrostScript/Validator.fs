@@ -92,6 +92,12 @@ module Validator =
                             else (error token $"Object does not contain the field \"{right.Token.Lexeme}\"", ids)
                         | _ -> (error token "Expression leading '.' must be of type object", ids)
 
+            | ListNode nodes ->
+                let nodes = nodes |> List.map (fun x -> validateNode ids x |> fst)
+                let dataType = nodes.Head.DataType
+                if nodes |> List.exists(fun x -> x.DataType <> dataType) then (error token "All values of a list must have the same type", ids)
+                else (expression (ListType dataType) (ListExpression nodes), ids)
+
             | BindNode (id, isMutable, value) -> 
                 match value.Type with
                 | ParserError (message)-> (error value.Token message, ids)

@@ -24,6 +24,7 @@ and ExpressionType =
 | AssignExpression of Id : string * Value : Expression
 | FunctionExpression of Paramater : Paramater * Body : Expression
 | CallExpression of Callee : Expression * Argument : Expression
+| ListExpression of Values : Expression list
 | NativeFunction of Call : (obj -> obj)
 | ObjectExpression of fields : Map<string, Expression>
 

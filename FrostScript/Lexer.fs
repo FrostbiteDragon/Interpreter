@@ -15,6 +15,8 @@ module Lexer =
                 | ')' -> yield { Type = ParentheseClose; Lexeme = ")"; Literal = None; Line = line; Character = character }
                 | '{' -> yield { Type = BraceOpen; Lexeme = "{"; Literal = None; Line = line; Character = character }
                 | '}' -> yield { Type = BraceClose; Lexeme = "}"; Literal = None; Line = line; Character = character }
+                | '[' -> yield { Type = SquareBracketOpen; Lexeme = "}"; Literal = None; Line = line; Character = character }
+                | ']' -> yield { Type = SquareBracketClose; Lexeme = "}"; Literal = None; Line = line; Character = character }
                 | ',' -> yield { Type = Comma; Lexeme = ","; Literal = None; Line = line; Character = character }
                 | '.' -> yield { Type = Operator ObjectAccessor; Lexeme = "."; Literal = None; Line = line; Character = character }
                 | '+' -> yield { Type = Operator Plus; Lexeme = "+"; Literal = None; Line = line; Character = character }
@@ -143,7 +145,7 @@ module Lexer =
                     | "for"    -> yield { Type = For; Lexeme = word; Literal = None; Line = line; Character = character }
                     | "while"  -> yield { Type = While; Lexeme = word; Literal = None; Line = line; Character = character }
                     | "do"     -> yield { Type = Do; Lexeme = word; Literal = None; Line = line; Character = character }
-                    | "new"     -> yield { Type = New; Lexeme = word; Literal = None; Line = line; Character = character }
+                    | "new"    -> yield { Type = New; Lexeme = word; Literal = None; Line = line; Character = character }
                     | _        -> yield { Type = Id; Lexeme = word; Literal = None; Line = line; Character = character }
 
                     i <- i + word.Length - 1
