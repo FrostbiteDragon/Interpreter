@@ -7,6 +7,7 @@ type DataType =
 | StringType
 | FunctionType of Input : DataType * Output : DataType
 | VoidType
+| ListType of Type : DataType
 | ObjectType of Fields : Map<string, DataType>
 with override this.ToString() = 
         match this with
@@ -16,6 +17,7 @@ with override this.ToString() =
         | StringType -> "string"
         | FunctionType (input, output)-> $"{input} -> {output}"
         | VoidType -> "void"
+        | ListType dataType -> $"{dataType} list"
         | ObjectType (fields) ->  
             let fields = 
                 fields

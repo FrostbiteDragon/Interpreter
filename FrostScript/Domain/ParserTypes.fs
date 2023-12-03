@@ -12,6 +12,7 @@ type NodeType =
 | ParserError of Error : string
 | AssignNode of Id : string * Value : Node
 | CallNode of Callee : Node * Argument : Node
+| ListNode of values : Node list
 | ObjectNode of Fields: Map<string, Node>
 
 and Node =

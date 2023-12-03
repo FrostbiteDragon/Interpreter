@@ -14,6 +14,8 @@ type TokenType =
 | BraceOpen
 | BraceClose
 | Comma
+| SquareBracketOpen
+| SquareBracketClose
 | Period
 | Arrow
 | Assign
