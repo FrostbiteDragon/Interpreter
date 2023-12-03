@@ -183,10 +183,8 @@ module ParserFunctions =
                 (newNode listToken (ListNode nodes), tokens)
         else next tokens
 
-
     let stop : ParserFunction = fun tokens ->
         (Node.Stop , tokens)
-
 
     let rec expression : ParserFunction = fun tokens ->
         stop
