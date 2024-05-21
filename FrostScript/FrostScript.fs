@@ -6,5 +6,5 @@ module FrostScript =
         rawScript 
         |> Lexer.lex
         |> Parser.parse 
-        |> Validator.validate nativeFunctions
+        |> Validator.validate2 nativeFunctions
         |> Interpreter.interpret nativeFunctions

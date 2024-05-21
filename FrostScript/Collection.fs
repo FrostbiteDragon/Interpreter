@@ -39,5 +39,15 @@ module Collection
         if nodes |> List.exists(fun x -> x.DataType <> dataType) then (error token "All values of a list must have the same type", ids)
         else (expression (ListType dataType) (ListExpression nodes), ids)
 
+    let validate2 (validate : ValidatorFunction) (next: ValidatorFunction)  : ValidatorFunction = fun (node, ids) ->
+        match node.Type with
+        | ListNode nodes ->
+            // this ignores any varriable decloration or mutation implicitely. this should probably be defined as illegal syntax and throw an error
+            let nodes = nodes |> List.map (fun x -> validate (x, ids) |> fst)
+            let dataType = nodes.Head.DataType
+            if nodes |> List.exists(fun x -> x.DataType <> dataType) then (error node.Token "All values of a list must have the same type", ids)
+            else (expression (ListType dataType) (ListExpression nodes), ids)
+        | _ -> next (node, ids)
+
     let interpret execute ids values = 
         (values |> List.map (fun x -> execute ids x |> fst) |> box, ids)
