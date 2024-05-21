@@ -8,7 +8,8 @@ module Validator =
 
         let rec validate : ValidatorFunction = fun (node, ids) ->
             noValidatorFoundError
-            |> Collection.validate2 validate <| (node, ids)
+            |> Literal.validate
+            |> Collection.validate validate <| (node, ids)
         
         let nativeFunctions = nativeFunctions |> Seq.map (fun (key, value) -> (key, (value.DataType, false))) |> Map.ofSeq
         nodes
@@ -107,8 +108,6 @@ module Validator =
                             else (error token $"Object does not contain the field \"{right.Token.Lexeme}\"", ids)
                         | _ -> (error token "Expression leading '.' must be of type object", ids)
 
-            | ListNode nodes -> Collection.validate validateNode ids token nodes
-
             | BindNode (id, isMutable, value) -> 
                 match value.Type with
                 | ParserError (message)-> (error value.Token message, ids)
@@ -137,26 +136,6 @@ module Validator =
                 )
 
                 (expression ((expressions |> List.last).DataType) (BlockExpression expressions), ids)
-
-            | LiteralNode -> 
-                let valueOrUnit (option : obj option) =
-                    match option with
-                    | Some value -> value
-                    | None -> ()
-
-                let literalExpression = 
-                    match token.Type with
-                    | Bool   -> expression BoolType   (LiteralExpression (valueOrUnit token.Literal))
-                    | Number -> expression NumberType (LiteralExpression (valueOrUnit token.Literal))
-                    | String -> expression StringType (LiteralExpression (valueOrUnit token.Literal))
-                    | Void   -> expression VoidType   (LiteralExpression ())
-                    | Id     ->
-                        match ids |> IdMap.tryFind token.Lexeme with 
-                        | Some (dataType, _) -> expression dataType (IdentifierExpression token.Lexeme)
-                        | None -> error token $"Identifier \"{token.Lexeme}\" doesn't exist or is out of scope"
-                    | _      -> failwith "unhandled literal type"
-
-                (literalExpression, ids)
 
             | CallNode (callee, argument) ->
                 let (callee, _) = validateNode ids callee
