@@ -3,20 +3,19 @@
 module Validator =
 
     let validate2 nativeFunctions nodes =
-        let noValidatorFoundError : ValidatorFunction = fun (node, _) ->
+        let noValidatorFoundError : ValidatorSegment = fun node _ ->
             failwith $"No validator found for node {node}"
 
-        let rec validate : ValidatorFunction = fun (node, ids) ->
+        let rec validate : ValidatorSegment = fun node ids ->
             noValidatorFoundError
             |> Literal.validate
-            |> Collection.validate validate <| (node, ids)
+            |> Collection.validate validate <| node <| ids
         
         let nativeFunctions = nativeFunctions |> Seq.map (fun (key, value) -> (key, (value.DataType, false))) |> Map.ofSeq
         nodes
-        |> List.mapFold (fun identifiers node -> validate (node, identifiers)) ([nativeFunctions] |> IdMap.ofList)
+        |> List.mapFold (fun identifiers node -> validate node identifiers) ([nativeFunctions] |> IdMap.ofList)
         |> fst
 
-    
     let validate nativeFunctions nodes =
         let rec validateNode (ids : (DataType * bool) idMap) (node : Node) : Expression * (DataType * bool) idMap =
             let error token message =

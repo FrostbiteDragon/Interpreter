@@ -1,6 +1,6 @@
 ﻿namespace FrostScript
     module Literal =
-        let validate (next: ValidatorFunction) : ValidatorFunction = fun (node, ids) ->
+        let validate : ValidatorFunction = fun next node ids ->
             let error token message =
                  { DataType = VoidType
                    Type = ValidationError (token, message) }
@@ -31,5 +31,5 @@
                     | _      -> failwith "unhandled literal type"
 
                 (literalExpression, ids)
-            | _ -> next (node, ids)
+            | _ -> next node ids
         

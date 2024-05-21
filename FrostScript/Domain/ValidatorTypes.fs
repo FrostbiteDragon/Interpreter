@@ -4,4 +4,6 @@ type ValidationError =
     { Token : Token 
       Error : string }
 
-type ValidatorFunction = Node * (DataType * bool) idMap -> Expression * (DataType * bool) idMap
+type ValidatorSegment = Node -> (DataType * bool) idMap -> Expression * (DataType * bool) idMap
+
+type ValidatorFunction = ValidatorSegment -> ValidatorSegment
