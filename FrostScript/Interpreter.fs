@@ -1,6 +1,7 @@
-﻿namespace FrostScript
+﻿module FrostScript.Interpreter
+    open FrostScript.Domain
+    open FrostScript.Features
 
-module Interpreter =
     let interpret nativeFunctions expressions =
         let rec execute (ids : Expression IdMap) (expression : Expression) : obj * Expression IdMap =
             match expression.Type with
@@ -54,7 +55,7 @@ module Interpreter =
             | BindExpression (id, value) ->
                 ((), ids |> IdMap.updateLocal id value)
 
-            | ListExpression (values) -> Collection.interpret execute ids values
+            | ListExpression (values) -> List.interpret execute ids values
                 
             | ValidationError (token, message) ->
                 printfn "[Line:%i Character:%i] %s" token.Line token.Character message

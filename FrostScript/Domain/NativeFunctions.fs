@@ -1,4 +1,4 @@
-﻿module FrostScript.NativeFunctions
+﻿module FrostScript.Domain.NativeFunctions
 
 let nativeFunctions =
     let createExpression inputType outputType body =

@@ -1,6 +1,6 @@
-﻿namespace FrostScript
-
-module Lexer =
+﻿module FrostScript.Lexer
+    open FrostScript.Domain
+    
     let lex (rawScript : string) =
         let chars = rawScript.ToCharArray() |> Array.toList
         seq { 

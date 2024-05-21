@@ -1,4 +1,4 @@
-﻿module FrostScript.Utilities
+﻿module FrostScript.Domain.Utilities
     let splitTokens (tokens : Token list) =
         let appendToLastInState token tokens isBlock =
             let current = tokens |> List.last
@@ -17,6 +17,11 @@
         ) ([[]], 0)
         |> fst
         |> List.where (fun x -> not x.IsEmpty)
+
+    let valueOrUnit (option : obj option) =
+            match option with
+            | Some value -> value
+            | None -> ()
 
     let skipOrEmpty count list =
         if list |> List.isEmpty then []

@@ -1,7 +1,7 @@
-﻿namespace FrostScript
-open Utilities
+﻿module FrostScript.Parser
+    open FrostScript.Domain
+    open FrostScript.Domain.Utilities
 
-module Parser =
     let parse (tokens : Token list) =
         tokens
         |> splitTokens

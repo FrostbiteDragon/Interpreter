@@ -1,21 +1,18 @@
-﻿namespace FrostScript
-open Utilities
+﻿
+module FrostScript.ParserFunctions
+    open FrostScript.Domain
+    open FrostScript.Domain.Utilities
+    open FrostScript.Features
 
-module ParserFunctions =
     let private newNode token nodeType = {Token = token; Type = nodeType}
     let private error token message = {Token = token; Type = ParserError message}
     
-    let lexerError (next : ParserFunction) : ParserFunction = fun tokens -> 
+    let lexerError (next : ParserSegment) : ParserSegment = fun tokens -> 
         match tokens.Head.Type with
         | LexerError message -> (error tokens.Head message, tokens)
         | _ -> next tokens
 
-    let primary (next : ParserFunction) : ParserFunction = fun tokens -> 
-        match (List.head tokens).Type with
-        | Number | String | Id | Void | Bool -> (newNode tokens.Head LiteralNode, tokens |> skipOrEmpty 1)
-        | _ -> next tokens
-
-    let binary validTypes (next : ParserFunction) : ParserFunction = fun tokens -> 
+    let binary validTypes (next : ParserSegment) : ParserSegment = fun tokens -> 
         let (node, tokens) = next tokens
 
         if tokens.IsEmpty then (node, tokens)
@@ -45,7 +42,7 @@ module ParserFunctions =
     let pipe           = binary [Pipe; AccessorPipe]
     let objectAccessor = binary [ObjectAccessor]
 
-    let binding (next : ParserFunction) : ParserFunction = fun tokens ->
+    let binding (next : ParserSegment) : ParserSegment = fun tokens ->
         let bindToken = List.head tokens
 
         let getBind isMutable = 
@@ -68,7 +65,7 @@ module ParserFunctions =
         | Let -> getBind false
         | _ -> next tokens
 
-    let assign (next : ParserFunction) : ParserFunction = fun tokens ->
+    let assign (next : ParserSegment) : ParserSegment = fun tokens ->
         let idToken = tokens |> List.head
         match idToken.Type with
         | Id ->
@@ -83,7 +80,7 @@ module ParserFunctions =
                 | _ -> next tokens
         | _ -> next tokens
 
-    let call (next : ParserFunction) : ParserFunction = fun tokens ->
+    let call (next : ParserSegment) : ParserSegment = fun tokens ->
         let (node, tokens) = next tokens
         let mutable node = node
         let mutable tokens = tokens
@@ -145,7 +142,7 @@ module ParserFunctions =
                 else
                     (Ok parameters, tokens |> skipOrEmpty 1)
 
-    let constructor next : ParserFunction = fun tokens ->
+    let constructor next : ParserSegment = fun tokens ->
         let constructorToken = tokens.Head
         if constructorToken.Type <> New then next tokens
         else
@@ -170,16 +167,16 @@ module ParserFunctions =
                     ) (newNode constructorToken (FunctionNode(parameters.Head, object)))
                 (node, tokens)
 
-    let list = Collection.parse
+    let list = List.parse
 
-    let stop : ParserFunction = fun tokens ->
+    let stop : ParserSegment = fun tokens ->
         (Node.Stop , tokens)
 
-    let rec expression : ParserFunction = fun tokens ->
+    let rec expression : ParserSegment = fun tokens ->
         stop
         |> lexerError
         |> grouping
-        |> primary
+        |> Literal.parse
         |> object
         |> objectAccessor
         |> block
@@ -188,7 +185,7 @@ module ParserFunctions =
         |> comparison
         |> equality
         |> andFunction
-        |> list
+        |> List.parse
         |> orFunction
         |> ifFunction
         |> func
@@ -199,7 +196,7 @@ module ParserFunctions =
         |> binding
         |> assign <| tokens
 
-    and grouping (next : ParserFunction) : ParserFunction = fun tokens ->
+    and grouping (next : ParserSegment) : ParserSegment = fun tokens ->
         let (body, tokens) =
             match tokens.Head.Type with
             | ParentheseOpen -> 
@@ -214,7 +211,7 @@ module ParserFunctions =
             | ParentheseClose -> (body, tokens |> skipOrEmpty 1)
             | _ -> (error nextToken "Expected ')'", tokens |> skipOrEmpty 1)
 
-    and block (next : ParserFunction) : ParserFunction = fun tokens ->
+    and block (next : ParserSegment) : ParserSegment = fun tokens ->
         let headToken = tokens |> List.head
         match headToken.Type with
         | BlockOpen ->
@@ -241,7 +238,7 @@ module ParserFunctions =
 
         | _ -> next tokens
 
-    and func (next : ParserFunction) : ParserFunction = fun tokens ->
+    and func (next : ParserSegment) : ParserSegment = fun tokens ->
         let funToken = tokens.Head
         if funToken.Type <> Fun then next tokens
         else
@@ -280,7 +277,7 @@ module ParserFunctions =
                     let (falseNode, tokens) = expression (tokens |> skipOrEmpty 1)
                     (newNode ifToken (IfNode(condition, trueNode, Some falseNode)), tokens)
 
-    and loop (next : ParserFunction) : ParserFunction = fun tokens ->
+    and loop (next : ParserSegment) : ParserSegment = fun tokens ->
         let getBodies (tokens : Token list) = 
             if tokens.Head.Type <> Do then (Error "Expected 'do", tokens)
             else
@@ -320,7 +317,7 @@ module ParserFunctions =
             | Ok bodies -> (newNode loopToken (LoopNode(None, condition, bodies)), tokens)
         | _ -> next tokens 
                 
-    and object (next : ParserFunction) : ParserFunction = fun tokens ->
+    and object (next : ParserSegment) : ParserSegment = fun tokens ->
         let objectToken = tokens.Head
         match objectToken.Type with
         | BraceOpen -> 

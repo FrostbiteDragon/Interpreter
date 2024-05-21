@@ -1,4 +1,4 @@
-﻿namespace FrostScript
+﻿namespace FrostScript.Domain
 
 type ValidationError = 
     { Token : Token 

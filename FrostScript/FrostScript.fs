@@ -1,10 +1,8 @@
-﻿namespace FrostScript
-open NativeFunctions
-
-module FrostScript =
+﻿module FrostScript.FrostScript
+    open FrostScript.Domain.NativeFunctions
     let execute rawScript = 
         rawScript 
         |> Lexer.lex
         |> Parser.parse 
-        |> Validator.validate2 nativeFunctions
+        |> Validator.validate nativeFunctions
         |> Interpreter.interpret nativeFunctions
