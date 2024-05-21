@@ -14,6 +14,7 @@
     <Compile Include="Domain\ValidatorTypes.fs" />
     <Compile Include="Domain\NativeFunctions.fs" />
     <Compile Include="Utilities.fs" />
+    <Compile Include="Collection.fs" />
     <Compile Include="ParserFunctions.fs" />
     <Compile Include="Parser.fs" />
     <Compile Include="Lexer.fs" />

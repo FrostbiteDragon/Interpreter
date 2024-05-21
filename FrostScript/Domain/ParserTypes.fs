@@ -20,3 +20,5 @@ and Node =
       Type : NodeType }
     static member Stop = { Token = { Type = TokenType.Stop; Lexeme = ""; Literal = None; Line = 0; Character = 0 }; Type = Stop }
 
+type ParserFunction = Token list -> Node * Token list
+

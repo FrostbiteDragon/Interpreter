@@ -1,8 +1,6 @@
 ﻿namespace FrostScript
 open Utilities
 
-type ParserFunction = Token list -> Node * Token list
-
 module ParserFunctions =
     let private newNode token nodeType = {Token = token; Type = nodeType}
     let private error token message = {Token = token; Type = ParserError message}
@@ -37,6 +35,15 @@ module ParserFunctions =
                     else keepLooping <- false
                 | _ -> keepLooping <- false
             (node, tokens)
+
+    let term           = binary [Plus; Minus]
+    let factor         = binary [Multiply; Devide]
+    let equality       = binary [Equal; NotEqual]
+    let comparison     = binary [LessThen; LessOrEqual; GreaterThen; GreaterOrEqual]
+    let andFunction    = binary [And]
+    let orFunction     = binary [Or]
+    let pipe           = binary [Pipe; AccessorPipe]
+    let objectAccessor = binary [ObjectAccessor]
 
     let binding (next : ParserFunction) : ParserFunction = fun tokens ->
         let bindToken = List.head tokens
@@ -163,25 +170,7 @@ module ParserFunctions =
                     ) (newNode constructorToken (FunctionNode(parameters.Head, object)))
                 (node, tokens)
 
-    let list next : ParserFunction = fun tokens ->
-        let listToken = tokens.Head
-        if listToken.Type = SquareBracketOpen then
-            if (tokens |> skipOrEmpty 1).Head.Type = SquareBracketClose then (newNode listToken (ListNode []), tokens |> skipOrEmpty 2)
-            else
-                let mutable tokens = tokens
-                let nodes = 
-                    seq {
-                        let (node, newTokens) = next (tokens |> skipOrEmpty 1)
-                        yield node
-                        tokens <- newTokens
-
-                        while tokens.IsEmpty |> not && tokens.Head.Type = Comma do
-                            let (node, newTokens) = next (tokens |> skipOrEmpty 1)
-                            yield node
-                            tokens <- newTokens
-                    } |> Seq.toList
-                (newNode listToken (ListNode nodes), tokens)
-        else next tokens
+    let list = Collection.parse
 
     let stop : ParserFunction = fun tokens ->
         (Node.Stop , tokens)
@@ -224,15 +213,6 @@ module ParserFunctions =
             match nextToken.Type with
             | ParentheseClose -> (body, tokens |> skipOrEmpty 1)
             | _ -> (error nextToken "Expected ')'", tokens |> skipOrEmpty 1)
-
-    and term           = binary [Plus; Minus]
-    and factor         = binary [Multiply; Devide]
-    and equality       = binary [Equal; NotEqual]
-    and comparison     = binary [LessThen; LessOrEqual; GreaterThen; GreaterOrEqual]
-    and andFunction    = binary [And]
-    and orFunction     = binary [Or]
-    and pipe           = binary [Pipe; AccessorPipe]
-    and objectAccessor = binary [ObjectAccessor]
 
     and block (next : ParserFunction) : ParserFunction = fun tokens ->
         let headToken = tokens |> List.head
