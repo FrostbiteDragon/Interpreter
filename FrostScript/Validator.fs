@@ -10,7 +10,7 @@ module Validator =
             noValidatorFoundError
             |> Literal.validate
             |> Collection.validate validate <| node <| ids
-        
+
         let nativeFunctions = nativeFunctions |> Seq.map (fun (key, value) -> (key, (value.DataType, false))) |> Map.ofSeq
         nodes
         |> List.mapFold (fun identifiers node -> validate node identifiers) ([nativeFunctions] |> IdMap.ofList)
