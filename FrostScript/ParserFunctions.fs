@@ -172,7 +172,7 @@ module FrostScript.ParserFunctions
         (
             FrostList.parse expression >=>
             Literal.parse
-        ) (fun ctx -> Some ctx) ctx
+        ) (fun ctx -> Ok ctx) ctx
 
     //and grouping (next : ParserSegment) : ParserSegment = fun tokens ->
     //    let (body, tokens) =

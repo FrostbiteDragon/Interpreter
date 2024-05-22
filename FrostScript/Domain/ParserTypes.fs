@@ -23,6 +23,6 @@ and Node =
         { Node : Node 
           Tokens : Token list }
 
-type ParserResult = ParserContext option
+type ParserResult = Result<ParserContext, string>
 type ParserFunc = ParserContext -> ParserResult
 type ParserHandler = ParserFunc -> ParserContext -> ParserResult

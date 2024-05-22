@@ -8,5 +8,5 @@ type RailwayResult<'TSuccess, 'TFailure> =
 module Railway =
     let (>=>) (switch1 : ParserHandler) (switch2 : ParserHandler) : ParserHandler = fun next ctx ->
         match switch1 next ctx with
-        | Some ctx -> switch2 next ctx
-        | None -> None
+        | Ok ctx -> switch2 next ctx
+        | Error m -> Error m

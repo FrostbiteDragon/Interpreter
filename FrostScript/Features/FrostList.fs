@@ -7,21 +7,21 @@
         if listToken.Type = SquareBracketOpen then
             if (ctx.Tokens |> skipOrEmpty 1).Head.Type = SquareBracketClose then 
                 let node = { Token = listToken; Type = ListNode [] }
-                Some { Node = node; Tokens = ctx.Tokens |> skipOrEmpty 2 }
+                Ok { Node = node; Tokens = ctx.Tokens |> skipOrEmpty 2 }
             else
                 let mutable tokens = ctx.Tokens
                 let nodes = 
                     seq {
                         let result = expression { ctx with Tokens = tokens |> skipOrEmpty 1}
                         match result with 
-                        | Some ctx ->
+                        | Ok ctx ->
                             yield ctx.Node
                             tokens <- ctx.Tokens
 
                             while tokens.IsEmpty |> not && tokens.Head.Type = Comma do
                                 let result = expression { ctx with Tokens = tokens |> skipOrEmpty 1}
                                 match result with 
-                                | Some ctx ->
+                                | Ok ctx ->
                                     yield ctx.Node
                                     tokens <- ctx.Tokens
                                 | _ -> ignore ()
@@ -29,7 +29,7 @@
                                
                     } |> Seq.toList
                 let node = { Token = listToken; Type = ListNode nodes }
-                Some { Node = node; Tokens = tokens }
+                Ok { Node = node; Tokens = tokens }
         else next ctx
     
     //let validate (validate : ValidatorSegment) : ValidatorFunction = fun next node ids ->

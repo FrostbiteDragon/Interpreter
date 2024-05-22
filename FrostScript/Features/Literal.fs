@@ -5,7 +5,7 @@
     let parse : ParserHandler = fun next ctx ->
         match (List.head ctx.Tokens).Type with
         | Number | String | Id | Void | Bool -> 
-            Some { Node = { Token = ctx.Tokens.Head; Type = LiteralNode }; Tokens = ctx.Tokens |> skipOrEmpty 1 }
+            Ok { Node = { Token = ctx.Tokens.Head; Type = LiteralNode }; Tokens = ctx.Tokens |> skipOrEmpty 1 }
         | _ -> next ctx
 
     //let validate : ValidatorFunction = fun next node ids ->

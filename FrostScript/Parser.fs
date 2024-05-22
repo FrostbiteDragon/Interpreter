@@ -6,4 +6,3 @@
         tokens
         |> splitTokens
         |> List.map (fun tokens -> ParserFunctions.expression { Node = { Token = tokens.Head; Type = StatementNode}; Tokens = tokens })
-
