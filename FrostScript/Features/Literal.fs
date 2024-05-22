@@ -2,18 +2,12 @@
     open FrostScript.Domain
     open FrostScript.Domain.Utilities
 
-    let parse2 : ParserHandler = fun next ctx ->
+    let parse : ParserHandler = fun next ctx ->
         match (List.head ctx.Tokens).Type with
         | Number | String | Id | Void | Bool -> 
-            Some { Node = { Token = ctx.Tokens.Head; Type = LiteralNode }; Tokens = ctx.Tokens |> skipOrEmpty 1}
+            Some { Node = { Token = ctx.Tokens.Head; Type = LiteralNode }; Tokens = ctx.Tokens |> skipOrEmpty 1 }
         | _ -> next ctx
 
-    //let parse : ParserSegment = fun (node, tokens) ->
-    //    match (List.head tokens).Type with
-    //    | Number | String | Id | Void | Bool -> 
-    //        Success ({ Token = tokens.Head; Type = LiteralNode }, tokens |> skipOrEmpty 1)
-    //    | _ -> NotFound
-        
     //let validate : ValidatorFunction = fun next node ids ->
     //    match node.Type with
     //    | LiteralNode ->

@@ -1,7 +1,6 @@
 ﻿namespace FrostScript.Domain
 
 type NodeType = 
-| Stop
 | LiteralNode
 | LoopNode of Binding : Node option * Condition : Node * Bodies : Node list 
 | IfNode of Condition : Node * True : Node * False : Node option
@@ -19,11 +18,11 @@ type NodeType =
 and Node =
     { Token : Token
       Type : NodeType }
-    static member Stop = { Token = { Type = TokenType.Stop; Lexeme = ""; Literal = None; Line = 0; Character = 0 }; Type = Stop }
 
  type ParserContext = 
         { Node : Node 
           Tokens : Token list }
+
 type ParserResult = ParserContext option
 type ParserFunc = ParserContext -> ParserResult
 type ParserHandler = ParserFunc -> ParserContext -> ParserResult

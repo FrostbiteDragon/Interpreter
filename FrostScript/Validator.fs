@@ -227,7 +227,6 @@
                 (expression (ObjectType(fields |> Map.map(fun _ y -> y.DataType))) (ObjectExpression fields), ids)
 
             | ParserError message -> (error token message, ids)
-            | Stop -> failwith "Stop is not a valid node, there is likely a parsing error"
         
         let nativeFunctions = nativeFunctions |> Seq.map (fun (key, value) -> (key, (value.DataType, false))) |> Map.ofSeq
         nodes

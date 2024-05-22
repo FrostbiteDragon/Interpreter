@@ -170,8 +170,8 @@ module FrostScript.ParserFunctions
 
     let rec expression : ParserFunc = fun ctx ->
         (
-            FrostList.parse2 expression >=>
-            Literal.parse2
+            FrostList.parse expression >=>
+            Literal.parse
         ) (fun ctx -> Some ctx) ctx
 
     //and grouping (next : ParserSegment) : ParserSegment = fun tokens ->
