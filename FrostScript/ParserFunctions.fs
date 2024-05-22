@@ -169,6 +169,7 @@ module FrostScript.ParserFunctions
     //            (node, tokens)
 
     let rec expression : ParseFunc = fun ctx ->
+            
         (
             FrostList.parse expression >=>
             Literal.parse

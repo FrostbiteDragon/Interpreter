@@ -28,8 +28,11 @@
                         | _ -> ignore ()
                                
                     } |> Seq.toList
-                let node = { Token = listToken; Type = ListNode nodes }
-                Ok { Node = node; Tokens = tokens }
+                if tokens.Head.Type = SquareBracketClose then
+                    let node = { Token = listToken; Type = ListNode nodes }
+                    Ok { Node = node; Tokens = tokens |> skipOrEmpty 1 }
+                else
+                    Error (tokens.Head, "Expected ']'")
         else next ctx
     
     //let validate (validate : ValidatorSegment) : ValidatorFunction = fun next node ids ->
