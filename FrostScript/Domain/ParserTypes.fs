@@ -14,13 +14,16 @@ type NodeType =
 | CallNode of Callee : Node * Argument : Node
 | ListNode of values : Node list
 | ObjectNode of Fields: Map<string, Node>
+| StatementNode
 
 and Node =
     { Token : Token
       Type : NodeType }
     static member Stop = { Token = { Type = TokenType.Stop; Lexeme = ""; Literal = None; Line = 0; Character = 0 }; Type = Stop }
 
-type ParserSegment = Token list -> Node * Token list
-
-type ParserFunction = ParserSegment -> ParserSegment
-
+ type ParserContext = 
+        { Node : Node 
+          Tokens : Token list }
+type ParserResult = ParserContext option
+type ParserFunc = ParserContext -> ParserResult
+type ParserHandler = ParserFunc -> ParserContext -> ParserResult

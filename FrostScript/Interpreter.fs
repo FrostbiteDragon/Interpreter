@@ -55,7 +55,7 @@
             | BindExpression (id, value) ->
                 ((), ids |> IdMap.updateLocal id value)
 
-            | ListExpression (values) -> List.interpret execute ids values
+            | ListExpression (values) -> FrostList.interpret execute ids values
                 
             | ValidationError (token, message) ->
                 printfn "[Line:%i Character:%i] %s" token.Line token.Character message

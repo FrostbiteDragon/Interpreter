@@ -15,8 +15,8 @@
                 | ')' -> yield { Type = ParentheseClose; Lexeme = ")"; Literal = None; Line = line; Character = character }
                 | '{' -> yield { Type = BraceOpen; Lexeme = "{"; Literal = None; Line = line; Character = character }
                 | '}' -> yield { Type = BraceClose; Lexeme = "}"; Literal = None; Line = line; Character = character }
-                | '[' -> yield { Type = SquareBracketOpen; Lexeme = "}"; Literal = None; Line = line; Character = character }
-                | ']' -> yield { Type = SquareBracketClose; Lexeme = "}"; Literal = None; Line = line; Character = character }
+                | '[' -> yield { Type = SquareBracketOpen; Lexeme = "["; Literal = None; Line = line; Character = character }
+                | ']' -> yield { Type = SquareBracketClose; Lexeme = "]"; Literal = None; Line = line; Character = character }
                 | ',' -> yield { Type = Comma; Lexeme = ","; Literal = None; Line = line; Character = character }
                 | '.' -> yield { Type = Operator ObjectAccessor; Lexeme = "."; Literal = None; Line = line; Character = character }
                 | '+' -> yield { Type = Operator Plus; Lexeme = "+"; Literal = None; Line = line; Character = character }
