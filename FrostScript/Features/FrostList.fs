@@ -2,7 +2,7 @@
     open FrostScript.Domain
     open FrostScript.Domain.Utilities
 
-    let parse (expression : ParserFunc) : ParserHandler = fun next ctx ->
+    let parse (expression : ParseFunc) : ParseHandler = fun next ctx ->
         let listToken = ctx.Tokens.Head
         if listToken.Type = SquareBracketOpen then
             if (ctx.Tokens |> skipOrEmpty 1).Head.Type = SquareBracketClose then 

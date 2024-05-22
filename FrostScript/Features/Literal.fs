@@ -2,7 +2,7 @@
     open FrostScript.Domain
     open FrostScript.Domain.Utilities
 
-    let parse : ParserHandler = fun next ctx ->
+    let parse : ParseHandler = fun next ctx ->
         match (List.head ctx.Tokens).Type with
         | Number | String | Id | Void | Bool -> 
             Ok { Node = { Token = ctx.Tokens.Head; Type = LiteralNode }; Tokens = ctx.Tokens |> skipOrEmpty 1 }

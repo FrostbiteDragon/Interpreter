@@ -20,9 +20,9 @@ and Node =
       Type : NodeType }
 
  type ParserContext = 
-        { Node : Node 
-          Tokens : Token list }
+    { Node : Node 
+      Tokens : Token list }
 
-type ParserResult = Result<ParserContext, string>
-type ParserFunc = ParserContext -> ParserResult
-type ParserHandler = ParserFunc -> ParserContext -> ParserResult
+type ParseResult = Result<ParserContext, string>
+type ParseFunc = ParserContext -> ParseResult
+type ParseHandler = ParseFunc -> ParserContext -> ParseResult

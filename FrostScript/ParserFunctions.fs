@@ -168,7 +168,7 @@ module FrostScript.ParserFunctions
     //                ) (newNode constructorToken (FunctionNode(parameters.Head, object)))
     //            (node, tokens)
 
-    let rec expression : ParserFunc = fun ctx ->
+    let rec expression : ParseFunc = fun ctx ->
         (
             FrostList.parse expression >=>
             Literal.parse

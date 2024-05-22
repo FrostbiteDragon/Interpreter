@@ -6,7 +6,7 @@ type RailwayResult<'TSuccess, 'TFailure> =
     | NotFound
 
 module Railway =
-    let (>=>) (switch1 : ParserHandler) (switch2 : ParserHandler) : ParserHandler = fun next ctx ->
+    let (>=>) (switch1 : ParseHandler) (switch2 : ParseHandler) : ParseHandler = fun next ctx ->
         match switch1 next ctx with
         | Ok ctx -> switch2 next ctx
         | Error m -> Error m
