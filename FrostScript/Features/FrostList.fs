@@ -31,7 +31,7 @@
                     let node = { Token = listToken; Type = ListNode nodes }
                     Ok { Node = node; Tokens = tokens |> skipOrEmpty 1 }
                 else
-                    Error (tokens.Head, "Expected ']'")
+                    Error [(tokens.Head, "Expected ']'")]
         else Ok ctx
     
     //let validate (validate : ValidationFunc) : ValidationFunc = fun ctx ->

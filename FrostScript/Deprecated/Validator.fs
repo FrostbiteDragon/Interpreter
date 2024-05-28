@@ -1,15 +1,7 @@
-﻿module FrostScript.Validator
+﻿module FrostScript.Deprecated.Validator
     open FrostScript.Domain
-    open FrostScript.Features
     
-    let validate (input : Result<Node list, (Token * string) list>) : Result<Expression list, (Token * string) list> =
-        input
-        |> Result.bind (fun nodes -> nodes |> List.traverseResult (fun node -> 
-            let ctx = { Node = node; Ids = { Values = [] } }
-            choose [Literal.validate] ctx
-        ))
-
-    let validateOld nativeFunctions nodes =
+    let validate nativeFunctions nodes =
         let rec validateNode (ids : (DataType * bool) idMap) (node : Node) : Expression * (DataType * bool) idMap =
             let error token message =
                  { DataType = VoidType
