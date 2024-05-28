@@ -26,7 +26,8 @@
             input
             |> bindTraverse (fun node -> 
                 let ctx = { Node = node; Ids = { Values = [] } }
+
                 choose [Literal.validate] ctx
             )
-        
-        parse >> validate
+
+        Lexer.lex2 >> parse >> validate >> Interpreter.interpret2
