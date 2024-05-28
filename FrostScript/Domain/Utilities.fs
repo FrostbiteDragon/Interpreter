@@ -1,4 +1,5 @@
-﻿module FrostScript.Domain.Utilities
+﻿[<AutoOpen>]
+module FrostScript.Domain.Utilities
     let splitTokens (tokens : Token list) =
         let appendToLastInState token tokens isBlock =
             let current = tokens |> List.last

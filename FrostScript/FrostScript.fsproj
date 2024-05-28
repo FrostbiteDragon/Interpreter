@@ -17,12 +17,12 @@
     <Compile Include="Domain\NativeFunctions.fs" />
     <Compile Include="Features\Literal.fs" />
     <Compile Include="Features\FrostList.fs" />
-    <Compile Include="ParserFunctions.fs" />
     <Compile Include="Parser.fs" />
     <Compile Include="Lexer.fs" />
     <Compile Include="Validator.fs" />
     <Compile Include="Interpreter.fs" />
     <Compile Include="FrostScript.fs" />
+    <Compile Include="Deprecated\ParserFunctions.fs" />
   </ItemGroup>
 
 </Project>

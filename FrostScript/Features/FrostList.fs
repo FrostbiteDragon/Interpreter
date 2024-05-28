@@ -1,6 +1,5 @@
 ﻿module FrostScript.Features.FrostList
     open FrostScript.Domain
-    open FrostScript.Domain.Utilities
 
     let parse (expression : ParseFunc) : ParseFunc = fun ctx ->
         let listToken = ctx.Tokens.Head
@@ -39,11 +38,14 @@
         match ctx.Node.Type with
         | ListNode nodes ->
             //this ignores any varriable decloration or mutation implicitely. this should probably be defined as illegal syntax and throw an error
+            // node list -> expression list
             let nodes = 
                 nodes 
-                |> List.mapFold (fun datatype x ->
-                    let result = validate { ctx with Node = x }
-                ) None
+                |> List.traverseResult (fun x -> 
+                    { ctx with Node = x }
+                    |> validate
+                )
+
             let dataType = nodes.Head.DataType
             if nodes |> List.exists(fun x -> x.DataType <> dataType) then
                 let error = { DataType = VoidType; Type = ValidationError (node.Token, "All values of a list must have the same type")}

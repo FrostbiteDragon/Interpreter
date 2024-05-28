@@ -8,3 +8,5 @@
         //|> Interpreter.interpret nativeFunctions
 
    
+
+   // string -> Result<node list> -> Result<Expression list> -> Result<obj>

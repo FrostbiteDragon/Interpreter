@@ -12,5 +12,5 @@ type ValidationOutput =
     { Ids : (DataType * bool) IdMap
       Expression : Expression }
 
-type ValidationResult = Result<Expression, Token * string> option
+type ValidationResult = Result<Expression, (Token * string) list> option
 type ValidationFunc = ValidationContext -> ValidationResult
