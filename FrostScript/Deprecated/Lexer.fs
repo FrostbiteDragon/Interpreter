@@ -1,9 +1,6 @@
-﻿module FrostScript.Lexer
+﻿module FrostScript.Deprecated.Lexer
     open FrostScript.Domain
     
-    let lex2 (rawScript : string) : Result<Token list list, (Token * string) list> =
-        failwith ""
-
     let lex (rawScript : string) =
         let chars = rawScript.ToCharArray() |> Array.toList
         seq { 

@@ -48,10 +48,15 @@ type Token = {
     Character : int
 }
 
+type Position =
+    { Line : int
+      Character : int }
+
 type LexContext = 
-    { Characters : char list 
+    { Characters : char list
+      Position : Position
       TokenGroups : Token list list }
 
-type LexResult = Result<Token list list, (Token * string) list>
+type LexResult = Result<LexContext, (Token * string) list>
 type LexFunc = LexContext -> LexResult
 type LexHandler = LexFunc -> LexContext -> LexResult

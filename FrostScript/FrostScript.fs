@@ -25,4 +25,6 @@
 
             choose [Literal.validate] ctx
 
-        Lexer.lex2 >> bindTraverse parse >> bindTraverse validate >> Interpreter.interpret2
+        let interpret (expression : Expression) : Result<obj, (Token * string) list> = Ok []
+
+        lex >> bindTraverse parse >> bindTraverse validate >> bindTraverse interpret

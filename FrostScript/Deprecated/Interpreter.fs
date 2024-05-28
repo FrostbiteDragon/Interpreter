@@ -1,9 +1,6 @@
-﻿module FrostScript.Interpreter
+﻿module FrostScript.Deprecated.Interpreter
     open FrostScript.Domain
     open FrostScript.Features
-
-    let interpret2 (expressions : Result<Expression list, (Token * string) list>) : Result<obj, (Token * string) list> =
-        failwith "not implemented"
 
     let interpret nativeFunctions expressions =
         let rec execute (ids : Expression IdMap) (expression : Expression) : obj * Expression IdMap =
