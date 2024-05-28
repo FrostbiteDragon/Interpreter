@@ -1,5 +1,4 @@
-﻿[<AutoOpen>]
-module FrostScript.Domain.List
+﻿module FrostScript.Domain.List
      /// Map a Result producing function over a list to get a new Result
     /// using applicative style
     /// ('a -> Result<'b>) -> 'a list -> Result<'b list>
