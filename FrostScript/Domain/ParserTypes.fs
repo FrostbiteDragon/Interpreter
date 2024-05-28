@@ -19,10 +19,11 @@ and Node =
     { Token : Token
       Type : NodeType }
 
- type ParserContext = 
-    { Node : Node 
+ type ParseContext = 
+    { Node : Node
       Tokens : Token list }
 
-type ParseResult = Result<ParserContext, Token * string>
-type ParseFunc = ParserContext -> ParseResult
-type ParseHandler = ParseFunc -> ParserContext -> ParseResult
+
+type ParseResult = Result<ParseContext, Token * string>
+type ParseFunc = ParseContext -> ParseResult
+type ParseHandler = ParseFunc -> ParseContext -> ParseResult

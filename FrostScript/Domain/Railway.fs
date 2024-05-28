@@ -1,14 +1,16 @@
 ﻿namespace FrostScript.Domain
 
-type RailwayResult<'TSuccess, 'TFailure> =
-    | Success of success: 'TSuccess
-    | Failure of failure: 'TFailure
-    | NotFound
-
 module Railway =
-    let (>=>) (switch1 : ParseHandler) (switch2 : ParseHandler) : ParseHandler = fun next ctx ->
-        match switch1 next ctx with
-        | Ok ctx -> 
-            if ctx.Tokens.IsEmpty then Ok ctx
-            else switch2 next ctx
-        | Error m -> Error m
+    let (>=>) switch1 switch2 x =
+        match switch1 x with
+        | Ok s -> switch2 s
+        | Error f -> Error f
+
+    let rec choose funcList x =
+        match funcList with
+        | [] -> failwith "no option found"
+        | func :: tail ->
+            let result = func x
+            match result with
+            | Some s -> s
+            | None   -> choose tail x

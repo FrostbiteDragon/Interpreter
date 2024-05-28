@@ -3,19 +3,19 @@
     open FrostScript.Features
     open FrostScript.Domain.Railway
     
-    //let validate nativeFunctions nodes =
-    //    let noValidatorFoundError : ValidatorSegment = fun node _ ->
-    //        failwith $"No validator found for node {node}"
+    let validate nodes =
+        //let noValidatorFoundError : ValidationFunc = fun node _ ->
+        //    failwith $"No validator found for node {node}"
+        let ctx =
+            { Node = List.head nodes
+              Ids = IdMap.empty }
 
-    //    let rec validate : ValidatorSegment = fun node ids ->
-    //        noValidatorFoundError
-    //        >=> Literal.validate
-    //        >=> FrostList.validate validate <| node <| ids
+        let rec validate = 
+            choose [
+                Literal.validate
+            ]
 
-    //    validate
-
-    //    //let nativeFunctions = nativeFunctions |> Seq.map (fun (key, value) -> (key, (value.DataType, false))) |> Map.ofSeq
-        
+        validate ctx 
 
     let validateOld nativeFunctions nodes =
         let rec validateNode (ids : (DataType * bool) idMap) (node : Node) : Expression * (DataType * bool) idMap =

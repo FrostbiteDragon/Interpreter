@@ -2,7 +2,7 @@
     open FrostScript.Domain
     open FrostScript.Domain.Utilities
 
-    let parse (expression : ParseFunc) : ParseHandler = fun next ctx ->
+    let parse (expression : ParseFunc) : ParseFunc = fun ctx ->
         let listToken = ctx.Tokens.Head
         if listToken.Type = SquareBracketOpen then
             if (ctx.Tokens |> skipOrEmpty 1).Head.Type = SquareBracketClose then 
@@ -33,8 +33,27 @@
                     Ok { Node = node; Tokens = tokens |> skipOrEmpty 1 }
                 else
                     Error (tokens.Head, "Expected ']'")
-        else next ctx
+        else Ok ctx
     
+    let validate (validate : ValidationFunc) : ValidationFunc = fun ctx ->
+        match ctx.Node.Type with
+        | ListNode nodes ->
+            //this ignores any varriable decloration or mutation implicitely. this should probably be defined as illegal syntax and throw an error
+            let nodes = 
+                nodes 
+                |> List.mapFold (fun datatype x ->
+                    let result = validate { ctx with Node = x }
+                ) None
+            let dataType = nodes.Head.DataType
+            if nodes |> List.exists(fun x -> x.DataType <> dataType) then
+                let error = { DataType = VoidType; Type = ValidationError (node.Token, "All values of a list must have the same type")}
+                (error, ids)
+            else
+                let listExpression = { DataType = ListType dataType; Type = ListExpression nodes }
+                (listExpression, ids)
+        | _ -> None
+
+
     //let validate (validate : ValidatorSegment) : ValidatorFunction = fun next node ids ->
     //    match node.Type with
     //    | ListNode nodes ->
