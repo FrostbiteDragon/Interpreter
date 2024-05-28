@@ -1,5 +1,5 @@
 ﻿
-//module FrostScript.ParserFunctions
+module FrostScript.ParserFunctions
 //    open FrostScript.Domain
 //    open FrostScript.Domain.Utilities
 //    open FrostScript.Domain.Railway

@@ -1,21 +1,13 @@
 ﻿module FrostScript.Validator
     open FrostScript.Domain
     open FrostScript.Features
-    open FrostScript.Domain.Railway
     
-    let validate nodes =
-        //let noValidatorFoundError : ValidationFunc = fun node _ ->
-        //    failwith $"No validator found for node {node}"
-        let ctx =
-            { Node = List.head nodes
-              Ids = IdMap.empty }
-
-        let rec validate = 
-            choose [
-                Literal.validate
-            ]
-
-        validate ctx 
+    let validate (input : Result<Node list, (Token * string) list>) : Result<Expression list, (Token * string) list> =
+        input
+        |> Result.bind (fun nodes -> nodes |> List.traverseResult (fun node -> 
+            let ctx = { Node = node; Ids = { Values = [] } }
+            choose [Literal.validate] ctx
+        ))
 
     let validateOld nativeFunctions nodes =
         let rec validateNode (ids : (DataType * bool) idMap) (node : Node) : Expression * (DataType * bool) idMap =

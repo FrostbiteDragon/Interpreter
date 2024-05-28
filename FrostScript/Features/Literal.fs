@@ -1,6 +1,6 @@
-﻿module FrostScript.Features.Literal
+﻿[<AutoOpen>]
+module FrostScript.Features.Literal
     open FrostScript.Domain
-    open FrostScript.Domain.Utilities
 
     let parse : ParseFunc = fun ctx ->
         match (List.head ctx.Tokens).Type with
@@ -26,6 +26,6 @@
 
             match literalExpression with
             | Ok expression -> Some (Ok expression)
-            | Error (token, message) -> Some (Error (token, message))
+            | Error (token, message) -> Some (Error [(token, message)])
         | _ -> None
         

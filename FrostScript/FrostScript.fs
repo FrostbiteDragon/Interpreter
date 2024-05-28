@@ -4,7 +4,7 @@
         rawScript 
         |> Lexer.lex
         |> Parser.parse
-        //|> Validator.validate nativeFunctions
+        |> Validator.validate
         //|> Interpreter.interpret nativeFunctions
 
    
