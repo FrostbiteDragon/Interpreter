@@ -8,6 +8,7 @@ module FrostScript.Features.Literal
         | char :: tail ->
             match char with
             | '1' -> Some (Ok {ctx with Tokens = (ctx.Tokens @ [{ Type = Number; Lexeme = "1"; Literal = Some (double 1); Position = ctx.Position }]) })
+            | '2' -> Some (Ok {ctx with Tokens = (ctx.Tokens @ [{ Type = Number; Lexeme = "2"; Literal = Some (double 2); Position = ctx.Position }]) })
             | _ -> None
 
     let parse : ParseFunc = fun ctx ->
@@ -35,5 +36,10 @@ module FrostScript.Features.Literal
             match literalExpression with
             | Ok expression -> Some (Ok expression)
             | Error (token, message) -> Some (Error [(token, message)])
+        | _ -> None
+
+    let interpret : InterpretFunc = fun ctx ->
+        match ctx.Type with
+        | LiteralExpression value -> Some (Ok value)
         | _ -> None
         

@@ -42,3 +42,5 @@ type FrostObject =
                 |> List.map (fun (id, value) -> $"{id} {value}")
             "{ " + String.concat ", " fields + " }"
 
+type InterpretResult = Result<obj, (Token * string) list> option
+type InterpretFunc = Expression -> InterpretResult

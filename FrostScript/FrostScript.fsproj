@@ -18,9 +18,9 @@
     <Compile Include="Domain\NativeFunctions.fs" />
     <Compile Include="Features\Literal.fs" />
     <Compile Include="Features\FrostList.fs" />
-    <Compile Include="Lexer.fs" />
-    <Compile Include="Interpreter.fs" />
     <Compile Include="FrostScript.fs" />
+    <Compile Include="Deprecated\Lexer.fs" />
+    <Compile Include="Deprecated\Interpreter.fs" />
     <Compile Include="Deprecated\Validator.fs" />
     <Compile Include="Deprecated\ParserFunctions.fs" />
   </ItemGroup>

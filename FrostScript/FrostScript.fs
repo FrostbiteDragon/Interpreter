@@ -11,7 +11,6 @@
             |> choose [ Literal.lex ]
             |> Result.map (fun x -> x.Tokens)
 
-
         let parse (tokens : Token list) : Result<Node, (Token * string) list> =
             let rec expression : ParseFunc = fun ctx ->
                 let ifNotEmpty onNotEmpty : ParseFunc = fun ctx -> if ctx.Tokens.IsEmpty then Ok ctx else onNotEmpty ctx
@@ -30,6 +29,13 @@
             ctx 
             |> choose [ Literal.validate ]
 
-        let interpret (expression : Expression) : Result<obj, (Token * string) list> = Ok []
+        let interpret (expression : Expression) : Result<obj, (Token * string) list> =
+            expression
+            |> choose [ Literal.interpret ]
 
-        lex >> apply (Ok splitTokens) >> bindTraverse parse >> bindTraverse validate >> bindTraverse interpret
+        lex >> 
+        apply (Ok splitTokens) >> 
+        bindTraverse parse >> 
+        bindTraverse validate >> 
+        bindTraverse interpret >> 
+        Result.map (fun x -> x |> List.last)
