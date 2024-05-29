@@ -14,3 +14,10 @@ module FrostScript.Domain.Railway
             match result with
             | Some s -> s
             | None   -> choose tail x
+
+    let bindTraverse f = f |> List.traverseResult |> Result.bind
+
+    let apply fOpt xOpt =
+        match fOpt, xOpt with
+        | Ok f, Ok x -> Ok (f x)
+        | _ -> Error []
