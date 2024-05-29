@@ -5,8 +5,18 @@
 
     let execute =
         let bindTraverse f = f |> List.traverseResult |> Result.bind
+        let apply fOpt xOpt =
+            match fOpt,xOpt with
+            | Ok f, Ok x -> Ok (f x)
+            | _ -> Error []
 
-        let lex (script : string) : Result<Token list list, (Token * string) list> = Ok []
+        let lex (script : string) : Result<Token list, (Token * string) list> = 
+            let ctx = { Characters = script.ToCharArray () |> Array.toList; Position = { Character = 0; Line = 0; }; Tokens = [] }
+
+            ctx 
+            |> choose [ Literal.lex ]
+            |> Result.map (fun x -> x.Tokens)
+
 
         let parse (tokens : Token list) : Result<Node, (Token * string) list> =
             let rec expression : ParseFunc = fun ctx ->
@@ -23,8 +33,9 @@
         let validate (node : Node) : Result<Expression, (Token * string) list> =
             let ctx = { Node = node; Ids = { Values = [] } }
 
-            choose [Literal.validate] ctx
+            ctx 
+            |> choose [ Literal.validate ]
 
         let interpret (expression : Expression) : Result<obj, (Token * string) list> = Ok []
 
-        lex >> bindTraverse parse >> bindTraverse validate >> bindTraverse interpret
+        lex >> apply (Ok splitTokens) >> bindTraverse parse >> bindTraverse validate >> bindTraverse interpret

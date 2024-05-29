@@ -2,6 +2,14 @@
 module FrostScript.Features.Literal
     open FrostScript.Domain
 
+    let lex : LexFunc = fun ctx ->
+        match ctx.Characters with
+        | [] -> Some (Ok ctx)
+        | char :: tail ->
+            match char with
+            | '1' -> Some (Ok {ctx with Tokens = (ctx.Tokens @ [{ Type = Number; Lexeme = "1"; Literal = Some (double 1); Position = ctx.Position }]) })
+            | _ -> None
+
     let parse : ParseFunc = fun ctx ->
         match (List.head ctx.Tokens).Type with
         | Number | String | Id | Void | Bool -> 

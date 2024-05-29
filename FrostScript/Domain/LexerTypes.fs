@@ -39,24 +39,21 @@ type TokenType =
 //Types
 | TypeAnnotation of DataType
 
-
-type Token = {
-    Type : TokenType
-    Lexeme : string
-    Literal : obj option
-    Line : int
-    Character : int
-}
-
 type Position =
     { Line : int
       Character : int }
 
+type Token = 
+    { Type : TokenType
+      Lexeme : string
+      Literal : obj option
+      Position : Position }
+
 type LexContext = 
     { Characters : char list
       Position : Position
-      TokenGroups : Token list list }
+      Tokens : Token list }
 
-type LexResult = Result<LexContext, (Token * string) list>
+type LexResult = Result<LexContext, (Token * string) list> option
 type LexFunc = LexContext -> LexResult
 type LexHandler = LexFunc -> LexContext -> LexResult
