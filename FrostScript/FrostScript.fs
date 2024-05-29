@@ -1,4 +1,5 @@
-﻿module FrostScript.FrostScript
+﻿[<AutoOpen>]
+module FrostScript.FrostScript
     open FrostScript.Domain.NativeFunctions
     open FrostScript.Domain
     open FrostScript.Features

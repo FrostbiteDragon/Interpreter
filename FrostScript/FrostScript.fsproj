@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Domain\Utilities.fs" />
     <Compile Include="Domain\ListExtentions.fs" />
     <Compile Include="Domain\IdMap.fs" />
     <Compile Include="Domain\CoreTypes.fs" />
@@ -14,7 +15,6 @@
     <Compile Include="Domain\ParserTypes.fs" />
     <Compile Include="Domain\ValidatorTypes.fs" />
     <Compile Include="Domain\Railway.fs" />
-    <Compile Include="Domain\Utilities.fs" />
     <Compile Include="Domain\NativeFunctions.fs" />
     <Compile Include="Features\Literal.fs" />
     <Compile Include="Features\FrostList.fs" />

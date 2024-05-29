@@ -5,10 +5,41 @@ module FrostScript.Features.Literal
     let lex : LexFunc = fun ctx ->
         match ctx.Characters with
         | [] -> Some (Ok ctx)
-        | char :: tail ->
+        | char :: _ ->
             match char with
-            | '1' -> Some (Ok {ctx with Tokens = (ctx.Tokens @ [{ Type = Number; Lexeme = "1"; Literal = Some (double 1); Position = ctx.Position }]) })
-            | '2' -> Some (Ok {ctx with Tokens = (ctx.Tokens @ [{ Type = Number; Lexeme = "2"; Literal = Some (double 2); Position = ctx.Position }]) })
+            | letter when System.Char.IsLetter letter ->
+                let word = 
+                    new string (ctx.Characters
+                    |> List.takeWhile (fun x -> System.Char.IsLetterOrDigit(x))
+                    |> List.toArray)
+
+                match word with
+                | "true"   -> 
+                    { Type = Bool; Lexeme = "true"; Literal = Some (true); Position = ctx.Position }
+                    |> addToken ctx word.Length
+                | "false"  ->
+                    { Type = Bool; Lexeme = "false"; Literal = Some (false); Position = ctx.Position }
+                    |> addToken ctx word.Length
+                | _  ->
+                    { Type = Id; Lexeme = word; Literal = None; Position = ctx.Position }
+                    |> addToken ctx word.Length
+
+            | number when System.Char.IsDigit number ->
+                let integerDigits = 
+                    ctx.Characters
+                    |> List.takeWhile (fun x -> System.Char.IsDigit x)
+
+                let fractionalDigits =
+                    let characters = ctx.Characters |> skipOrEmpty integerDigits.Length
+                    if characters <> [] && characters.Head = '.' then
+                        characters
+                        |> List.skip (1)
+                        |> List.takeWhile (fun x -> System.Char.IsDigit x)
+                    else []
+
+                let number = integerDigits @ ['.'] @ fractionalDigits |> List.toArray |> System.String
+                { Type = Number; Lexeme = number; Literal = Some (double number); Position = ctx.Position }
+                |> addToken ctx number.Length
             | _ -> None
 
     let parse : ParseFunc = fun ctx ->
