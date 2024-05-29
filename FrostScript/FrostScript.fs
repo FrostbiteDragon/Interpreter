@@ -25,15 +25,12 @@ module FrostScript.FrostScript
             expression ctx
             |> Result.map (fun ctx -> ctx.Node)
 
-        let validate (node : Node) : Result<Expression, (Token * string) list> =
-            let ctx = { Node = node; Ids = { Values = [] } }
-
-            ctx 
-            |> choose [ Literal.validate ]
-
-        let interpret (expression : Expression) : Result<obj, (Token * string) list> =
-            expression
-            |> choose [ Literal.interpret ]
+        let validate node = { Node = node; Ids = { Values = [] } } |> choose [ 
+            Literal.validate 
+        ]
+        let interpret expression = expression |> choose [ 
+            Literal.interpret 
+        ]
 
         lex >> 
         apply (Ok splitTokens) >> 
