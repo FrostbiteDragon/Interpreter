@@ -18,6 +18,7 @@
                 FrostList.parse expression >=>
                 ifNotEmpty Literal.parse 
                 <| ctx
+
             let ctx = { Tokens = tokens; Node = { Token = tokens.Head; Type = StatementNode } }
             
             expression ctx
