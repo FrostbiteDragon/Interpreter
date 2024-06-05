@@ -1,6 +1,6 @@
 ﻿namespace FrostScript.Domain
 
-type IdMap<'T> = 
+type 'T idMap = 
     {
         Values : Map<string, 'T> list
     }
@@ -9,11 +9,7 @@ type IdMap<'T> =
             match this.Values |> List.tryFindBack (fun x -> x.ContainsKey id) with
             | Some value -> value.[id]
             | None -> failwith "Key not found"
-       
 
-type 'T idMap = IdMap<'T>
-
-[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module IdMap =
     let ofList (list : Map<string, 'T> list) = 
         { Values = list } 
