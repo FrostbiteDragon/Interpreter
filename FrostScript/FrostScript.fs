@@ -6,16 +6,25 @@ module FrostScript.FrostScript
 
     let execute =
         let lex (script : string) = 
-            let ctx = { Characters = script.ToCharArray () |> Array.toList |> List.where (fun x -> x <> ' ' && x <> '\t'); Position = { Character = 0; Line = 0; }; Tokens = [] }
+            let ctx = { Characters = script.ToCharArray () |> Array.toList; Position = { Character = 0; Line = 0; }; Tokens = [] }
 
             let rec getTokens (ctx : LexContext) =
                 if ctx.Characters = [] then
                     Ok ctx
                 else
+                    let whiteSpace = fun ctx ->
+                        match ctx.Characters with
+                        | [] -> Some (Ok ctx)
+                        | char :: tail ->
+                            match char with
+                            | ' ' | '\t' -> {ctx with Characters = tail; Position = { ctx.Position with Character = ctx.Position.Character + 1} } |> Ok |> Some
+                            | _ -> None
+                        
                     ctx
                     |> choose [ 
                         lexList
                         lexLiteral
+                        whiteSpace
                     ]
                     |> Result.bind getTokens
 
@@ -56,4 +65,9 @@ module FrostScript.FrostScript
         bindTraverse validate >>
         Result.map (fun validationOutput -> validationOutput |> List.map (fun x -> x.Expression)) >>
         bindTraverse interpret >> 
-        Result.map (fun interpretOutput -> (interpretOutput |> List.last).Value)
+        Result.map (fun interpretOutput -> (interpretOutput |> List.last).Value) >>
+        Result.mapError (fun errors -> 
+            errors 
+            |> List.map (fun (token, error) -> $"[Line:{token.Position.Line} Character:{token.Position.Character}] {error}")
+            |> String.concat System.Environment.NewLine
+        )

@@ -23,5 +23,4 @@ and Node =
     { Node : Node
       Tokens : Token list }
 
-
 type ParseFunc = ParseContext ->  Result<ParseContext, ErrorList>
