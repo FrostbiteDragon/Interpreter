@@ -6,7 +6,7 @@ module FrostScript.FrostScript
 
     let execute =
         let lex (script : string) = 
-            let ctx = { Characters = script.ToCharArray () |> Array.toList; Position = { Character = 0; Line = 0; }; Tokens = [] }
+            let ctx = { Characters = script.ToCharArray () |> Array.toList |> List.where (fun x -> x <> ' ' && x <> '\t'); Position = { Character = 0; Line = 0; }; Tokens = [] }
 
             let rec getTokens (ctx : LexContext) =
                 if ctx.Characters = [] then
@@ -14,8 +14,8 @@ module FrostScript.FrostScript
                 else
                     ctx
                     |> choose [ 
-                        lexLiteral
                         lexList
+                        lexLiteral
                     ]
                     |> Result.bind getTokens
 
@@ -39,15 +39,15 @@ module FrostScript.FrostScript
         let rec validate node = 
             { Node = node; Ids = { Values = [] } } 
             |> choose [
-                validateLiteral
                 validateList validate
+                validateLiteral
             ]
 
         let rec interpret expression = 
             { Expression = expression; Ids = { Values = [] } } 
             |> choose [
-                interpretLiteral
                 interpretList interpret
+                interpretLiteral
             ]
 
         lex >> 

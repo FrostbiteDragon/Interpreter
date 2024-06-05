@@ -8,7 +8,7 @@ module FrostScript.Domain.Railway
 
     let rec choose funcList x =
         match funcList with
-        | [] -> failwith "no option found"
+        | [] -> failwith $"no option found for '{x}'"
         | func :: tail ->
             let result = func x
             match result with
