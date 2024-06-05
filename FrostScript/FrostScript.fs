@@ -8,10 +8,19 @@ module FrostScript.FrostScript
         let lex (script : string) = 
             let ctx = { Characters = script.ToCharArray () |> Array.toList; Position = { Character = 0; Line = 0; }; Tokens = [] }
 
+            let rec getTokens (ctx : LexContext) =
+                if ctx.Characters = [] then
+                    Ok ctx
+                else
+                    ctx
+                    |> choose [ 
+                        lexLiteral
+                        lexList
+                    ]
+                    |> Result.bind getTokens
+
             ctx 
-            |> choose [ 
-                lexLiteral
-            ]
+            |> getTokens
             |> Result.map (fun x -> x.Tokens)
 
         let parse tokens =
@@ -45,6 +54,6 @@ module FrostScript.FrostScript
         apply (Ok splitTokens) >> 
         bindTraverse parse >>
         bindTraverse validate >>
-        Result.map (fun x -> x |> List.map (fun x -> x.Expression)) >>
+        Result.map (fun validationOutput -> validationOutput |> List.map (fun x -> x.Expression)) >>
         bindTraverse interpret >> 
-        Result.map (fun x -> x |> List.last)
+        Result.map (fun interpretOutput -> (interpretOutput |> List.last).Value)

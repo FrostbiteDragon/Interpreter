@@ -35,11 +35,16 @@ module FrostScript.Features.Literal
                         characters
                         |> List.skip (1)
                         |> List.takeWhile (fun x -> System.Char.IsDigit x)
+                        |> List.append ['.']
                     else []
 
-                let number = integerDigits @ ['.'] @ fractionalDigits |> List.toArray |> System.String
+                let number = 
+                    integerDigits @ fractionalDigits
+                    |> List.toArray 
+                    |> System.String
                 { Type = Number; Lexeme = number; Literal = Some (double number); Position = ctx.Position }
                 |> addToken ctx number.Length
+               
             | _ -> None
 
     let parseLiteral : ParseFunc = fun ctx ->
@@ -71,5 +76,5 @@ module FrostScript.Features.Literal
 
     let interpretLiteral : InterpretFunc = fun ctx ->
         match ctx.Expression.Type with
-        | LiteralExpression value -> Some (Ok { Value = value; Ids = ctx.Ids })
+        | LiteralExpression value -> { Value = value; Ids = ctx.Ids } |> Ok |> Some
         | _ -> None

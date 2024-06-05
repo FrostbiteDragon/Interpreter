@@ -54,9 +54,7 @@ type LexContext =
       Position : Position
       Tokens : Token list }
 
-type LexResult = Result<LexContext, (Token * string) list> option
-type LexFunc = LexContext -> LexResult
-type LexHandler = LexFunc -> LexContext -> LexResult
+type LexFunc = LexContext -> Result<LexContext, (Token * string) list> option
 
 type ErrorList = (Token * string) List
 
@@ -82,8 +80,8 @@ module LexFunctions =
         |> List.where (fun x -> not x.IsEmpty)
     
     let addToken (ctx : LexContext) charactersUsed token =
-            Some (
-                Ok { Tokens = (ctx.Tokens @ [token]); 
-                     Position = {ctx.Position with Character = ctx.Position.Character + 1} 
-                     Characters = ctx.Characters |> skipOrEmpty charactersUsed }
-            )
+        { Tokens = (ctx.Tokens @ [token]); 
+          Position = {ctx.Position with Character = ctx.Position.Character + 1} 
+          Characters = ctx.Characters |> skipOrEmpty charactersUsed }
+        |> Ok
+        |> Some

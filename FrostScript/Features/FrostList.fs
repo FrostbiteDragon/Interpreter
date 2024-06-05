@@ -2,6 +2,25 @@
 module FrostScript.Features.FrostList
     open FrostScript.Domain
 
+    let lexList : LexFunc = fun ctx ->
+        match ctx.Characters with
+        | [] -> Some (Ok ctx)
+        | char :: _ ->
+            match char with
+            | '[' -> 
+                { Type = SquareBracketOpen; Lexeme = "["; Literal = None; Position = ctx.Position }
+                |> addToken ctx 1
+                
+            | ']' -> 
+                { Type = SquareBracketClose; Lexeme = "]"; Literal = None; Position = ctx.Position }
+                |> addToken ctx 1
+
+            | ',' -> 
+                { Type = Comma; Lexeme = ","; Literal = None; Position = ctx.Position }
+                |> addToken ctx 1
+          
+            | _ -> None
+
     let parseList (expression : ParseFunc) : ParseFunc = fun ctx ->
         let listToken = ctx.Tokens.Head
         if listToken.Type = SquareBracketOpen then
@@ -65,11 +84,12 @@ module FrostScript.Features.FrostList
     let interpretList (interpret : Expression -> Result<InterpretOutput, ErrorList>) : InterpretFunc = fun ctx ->
         match ctx.Expression.Type with
         | ListExpression values ->
-            { Value = 
-                values 
-                |> List.traverseResult (fun x -> interpret x |> Result.map (fun x -> x.Value))
-              Ids = ctx.Ids }
-            |> Ok 
+            values 
+            |> List.traverseResult (fun x -> interpret x |> Result.map (fun x -> x.Value))
+            |> Result.map(fun values ->   
+                { Value = values
+                  Ids = ctx.Ids }
+            )
             |> Some
 
         | _ -> None
