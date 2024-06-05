@@ -24,6 +24,4 @@ and Node =
       Tokens : Token list }
 
 
-type ParseResult = Result<ParseContext, (Token * string) list>
-type ParseFunc = ParseContext -> ParseResult
-type ParseHandler = ParseFunc -> ParseContext -> ParseResult
+type ParseFunc = ParseContext ->  Result<ParseContext, ErrorList>

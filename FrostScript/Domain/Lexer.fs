@@ -58,6 +58,8 @@ type LexResult = Result<LexContext, (Token * string) list> option
 type LexFunc = LexContext -> LexResult
 type LexHandler = LexFunc -> LexContext -> LexResult
 
+type ErrorList = (Token * string) List
+
 [<AutoOpen>]
 module LexFunctions =
     let splitTokens (tokens : Token list) =

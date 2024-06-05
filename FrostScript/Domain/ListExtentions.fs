@@ -15,6 +15,8 @@
                 // concat both lists of errors
                 Error (List.concat [errs1; errs2])
 
+
+
         // define the applicative functions
         let (<*>) = applyResults
         let retn = Ok
@@ -29,3 +31,32 @@
 
         List.foldBack folder list initState
 
+    let traverseOption f list =
+        let applyResults fResult xResult =
+            match fResult, xResult with
+            | Some f, Some x ->
+                Some (f x)
+            | None, Some _ ->
+                None
+            | Some _, None ->
+                None
+            | None, None ->
+                None
+
+
+        // define the applicative functions
+        let (<*>) = applyResults
+        let retn = Some
+
+        // define a "cons" function
+        let cons head tail = head :: tail
+
+        // right fold over the list
+        let initState = retn []
+        let folder head tail =
+            retn cons <*> (f head) <*> tail
+
+        List.foldBack folder list initState
+
+    let sequenceResult list = traverseResult id list
+    let sequenceOption list = traverseOption id list

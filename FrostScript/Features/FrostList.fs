@@ -1,7 +1,8 @@
-﻿module FrostScript.Features.FrostList
+﻿[<AutoOpen>]
+module FrostScript.Features.FrostList
     open FrostScript.Domain
 
-    let parse (expression : ParseFunc) : ParseFunc = fun ctx ->
+    let parseList (expression : ParseFunc) : ParseFunc = fun ctx ->
         let listToken = ctx.Tokens.Head
         if listToken.Type = SquareBracketOpen then
             if (ctx.Tokens |> skipOrEmpty 1).Head.Type = SquareBracketClose then 
@@ -34,43 +35,37 @@
                     Error [(tokens.Head, "Expected ']'")]
         else Ok ctx
     
-    let validate (validate : ValidationFunc) : ValidationFunc = fun ctx ->
+    let validateList (validate : Node -> Result<ValidationOutput, ErrorList>) : ValidationFunc = fun ctx ->
         match ctx.Node.Type with
-        | ListNode nodes ->
-            //this ignores any varriable decloration or mutation implicitely. this should probably be defined as illegal syntax and throw an error
-            // node list -> expression list
-            let nodes = 
-                nodes 
-                |> List.traverseResult (fun x -> 
-                    { ctx with Node = x }
-                    |> validate
-                )
+        | ListNode nodes -> 
+            nodes
+            |> List.traverseResult (fun node -> validate node)
+            |> Result.bind (fun validationOutputs -> 
+                let expressions = validationOutputs |> List.map (fun x -> x.Expression)
+                let dataType = expressions.Head.DataType 
 
-            let dataType = nodes.Head.DataType
-            if nodes |> List.exists(fun x -> x.DataType <> dataType) then
-                let error = { DataType = VoidType; Type = ValidationError (node.Token, "All values of a list must have the same type")}
-                (error, ids)
-            else
-                let listExpression = { DataType = ListType dataType; Type = ListExpression nodes }
-                (listExpression, ids)
+                expressions
+                |> List.map (fun expression -> 
+                    if expression.DataType <> dataType then 
+                        Error [(ctx.Node.Token, $"Expected {dataType} but was given {expression.DataType}, All elements of a list must be of the same type. ")]
+                    else Ok expression
+                )
+                |> List.sequenceResult
+                |> Result.map (fun expressions -> 
+                    { Expression = 
+                        { DataType = VoidType 
+                          Type = ListExpression (expressions) } 
+                      Ids = (validationOutputs |> List.last).Ids }
+                )
+            ) 
+            |> Some
         | _ -> None
 
+    let interpretList execute ids values = 
+        (
+            values 
+            |> List.map (fun x -> execute ids x |> fst) 
+            |> box, 
 
-    //let validate (validate : ValidatorSegment) : ValidatorFunction = fun next node ids ->
-    //    match node.Type with
-    //    | ListNode nodes ->
-    //        //this ignores any varriable decloration or mutation implicitely. this should probably be defined as illegal syntax and throw an error
-    //        let nodes = 
-    //            nodes 
-    //            |> List.map (fun x -> validate x ids |> fst) 
-    //        let dataType = nodes.Head.DataType
-    //        if nodes |> List.exists(fun x -> x.DataType <> dataType) then
-    //            let error = { DataType = VoidType; Type = ValidationError (node.Token, "All values of a list must have the same type")}
-    //            (error, ids)
-    //        else
-    //            let listExpression = { DataType = ListType dataType; Type = ListExpression nodes }
-    //            (listExpression, ids)
-    //    | _ -> next node ids
-
-    let interpret execute ids values = 
-        (values |> List.map (fun x -> execute ids x |> fst) |> box, ids)
+            ids
+        )
