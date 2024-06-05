@@ -59,13 +59,17 @@ module FrostScript.Features.FrostList
                 )
             ) 
             |> Some
+
         | _ -> None
 
-    let interpretList execute ids values = 
-        (
-            values 
-            |> List.map (fun x -> execute ids x |> fst) 
-            |> box, 
+    let interpretList (interpret : Expression -> Result<InterpretOutput, ErrorList>) : InterpretFunc = fun ctx ->
+        match ctx.Expression.Type with
+        | ListExpression values ->
+            { Value = 
+                values 
+                |> List.traverseResult (fun x -> interpret x |> Result.map (fun x -> x.Value))
+              Ids = ctx.Ids }
+            |> Ok 
+            |> Some
 
-            ids
-        )
+        | _ -> None

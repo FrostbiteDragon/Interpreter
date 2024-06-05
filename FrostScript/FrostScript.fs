@@ -9,7 +9,9 @@ module FrostScript.FrostScript
             let ctx = { Characters = script.ToCharArray () |> Array.toList; Position = { Character = 0; Line = 0; }; Tokens = [] }
 
             ctx 
-            |> choose [ lexLiteral ]
+            |> choose [ 
+                lexLiteral
+            ]
             |> Result.map (fun x -> x.Tokens)
 
         let parse tokens =
@@ -32,10 +34,12 @@ module FrostScript.FrostScript
                 validateList validate
             ]
 
-        let interpret expression = expression |> choose [ 
-            interpretLiteral
-            interpretList
-        ]
+        let rec interpret expression = 
+            { Expression = expression; Ids = { Values = [] } } 
+            |> choose [
+                interpretLiteral
+                interpretList interpret
+            ]
 
         lex >> 
         apply (Ok splitTokens) >> 

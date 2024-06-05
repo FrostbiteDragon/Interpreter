@@ -8,8 +8,6 @@ type ValidationContext =
     { Ids : (DataType * bool) IdMap
       Node : Node }
 
-type ValidationOutput =
-    { Ids : (DataType * bool) IdMap
-      Expression : Expression }
+type ValidationOutput = InterpretContext
 
 type ValidationFunc = ValidationContext -> Result<ValidationOutput, ErrorList> option

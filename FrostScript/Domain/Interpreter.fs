@@ -42,5 +42,12 @@ type FrostObject =
                 |> List.map (fun (id, value) -> $"{id} {value}")
             "{ " + String.concat ", " fields + " }"
 
-type InterpretResult = Result<obj, ErrorList> option
-type InterpretFunc = Expression -> InterpretResult
+type InterpretContext = 
+    { Ids : (DataType * bool) IdMap
+      Expression : Expression }
+
+type InterpretOutput = 
+    { Ids : (DataType * bool) IdMap
+      Value : obj }
+
+type InterpretFunc = InterpretContext -> Result<InterpretOutput, ErrorList> option

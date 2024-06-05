@@ -70,7 +70,6 @@ module FrostScript.Features.Literal
         | _ -> None
 
     let interpretLiteral : InterpretFunc = fun ctx ->
-        match ctx.Type with
-        | LiteralExpression value -> Some (Ok value)
+        match ctx.Expression.Type with
+        | LiteralExpression value -> Some (Ok { Value = value; Ids = ctx.Ids })
         | _ -> None
-        
