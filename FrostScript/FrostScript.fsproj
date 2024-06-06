@@ -8,12 +8,12 @@
   <ItemGroup>
     <Compile Include="Domain\Core.fs" />
     <Compile Include="Domain\IdMap.fs" />
-    <Compile Include="Domain\Railway.fs" />
-    <Compile Include="Domain\NativeFunctions.fs" />
     <Compile Include="Domain\ListExtentions.fs" />
+    <Compile Include="Domain\Railway.fs" />
     <Compile Include="Domain\LexerTypes.fs" />
     <Compile Include="Domain\ParserTypes.fs" />
     <Compile Include="Domain\InterpreterTypes.fs" />
+    <Compile Include="Domain\NativeFunctions.fs" />
     <Compile Include="Features\Feature.fs" />
     <Compile Include="Features\Utilities.fs" />
     <Compile Include="Features\Literal.fs" />
