@@ -9,13 +9,11 @@
                 Ok (f x)
             | Error errs, Ok x ->
                 Error errs
-            | Ok f, Error errs ->
+            | Ok _, Error errs ->
                 Error errs
             | Error errs1, Error errs2 ->
                 // concat both lists of errors
                 Error (List.concat [errs1; errs2])
-
-
 
         // define the applicative functions
         let (<*>) = applyResults
@@ -42,7 +40,6 @@
                 None
             | None, None ->
                 None
-
 
         // define the applicative functions
         let (<*>) = applyResults
