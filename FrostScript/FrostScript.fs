@@ -5,9 +5,12 @@ module FrostScript.FrostScript
     open FrostScript.Features
 
     let execute =
-        let lex (script : string) = 
-            let ctx = { Characters = script.ToCharArray () |> Array.toList; Position = { Character = 0; Line = 0; }; Tokens = [] }
+        let features = [
+            literal
+            frostlist
+        ]
 
+        let lex (script : string) = 
             let rec getTokens (ctx : LexContext) =
                 if ctx.Characters = [] then
                     Ok ctx
@@ -17,47 +20,41 @@ module FrostScript.FrostScript
                         | [] -> Some (Ok ctx)
                         | char :: tail ->
                             match char with
-                            | ' ' | '\t' -> {ctx with Characters = tail; Position = { ctx.Position with Character = ctx.Position.Character + 1} } |> Ok |> Some
+                            | ' ' | '\t' -> Ok { ctx with Characters = tail; Position = { ctx.Position with Character = ctx.Position.Character + 1 } } |> Some
                             | _ -> None
                         
-                    ctx
-                    |> choose [ 
-                        lexList
-                        lexLiteral
-                        whiteSpace
-                    ]
+                    features
+                    |> List.map (fun x -> x.Lexer)
+                    |> List.append [whiteSpace]
+                    |> choose ctx
                     |> Result.bind getTokens
 
-            ctx 
+            { Characters = script.ToCharArray () |> Array.toList; Position = { Character = 0; Line = 0; }; Tokens = [] }
             |> getTokens
             |> Result.map (fun x -> x.Tokens)
 
         let parse tokens =
-            let rec expression : ParseFunc = fun ctx ->
-                let ifNotEmpty onNotEmpty : ParseFunc = fun ctx -> if ctx.Tokens.IsEmpty then Ok ctx else onNotEmpty ctx
-
-                ifNotEmpty (parseList expression) >=>
-                ifNotEmpty parseLiteral
-                <| ctx
-
-            let ctx = { Tokens = tokens; Node = { Token = tokens.Head; Type = StatementNode } }
-            
-            expression ctx
+            let rec getNode (ctx : ParseContext) =
+                if ctx.Tokens = [] then
+                    Ok ctx
+                else
+                    features
+                    |> List.map (fun x -> x.Parser getNode)
+                    |> choose ctx
+          
+            { Tokens = tokens; Node = { Token = tokens.Head; Type = StatementNode } }
+            |> getNode
             |> Result.map (fun ctx -> ctx.Node)
 
         let rec validate node = 
-            { Node = node; Ids = { Values = [] } } 
-            |> choose [
-                validateList validate
-                validateLiteral
-            ]
+            features
+            |> List.map (fun x -> x.Validator validate)
+            |> choose  { Node = node; Ids = { Values = [] } } 
 
         let rec interpret expression = 
-            { Expression = expression; Ids = { Values = [] } } 
-            |> choose [
-                interpretList interpret
-                interpretLiteral
-            ]
+            features
+            |> List.map (fun x -> x.Interpreter interpret)
+            |> choose { Expression = expression; Ids = { Values = [] } } 
 
         lex >> 
         apply (Ok splitTokens) >> 

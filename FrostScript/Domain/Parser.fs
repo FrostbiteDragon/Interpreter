@@ -18,9 +18,3 @@ type NodeType =
 and Node =
     { Token : Token
       Type : NodeType }
-
- type ParseContext = 
-    { Node : Node
-      Tokens : Token list }
-
-type ParseFunc = ParseContext ->  Result<ParseContext, ErrorList>

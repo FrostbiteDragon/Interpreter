@@ -6,14 +6,14 @@ module FrostScript.Domain.Railway
         | Ok s -> switch2 s
         | Error f -> Error f
 
-    let rec choose funcList x =
+    let rec choose x funcList =
         match funcList with
         | [] -> failwith $"no option found for '{x}'"
         | func :: tail ->
             let result = func x
             match result with
             | Some s -> s
-            | None   -> choose tail x
+            | None   -> choose x tail
 
     let bindTraverse f = f |> List.traverseResult |> Result.bind
 

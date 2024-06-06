@@ -1,6 +1,6 @@
 ﻿namespace FrostScript.Domain
 
-type 'T idMap = 
+type 'T IdMap = 
     {
         Values : Map<string, 'T> list
     }
@@ -10,6 +10,9 @@ type 'T idMap =
             | Some value -> value.[id]
             | None -> failwith "Key not found"
 
+type 'T idMap = IdMap<'T>
+
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module IdMap =
     let ofList (list : Map<string, 'T> list) = 
         { Values = list } 
