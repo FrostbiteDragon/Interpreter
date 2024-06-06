@@ -1,11 +1,6 @@
 ﻿
 [<AutoOpen>]
 module FrostScript.Domain.Railway
-    let (>=>) switch1 switch2 x =
-        match switch1 x with
-        | Ok s -> switch2 s
-        | Error f -> Error f
-
     let rec choose x funcList =
         match funcList with
         | [] -> failwith $"no option found for '{x}'"

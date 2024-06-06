@@ -6,7 +6,7 @@ module FrostScript.Features.FrostList
     let frostlist = {
         Lexer = fun ctx ->
             match ctx.Characters with
-            | [] -> Some (Ok ctx)
+            | [] -> Ok ctx |> Some
             | char :: _ ->
                 match char with
                 | '[' -> 
