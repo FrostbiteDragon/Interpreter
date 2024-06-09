@@ -18,9 +18,9 @@
     <Compile Include="Features\Utilities.fs" />
     <Compile Include="Features\Binary.fs" />
     <Compile Include="Features\Factor.fs" />
-    <Compile Include="Features\Term.fs" />
-    <Compile Include="Features\Literal.fs" />
     <Compile Include="Features\FrostList.fs" />
+    <Compile Include="Features\Literal.fs" />
+    <Compile Include="Features\Term.fs" />
     <Compile Include="FrostScript.fs" />
     <Compile Include="Deprecated\Lexer.fs" />
     <Compile Include="Deprecated\Interpreter.fs" />
