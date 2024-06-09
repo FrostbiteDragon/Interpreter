@@ -61,9 +61,9 @@ module FrostScript.Features.Literal
                 let token = ctx.Node.Token
                 let literalExpression = 
                     match token.Type with
-                    | Bool   -> Ok { DataType = BoolType;   Type = LiteralExpression (valueOrUnit token.Literal) }
-                    | Number -> Ok { DataType = NumberType; Type = LiteralExpression (valueOrUnit token.Literal) }
-                    | String -> Ok { DataType = StringType; Type = LiteralExpression (valueOrUnit token.Literal) }
+                    | Bool   -> Ok { DataType = BoolType;   Type = LiteralExpression (Option.toObj token.Literal) }
+                    | Number -> Ok { DataType = NumberType; Type = LiteralExpression (Option.toObj token.Literal) }
+                    | String -> Ok { DataType = StringType; Type = LiteralExpression (Option.toObj token.Literal) }
                     | Void   -> Ok { DataType = VoidType;   Type = LiteralExpression () }
                     | Id     ->
                         match ctx.Ids |> IdMap.tryFind token.Lexeme with

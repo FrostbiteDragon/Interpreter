@@ -2,11 +2,6 @@
 module FrostScript.Features.Utilities
     open FrostScript.Domain
 
-    let valueOrUnit =
-        function
-        | Some value -> value
-        | None -> null
-
     let skipOrEmpty count list =
         if list |> List.isEmpty then []
         else if count > list.Length then []
