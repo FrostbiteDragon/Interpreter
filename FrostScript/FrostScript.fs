@@ -7,8 +7,8 @@ module FrostScript.FrostScript
     let execute =
         let features = [
             frostlist
-            Binary [("*", Multiply); ("/", Devide)]
-            Binary [("+", Plus); ("-", Minus)]
+            factor
+            term
             literal
         ]
 
@@ -58,13 +58,13 @@ module FrostScript.FrostScript
 
         lex >> 
         apply (Ok splitTokens) >> 
-        bindTraverse parse //>>
-        //bindTraverse validate >>
-        //Result.map (fun validationOutput -> validationOutput |> List.map (fun x -> x.Expression)) >>
-        //bindTraverse interpret >> 
-        //Result.map (fun interpretOutput -> (interpretOutput |> List.last).Value) >>
-        //Result.mapError (fun errors -> 
-        //    errors 
-        //    |> List.map (fun (token, error) -> $"[Line:{token.Position.Line} Character:{token.Position.Character}] {error}")
-        //    |> String.concat System.Environment.NewLine
-        //)
+        bindTraverse parse >>
+        bindTraverse validate >>
+        Result.map (fun validationOutput -> validationOutput |> List.map (fun x -> x.Expression)) >>
+        bindTraverse interpret >> 
+        Result.map (fun interpretOutput -> (interpretOutput |> List.last).Value) >>
+        Result.mapError (fun errors -> 
+            errors 
+            |> List.map (fun (token, error) -> $"[Line:{token.Position.Line} Character:{token.Position.Character}] {error}")
+            |> String.concat System.Environment.NewLine
+        )

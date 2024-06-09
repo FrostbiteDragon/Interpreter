@@ -17,6 +17,8 @@
     <Compile Include="Features\Feature.fs" />
     <Compile Include="Features\Utilities.fs" />
     <Compile Include="Features\Binary.fs" />
+    <Compile Include="Features\Factor.fs" />
+    <Compile Include="Features\Term.fs" />
     <Compile Include="Features\Literal.fs" />
     <Compile Include="Features\FrostList.fs" />
     <Compile Include="FrostScript.fs" />
