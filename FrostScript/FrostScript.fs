@@ -6,8 +6,10 @@ module FrostScript.FrostScript
 
     let execute =
         let features = [
-            literal
             frostlist
+            Binary [("*", Multiply); ("/", Devide)]
+            Binary [("+", Plus); ("-", Minus)]
+            literal
         ]
 
         let lex (script : string) = 
@@ -38,9 +40,7 @@ module FrostScript.FrostScript
                 if ctx.Tokens = [] then
                     Ok ctx
                 else
-                    features
-                    |> List.map (fun x -> x.Parser getNode)
-                    |> choose ctx
+                    List.foldBack(fun feature previousfun -> feature.Parser previousfun) features (fun ctx -> Ok ctx) ctx
           
             { Tokens = tokens; Node = { Token = tokens.Head; Type = StatementNode } }
             |> getNode
@@ -58,13 +58,13 @@ module FrostScript.FrostScript
 
         lex >> 
         apply (Ok splitTokens) >> 
-        bindTraverse parse >>
-        bindTraverse validate >>
-        Result.map (fun validationOutput -> validationOutput |> List.map (fun x -> x.Expression)) >>
-        bindTraverse interpret >> 
-        Result.map (fun interpretOutput -> (interpretOutput |> List.last).Value) >>
-        Result.mapError (fun errors -> 
-            errors 
-            |> List.map (fun (token, error) -> $"[Line:{token.Position.Line} Character:{token.Position.Character}] {error}")
-            |> String.concat System.Environment.NewLine
-        )
+        bindTraverse parse //>>
+        //bindTraverse validate >>
+        //Result.map (fun validationOutput -> validationOutput |> List.map (fun x -> x.Expression)) >>
+        //bindTraverse interpret >> 
+        //Result.map (fun interpretOutput -> (interpretOutput |> List.last).Value) >>
+        //Result.mapError (fun errors -> 
+        //    errors 
+        //    |> List.map (fun (token, error) -> $"[Line:{token.Position.Line} Character:{token.Position.Character}] {error}")
+        //    |> String.concat System.Environment.NewLine
+        //)

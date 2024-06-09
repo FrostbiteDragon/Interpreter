@@ -23,24 +23,24 @@ module FrostScript.Features.FrostList
           
                 | _ -> None
 
-        Parser = fun parse ctx ->
+        Parser = fun next ctx ->
             let listToken = ctx.Tokens.Head
             if listToken.Type = SquareBracketOpen then
                 if (ctx.Tokens |> skipOrEmpty 1).Head.Type = SquareBracketClose then 
                     let node = { Token = listToken; Type = ListNode [] }
-                    Ok { Node = node; Tokens = ctx.Tokens |> skipOrEmpty 2 } |> Some
+                    Ok { Node = node; Tokens = ctx.Tokens |> skipOrEmpty 2 }
                 else
                     let mutable tokens = ctx.Tokens
                     let nodes = 
                         seq {
-                            let result = parse { ctx with Tokens = tokens |> skipOrEmpty 1}
+                            let result = next { ctx with Tokens = tokens |> skipOrEmpty 1}
                             match result with 
                             | Ok ctx ->
                                 yield ctx.Node
                                 tokens <- ctx.Tokens
 
                                 while tokens.IsEmpty |> not && tokens.Head.Type = Comma do
-                                    let result = parse { ctx with Tokens = tokens |> skipOrEmpty 1}
+                                    let result = next { ctx with Tokens = tokens |> skipOrEmpty 1}
                                     match result with 
                                     | Ok ctx ->
                                         yield ctx.Node
@@ -51,10 +51,10 @@ module FrostScript.Features.FrostList
                         } |> Seq.toList
                     if tokens.Head.Type = SquareBracketClose then
                         let node = { Token = listToken; Type = ListNode nodes }
-                        Ok { Node = node; Tokens = tokens |> skipOrEmpty 1 } |> Some
+                        Ok { Node = node; Tokens = tokens |> skipOrEmpty 1 }
                     else
-                        Error [(tokens.Head, "Expected ']'")] |> Some
-            else Ok ctx |> Some
+                        Error [(tokens.Head, "Expected ']'")]
+            else next ctx
 
         Validator = fun validate ctx ->
             match ctx.Node.Type with

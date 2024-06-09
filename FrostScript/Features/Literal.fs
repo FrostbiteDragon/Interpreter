@@ -49,11 +49,11 @@ module FrostScript.Features.Literal
                
                 | _ -> None
 
-        Parser = fun _ ctx ->
+        Parser = fun next ctx ->
             match (List.head ctx.Tokens).Type with
             | Number | String | Id | Void | Bool -> 
-                Ok { Node = { Token = ctx.Tokens.Head; Type = LiteralNode }; Tokens = ctx.Tokens |> skipOrEmpty 1 } |> Some
-            | _ -> None
+                Ok { Node = { Token = ctx.Tokens.Head; Type = LiteralNode }; Tokens = ctx.Tokens |> skipOrEmpty 1 }
+            | _ -> next ctx
 
         Validator = fun _ ctx ->
             match ctx.Node.Type with

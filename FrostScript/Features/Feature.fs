@@ -28,6 +28,6 @@ type InterpretOutput =
 
 type Feature =
     { Lexer : LexContext -> Result<LexContext, ErrorList> option
-      Parser : (ParseContext -> Result<ParseContext, ErrorList>) -> ParseContext -> Result<ParseContext, ErrorList> option
+      Parser : (ParseContext -> Result<ParseContext, ErrorList>) -> ParseContext -> Result<ParseContext, ErrorList>
       Validator : (Node -> Result<ValidationOutput, ErrorList>) -> ValidationContext -> Result<ValidationOutput, ErrorList> option
       Interpreter : (Expression -> Result<InterpretOutput, ErrorList>) -> InterpretContext -> Result<InterpretOutput, ErrorList> option }

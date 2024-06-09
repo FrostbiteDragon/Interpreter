@@ -16,6 +16,7 @@
     <Compile Include="Domain\NativeFunctions.fs" />
     <Compile Include="Features\Feature.fs" />
     <Compile Include="Features\Utilities.fs" />
+    <Compile Include="Features\Binary.fs" />
     <Compile Include="Features\Literal.fs" />
     <Compile Include="Features\FrostList.fs" />
     <Compile Include="FrostScript.fs" />
