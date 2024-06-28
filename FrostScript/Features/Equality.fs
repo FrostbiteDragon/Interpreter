@@ -1,14 +1,10 @@
 ﻿[<AutoOpen>]
-module FrostScript.Features.Equality
+module FrostScript.Features.Comparison
     open FrostScript.Domain
 
     let private operators = [("=", Equal); ("!=", NotEqual)]
 
-    let private bind2 func result1 result2  =
-        result1
-        |> Result.bind (fun x -> result2 |> Result.bind (func x))
-
-    let equality = {
+    let comparison = {
         Lexer  = binaryLexer operators
         Parser = binaryParser operators
 
@@ -16,7 +12,7 @@ module FrostScript.Features.Equality
             match ctx.Node.Type with
             | BinaryNode (operator, left, right) ->
                 (validate left, validate right)
-                ||> bind2 (fun left right ->
+                ||> Result.bind2 (fun left right ->
                     Ok { 
                         Expression = { DataType = BoolType; Type = BinaryExpression (operator, left.Expression, right.Expression)}
                         Ids = right.Ids

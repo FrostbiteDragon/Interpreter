@@ -11,26 +11,22 @@ module FrostScript.Features.Factor
         Validator = fun validate ctx ->
             match ctx.Node.Type with
             | BinaryNode (operator, left, right) ->
-                validate left
-                |> Result.bind (fun left -> 
-                    validate right
-                    |> Result.bind (fun right ->
-                        if left.Expression.DataType = NumberType && right.Expression.DataType = NumberType then
-                            Ok { 
-                                Expression = 
-                                    { DataType = NumberType; Type = BinaryExpression (operator, left.Expression, right.Expression)}
+                (validate left, validate right)
+                ||> Result.bind2 (fun left right -> 
+                    if left.Expression.DataType = NumberType && right.Expression.DataType = NumberType then
+                        Ok { 
+                            Expression = { DataType = NumberType; Type = BinaryExpression (operator, left.Expression, right.Expression)}
 
-                                Ids = right.Ids
-                            }
-                        else if left.Expression.DataType = StringType && right.Expression.DataType = StringType then
-                            Ok { 
-                                Expression = 
-                                    { DataType = StringType; Type = BinaryExpression (operator, left.Expression, right.Expression)}
+                            Ids = right.Ids
+                        }
+                    else if left.Expression.DataType = StringType && right.Expression.DataType = StringType then
+                        Ok { 
+                            Expression = 
+                                { DataType = StringType; Type = BinaryExpression (operator, left.Expression, right.Expression)}
 
-                                Ids = right.Ids
-                            }
-                        else Error [(ctx.Node.Token, $"Opperator '{operator}' cannot be used between types {left.Expression.DataType} and {right.Expression.DataType}")]
-                    )
+                            Ids = right.Ids
+                        }
+                    else Error [(ctx.Node.Token, $"Opperator '{operator}' cannot be used between types {left.Expression.DataType} and {right.Expression.DataType}")]
                 )
                 |> Some
 

@@ -32,3 +32,12 @@ module FrostScript.Features.Binary
                     )
                 else Ok leftCtx
         )
+
+    let binaryValidator func validate ctx =
+        match ctx.Node.Type with
+        | BinaryNode (operator, left, right) ->
+            (validate left, validate right)
+            ||> Result.bind2 (func operator ctx)
+            |> Some
+                    
+        | _ -> None
