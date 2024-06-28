@@ -6,9 +6,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Domain\ListExtentions.fs" />
     <Compile Include="Domain\Core.fs" />
     <Compile Include="Domain\IdMap.fs" />
-    <Compile Include="Domain\ListExtentions.fs" />
     <Compile Include="Domain\Railway.fs" />
     <Compile Include="Domain\LexerTypes.fs" />
     <Compile Include="Domain\ParserTypes.fs" />
@@ -17,6 +17,7 @@
     <Compile Include="Features\Feature.fs" />
     <Compile Include="Features\Utilities.fs" />
     <Compile Include="Features\Binary.fs" />
+    <Compile Include="Features\Equality.fs" />
     <Compile Include="Features\Factor.fs" />
     <Compile Include="Features\FrostList.fs" />
     <Compile Include="Features\Literal.fs" />

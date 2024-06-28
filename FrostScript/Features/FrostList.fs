@@ -23,7 +23,7 @@ module FrostScript.Features.FrostList
           
                 | _ -> None
 
-        Parser = fun next ctx ->
+        Parser = fun next expression ctx ->
             let listToken = ctx.Tokens.Head
             if listToken.Type = SquareBracketOpen then
                 if (ctx.Tokens |> skipOrEmpty 1).Head.Type = SquareBracketClose then 
@@ -33,14 +33,14 @@ module FrostScript.Features.FrostList
                     let mutable tokens = ctx.Tokens
                     let nodes = 
                         seq {
-                            let result = next { ctx with Tokens = tokens |> skipOrEmpty 1}
+                            let result = expression { ctx with Tokens = tokens |> skipOrEmpty 1}
                             match result with 
                             | Ok ctx ->
                                 yield ctx.Node
                                 tokens <- ctx.Tokens
 
                                 while tokens.IsEmpty |> not && tokens.Head.Type = Comma do
-                                    let result = next { ctx with Tokens = tokens |> skipOrEmpty 1}
+                                    let result = expression { ctx with Tokens = tokens |> skipOrEmpty 1}
                                     match result with 
                                     | Ok ctx ->
                                         yield ctx.Node

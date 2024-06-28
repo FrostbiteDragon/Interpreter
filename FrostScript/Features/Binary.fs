@@ -3,21 +3,6 @@ module FrostScript.Features.Binary
     open FrostScript.Domain
     open Utilities
 
-    let binaryParser operators next ctx = 
-        next ctx
-        |> Result.bind (fun leftCtx ->
-            match leftCtx.Tokens with
-            | [] -> Ok leftCtx
-            | head :: tail ->
-                let operator = operators |> List.tryFind (fun (lexeme, _) -> lexeme = head.Lexeme)
-                if operator.IsSome then
-                    next { leftCtx with Tokens = tail }
-                    |> Result.map (fun rightCtx -> 
-                        { rightCtx with Node = { Type = BinaryNode (operator.Value |> snd, leftCtx.Node, rightCtx.Node); Token = head } }
-                    )
-                else Ok leftCtx
-        )
-
     let binaryLexer operators ctx = 
         match ctx.Characters with
         | [] -> Ok ctx |> Some
@@ -32,3 +17,18 @@ module FrostScript.Features.Binary
                         |> addToken ctx 1
 
             testOperator operators
+
+    let binaryParser operators next _ ctx = 
+        next ctx
+        |> Result.bind (fun leftCtx ->
+            match leftCtx.Tokens with
+            | [] -> Ok leftCtx
+            | head :: tail ->
+                let operator = operators |> List.tryFind (fun (lexeme, _) -> lexeme = head.Lexeme)
+                if operator.IsSome then
+                    next { leftCtx with Tokens = tail }
+                    |> Result.map (fun rightCtx -> 
+                        { rightCtx with Node = { Type = BinaryNode (operator.Value |> snd, leftCtx.Node, rightCtx.Node); Token = head } }
+                    )
+                else Ok leftCtx
+        )

@@ -6,6 +6,7 @@ module FrostScript.FrostScript
 
     let execute =
         let features = [
+            equality
             frostlist
             factor
             term
@@ -40,7 +41,7 @@ module FrostScript.FrostScript
                 if ctx.Tokens = [] then
                     Ok ctx
                 else
-                    List.foldBack(fun feature previousfun -> feature.Parser previousfun) features (fun ctx -> Ok ctx) ctx
+                    List.foldBack(fun feature previousfun -> feature.Parser previousfun getNode) features (fun ctx -> Ok ctx) ctx
           
             { Tokens = tokens; Node = { Token = tokens.Head; Type = StatementNode } }
             |> getNode

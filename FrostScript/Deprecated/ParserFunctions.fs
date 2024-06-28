@@ -7,6 +7,27 @@ module FrostScript.ParserFunctions
 
 //    let private newNode token nodeType = {Token = token; Type = nodeType}
 //    let private error token message = {Token = token; Type = ParserError message}
+
+    //let rec expression : ParserFunction = fun tokens ->
+    //    stop
+    //    |> grouping
+    //    |> primary
+    //    |> object
+    //    |> objectAccessor
+    //    |> block
+    //    |> factor
+    //    |> term
+    //    |> comparison
+    //    |> equality
+    //    |> andFunction
+    //    |> orFunction
+    //    |> ifFunction
+    //    |> func
+    //    |> constructor
+    //    |> loop
+    //    |> call
+    //    |> binding
+    //    |> assign <| tokens
     
 //    let lexerError (next : ParserSegment) : ParserSegment = fun tokens -> 
 //        match tokens.Head.Type with

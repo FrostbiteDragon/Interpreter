@@ -49,7 +49,7 @@ module FrostScript.Features.Literal
                
                 | _ -> None
 
-        Parser = fun next ctx ->
+        Parser = fun next _ ctx ->
             match (List.head ctx.Tokens).Type with
             | Number | String | Id | Void | Bool -> 
                 Ok { Node = { Token = ctx.Tokens.Head; Type = LiteralNode }; Tokens = ctx.Tokens |> skipOrEmpty 1 }
