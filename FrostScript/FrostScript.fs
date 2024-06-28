@@ -8,6 +8,7 @@ module FrostScript.FrostScript
         let features = [
             equality
             frostlist
+            comparison
             factor
             term
             literal
