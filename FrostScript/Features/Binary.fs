@@ -3,6 +3,7 @@ module FrostScript.Features.Binary
     open FrostScript.Domain
     open Utilities
 
+    //need to check for multi character operators
     let binaryLexer operators ctx = 
         match ctx.Characters with
         | [] -> Ok ctx |> Some
