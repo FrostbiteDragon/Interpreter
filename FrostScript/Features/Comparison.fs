@@ -1,10 +1,10 @@
 ﻿[<AutoOpen>]
-module FrostScript.Features.Equality
+module FrostScript.Features.Comparison
     open FrostScript.Domain
 
     let private operators = [(">", GreaterThen); ("<", LessThen); (">=", GreaterOrEqual); ("<=", LessOrEqual)]
 
-    let equality = {
+    let comparison = {
         Lexer  = binaryLexer operators
         Parser = binaryParser operators
 
